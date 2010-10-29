@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:core="urn:be:fgov:ehealth:commons:1_0:core" xmlns:etee="urn:be:fgov:ehealth:etee:commons:1_0:etee" xmlns:protocol="urn:be:fgov:ehealth:commons:1_0:protocol" elementFormDefault="qualified" targetNamespace="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="commons-core.xsd" namespace="urn:be:fgov:ehealth:commons:1_0:core" />
+  <xs:import schemaLocation="commons-protocol.xsd" namespace="urn:be:fgov:ehealth:commons:1_0:protocol" />
+  <xs:import schemaLocation="commons-etee.xsd" namespace="urn:be:fgov:ehealth:etee:commons:1_0:etee" />
+  <xs:element name="GetNewKeyRequest">
+    <xs:complexType>
+      <xs:complexContent mixed="false">
+        <xs:extension base="protocol:RequestType">
+          <xs:sequence minOccurs="1" maxOccurs="1">
+            <xs:element name="SealedNewKeyRequest" type="SealedContentType" />
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetNewKeyResponse">
+    <xs:complexType>
+      <xs:complexContent mixed="false">
+        <xs:extension base="etee:EteeResponseType">
+          <xs:sequence minOccurs="1" maxOccurs="1">
+            <xs:element name="SealedNewKeyResponse" type="SealedContentType" />
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetKeyRequest">
+    <xs:complexType>
+      <xs:complexContent mixed="false">
+        <xs:extension base="protocol:RequestType">
+          <xs:sequence minOccurs="1" maxOccurs="1">
+            <xs:element name="SealedKeyRequest" type="SealedContentType" />
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetKeyResponse">
+    <xs:complexType>
+      <xs:complexContent mixed="false">
+        <xs:extension base="etee:EteeResponseType">
+          <xs:sequence minOccurs="1" maxOccurs="1">
+            <xs:element name="SealedKeyResponse" type="SealedContentType" />
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="SealedContentType">
+    <xs:sequence minOccurs="1" maxOccurs="1">
+      <xs:element name="SealedContent" type="xs:base64Binary" />
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

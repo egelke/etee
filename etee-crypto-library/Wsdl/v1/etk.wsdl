@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s0:definitions targetNamespace="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:s0="http://schemas.xmlsoap.org/wsdl/" xmlns:s1="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:s2="http://schemas.xmlsoap.org/wsdl/soap/">
+  <s0:types>
+    <xs:schema xmlns:etkdepot="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:types="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="urn:be:fgov:ehealth:etkdepot:1_0:protocol" schemaLocation="etk-protocol.xsd"/>
+    </xs:schema>
+  </s0:types>
+  <s0:message name="GetEtkRequestMessage">
+    <s0:part element="s1:GetEtkRequest" name="body"/>
+  </s0:message>
+  <s0:message name="GetEtkResponseMessage">
+    <s0:part element="s1:GetEtkResponse" name="body"/>
+  </s0:message>
+  <s0:portType name="EtkDepotPortType">
+    <s0:operation name="GetEtk">
+      <s0:input message="s1:GetEtkRequestMessage"/>
+      <s0:output message="s1:GetEtkResponseMessage"/>
+    </s0:operation>
+  </s0:portType>
+  <s0:binding name="EtkDepotSoapBinding" type="s1:EtkDepotPortType">
+    <s2:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <s0:operation name="GetEtk">
+      <s2:operation />
+      <s0:input>
+        <s2:body use="literal"/>
+      </s0:input>
+      <s0:output>
+        <s2:body use="literal"/>
+      </s0:output>
+    </s0:operation>
+  </s0:binding>
+  <s0:service name="EtkDepotSoapBindingQSService">
+    <s0:port binding="s1:EtkDepotSoapBinding" name="EtkDepotSoapBindingQSPort">
+      <s2:address location="https://services-acpt.ehealth.fgov.be:443/EtkDepot/v1"/>
+    </s0:port>
+  </s0:service>
+</s0:definitions>

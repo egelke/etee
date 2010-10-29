@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:core="urn:be:fgov:ehealth:commons:1_0:core" xmlns:protocol="urn:be:fgov:ehealth:commons:1_0:protocol" targetNamespace="urn:be:fgov:ehealth:commons:1_0:protocol" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="commons-core.xsd" namespace="urn:be:fgov:ehealth:commons:1_0:core" />
+  <xs:complexType name="RequestType" />
+  <xs:complexType name="ResponseType">
+    <xs:sequence>
+      <xs:element ref="core:Status" />
+    </xs:sequence>
+    <xs:attribute name="Id" type="xs:string" />
+  </xs:complexType>
+</xs:schema>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:core="urn:be:fgov:ehealth:commons:1_0:core" xmlns:protocol="urn:be:fgov:ehealth:commons:1_0:protocol" elementFormDefault="qualified" targetNamespace="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="commons-protocol.xsd" namespace="urn:be:fgov:ehealth:commons:1_0:protocol" />
+  <xs:import schemaLocation="commons-core.xsd" namespace="urn:be:fgov:ehealth:commons:1_0:core" />
+  <xs:element name="GetEtkRequest">
+    <xs:complexType>
+      <xs:complexContent mixed="false">
+        <xs:extension base="protocol:RequestType">
+          <xs:sequence>
+            <xs:element name="SearchCriteria" type="SearchCriteriaType" />
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetEtkResponse">
+    <xs:complexType>
+      <xs:complexContent mixed="false">
+        <xs:extension base="protocol:ResponseType">
+          <xs:sequence minOccurs="0">
+            <xs:element name="GivenSearchCriteria" type="SearchCriteriaType" />
+            <xs:choice minOccurs="0">
+              <xs:element ref="ETK" />
+              <xs:element maxOccurs="unbounded" ref="MatchingEtk" />
+              <xs:element maxOccurs="unbounded" name="Error" type="ErrorType" />
+            </xs:choice>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="IdentifierType">
+    <xs:sequence>
+      <xs:element name="Type" type="xs:string" />
+      <xs:element name="Value" type="xs:string" />
+      <xs:element name="ApplicationID" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ErrorType">
+    <xs:sequence>
+      <xs:element name="Code" type="xs:string" />
+      <xs:element name="Message" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ETK" type="xs:base64Binary" />
+  <xs:complexType name="SearchCriteriaType">
+    <xs:sequence>
+      <xs:element maxOccurs="2" name="Identifier" type="IdentifierType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MultipleFound">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="MatchingEtk" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MatchingEtk">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" name="Identifier" type="IdentifierType" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="UniqueFound">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="ETK" type="xs:base64Binary" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
