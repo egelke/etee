@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<disco:discovery
+  xmlns:disco="http://schemas.xmlsoap.org/disco/"
+  xmlns:scl="http://schemas.xmlsoap.org/disco/scl/">
+
+  <scl:contractRef ref="v1/etk.wsdl"/>
+  <scl:contractRef ref="v1/kgss.wsdl"/>
+</disco:discovery>

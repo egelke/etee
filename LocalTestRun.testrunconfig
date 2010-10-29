@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<TestSettings name="Local Test Run" id="2280ae1d-2906-46dc-937e-dc671e7bae54" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Description>This is a default test run configuration for a local test run.</Description>
+  <Deployment>
+    <DeploymentItem filename="etee-crypto-itest\messages\" />
+    <DeploymentItem filename="etee-crypto-itest\javabin\" />
+    <DeploymentItem filename="etee-crypto-test\alice\" />
+    <DeploymentItem filename="etee-crypto-test\imports\" />
+    <DeploymentItem filename="etee-crypto-test\xsd\" />
+    <DeploymentItem filename="etee-crypto-test\bob\" />
+    <DeploymentItem filename="etee-crypto-test\msg\" />
+    <DeploymentItem filename="etee-crypto-test\etk\" />
+  </Deployment>
+  <Execution>
+    <Timeouts runTimeout="1800000" testTimeout="600000" />
+    <TestTypeSpecific>
+      <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+        <AssemblyResolution>
+          <TestDirectory useLoadContext="true" />
+        </AssemblyResolution>
+      </UnitTestRunConfig>
+    </TestTypeSpecific>
+    <AgentRule name="LocalMachineDefaultRole">
+      <DataCollectors>
+        <DataCollector uri="datacollector://microsoft/CodeCoverage/1.0" assemblyQualifiedName="Microsoft.VisualStudio.TestTools.CodeCoverage.CoveragePlugIn, Microsoft.VisualStudio.QualityTools.Plugins.CodeCoverage, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" friendlyName="Code Coverage">
+          <Configuration>
+            <CodeCoverage keyFile="debug.snk" xmlns="">
+              <Regular>
+                <CodeCoverageItem binaryFile="etee-crypto\bin\Debug\Siemens.EHealth.Etee.Crypto.dll" pdbFile="etee-crypto\bin\Debug\Siemens.EHealth.Etee.Crypto.pdb" instrumentInPlace="true" />
+              </Regular>
+            </CodeCoverage>
+          </Configuration>
+        </DataCollector>
+      </DataCollectors>
+    </AgentRule>
+  </Execution>
+</TestSettings>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<discovery xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/disco/">
+  <contractRef ref="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/v1/etk.wsdl" xmlns="http://schemas.xmlsoap.org/disco/scl/" />
+  <contractRef ref="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/v1/kgss.wsdl" xmlns="http://schemas.xmlsoap.org/disco/scl/" />
+</discovery>

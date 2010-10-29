@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:core="urn:be:fgov:ehealth:commons:1_0:core" targetNamespace="urn:be:fgov:ehealth:commons:1_0:core" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="IdentifierType">
+    <xs:sequence>
+      <xs:element name="Id" type="xs:string" />
+      <xs:element name="Type" type="xs:string" />
+      <xs:element minOccurs="0" name="SubType" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PeriodType">
+    <xs:sequence>
+      <xs:element name="BeginDate" type="xs:date" />
+      <xs:element minOccurs="0" name="EndDate" type="xs:date" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="LocalisedString">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="Lang" type="core:LangageType" use="optional" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:element name="Status">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Code" type="xs:string" />
+        <xs:element maxOccurs="unbounded" name="Message" type="core:LocalisedString" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="LangageType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="FR" />
+      <xs:enumeration value="NL" />
+      <xs:enumeration value="EN" />
+      <xs:enumeration value="DE" />
+      <xs:enumeration value="NA" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

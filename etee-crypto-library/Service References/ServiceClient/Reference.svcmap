@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="d8aba35a-398d-4954-97e2-fb69c9e1b81b" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="D:\Projects\MS\HealthVault\ETEE\etee-crypto-library\wsdl\eHealth.disco" Protocol="file" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="commons-protocol.xsd" MetadataType="Schema" ID="e69a9293-7767-4d78-b87b-0aeeda04929d" SourceId="1" SourceUrl="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/v1/commons-protocol.xsd" />
+    <MetadataFile FileName="commons-core.xsd" MetadataType="Schema" ID="3ab507b9-9586-4045-8ded-2a0aa39a24e8" SourceId="1" SourceUrl="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/v1/commons-core.xsd" />
+    <MetadataFile FileName="etk-protocol.xsd" MetadataType="Schema" ID="471f71b1-18ec-4e6a-9f1d-d0c34c517da1" SourceId="1" SourceUrl="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/v1/etk-protocol.xsd" />
+    <MetadataFile FileName="eHealth.disco" MetadataType="Disco" ID="cbe35185-6c13-4c74-aad5-05da72a56473" SourceId="1" SourceUrl="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/eHealth.disco" />
+    <MetadataFile FileName="kgss-protocol.xsd" MetadataType="Schema" ID="3eb73120-57af-49b5-8c2b-2c4d78bbb994" SourceId="1" SourceUrl="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/v1/kgss-protocol.xsd" />
+    <MetadataFile FileName="kgss.wsdl" MetadataType="Wsdl" ID="0464e87d-789d-4e3b-8d06-a99a5a18f74e" SourceId="1" SourceUrl="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/v1/kgss.wsdl" />
+    <MetadataFile FileName="etk.wsdl" MetadataType="Wsdl" ID="7f4f19dd-1047-46c3-bda1-9948525c3b1e" SourceId="1" SourceUrl="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/v1/etk.wsdl" />
+    <MetadataFile FileName="commons-etee.xsd" MetadataType="Schema" ID="2d7a6cc3-9e30-43dc-bf6b-e3895c40706f" SourceId="1" SourceUrl="file:///D:/Projects/MS/HealthVault/ETEE/etee-crypto-library/wsdl/v1/commons-etee.xsd" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

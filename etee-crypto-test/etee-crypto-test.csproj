@@ -1,0 +1,241 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1B5AFBC6-F0EB-44E3-8B2F-9CB317D71CD5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Siemens.eHealth.ETEE.Crypto.Test</RootNamespace>
+    <AssemblyName>Siemens.eHealth.ETEE.Crypto.Test</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.6.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\etee-crypto\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Assembly.cs" />
+    <Compile Include="DataUnsealerTest.cs" />
+    <Compile Include="EncryptionTokenTest.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="EndToEnd.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="VerifierTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\debug.snk">
+      <Link>debug.snk</Link>
+    </None>
+    <Content Include="alice\alices_public_key.etk" />
+    <Content Include="App.config" />
+    <Content Include="bob\bobs_public_key.etk" />
+    <Content Include="etk\auth_and_encr_not_same_DN.etk" />
+    <Content Include="etk\expired_auth.etk" />
+    <Content Include="etk\expired_encr.etk" />
+    <Content Include="etk\incorrectly_encoded.etk" />
+    <Content Include="etk\invalid_authkey_usage.etk" />
+    <Content Include="etk\invalid_cert_chain.etk" />
+    <Content Include="etk\invalid_encrkey_usage.etk" />
+    <Content Include="etk\invalid_key_algorithm.etk" />
+    <Content Include="etk\invalid_key_size.etk" />
+    <Content Include="etk\not_yet_auth.etk" />
+    <Content Include="etk\valid_but_scrambledDN.etk" />
+    <Content Include="imports\sisca.crl" />
+    <Content Include="imports\sisintca.crl" />
+    <Content Include="imports\trustedRoot\cacert.pem" />
+    <Content Include="imports\trustedRoot\int\cacert.pem" />
+    <Content Include="imports\trustedRoot\int\dsacert.pem" />
+    <Content Include="imports\trustedRoot\int\dsasizecert.pem" />
+    <Content Include="imports\trustedRoot\int\expiredcert.pem" />
+    <Content Include="imports\trustedRoot\int\isigncert.pem" />
+    <Content Include="imports\trustedRoot\int\iusagecert.pem" />
+    <Content Include="imports\trustedRoot\int\keysizecert.pem" />
+    <Content Include="imports\trustedRoot\int\musagecert.pem" />
+    <Content Include="imports\trustedRoot\int\normalcert.pem" />
+    <Content Include="imports\trustedRoot\int\nyacert.pem" />
+    <Content Include="imports\trustedRoot\int\revokedcert.pem" />
+    <Content Include="imports\trustedRoot\int\unnestedcert.pem" />
+    <Content Include="imports\trustedRoot\int_overlap2\cacert.pem" />
+    <Content Include="imports\trustedRoot\int_overlap2\normalcert.pem" />
+    <Content Include="imports\trustedRoot\int_overlap\cacert.pem" />
+    <Content Include="imports\trustedRoot\int_overlap\normalcert.pem" />
+    <Content Include="imports\trustedRoot\int_revoked\cacert.pem" />
+    <Content Include="imports\trustedRoot\int_revoked\normalcert.pem" />
+    <Content Include="imports\trustedRoot\int_sign\cacert.pem" />
+    <Content Include="imports\trustedRoot\int_sign\normalcert.pem" />
+    <Content Include="imports\trustedRoot\int_usageBase\cacert.pem" />
+    <Content Include="imports\trustedRoot\int_usageBase\normalcert.pem" />
+    <Content Include="imports\trustedRoot\int_usageKey\cacert.pem" />
+    <Content Include="imports\trustedRoot\int_usageKey\normalcert.pem" />
+    <Content Include="imports\untrustedRoot\cacert.pem" />
+    <Content Include="imports\untrustedRoot\int\cacert.pem" />
+    <Content Include="imports\untrustedRoot\int\normalcert.pem" />
+    <Content Include="imports\users\alice_auth.p12" />
+    <Content Include="imports\users\alice_enc.p12" />
+    <Content Include="imports\users\bob_auth.p12" />
+    <Content Include="imports\users\bob_enc.p12" />
+    <Content Include="imports\users\dirk_auth.p12" />
+    <Content Include="imports\users\dirk_enc.p12" />
+    <Content Include="imports\users\hospital_auth.p12" />
+    <Content Include="imports\users\hospital_enc.p12" />
+    <Content Include="imports\users\niala2_auth.p12" />
+    <Content Include="imports\users\niala2_enc.p12" />
+    <Content Include="imports\users\niala3_auth.p12" />
+    <Content Include="imports\users\niala3_enc.p12" />
+    <Content Include="imports\users\niala4_auth.p12" />
+    <Content Include="imports\users\niala4_enc.p12" />
+    <Content Include="imports\users\niala_auth.p12" />
+    <Content Include="imports\users\niala_enc.p12" />
+    <Content Include="imports\users\oldHospital_auth.p12" />
+    <Content Include="imports\users\oldHospital_enc.p12" />
+    <Content Include="msg\openssl_encrypted.msg" />
+    <Content Include="msg\openssl_inner_signed.msg" />
+    <Content Include="msg\openssl_outer_signed.msg" />
+    <Content Include="msg\openssl_outer_signed_big.msg" />
+    <Content Include="msg\triple_wrapped_both_eid_certs_signed.msg" />
+    <Content Include="msg\triple_wrapped_both_expired_eid_certs_signed.msg" />
+    <Content Include="msg\triple_wrapped_both_revoked_eid_certs_signed.msg" />
+    <Content Include="msg\triple_wrapped_both_suspended_eid_certs_signed.msg" />
+    <Content Include="msg\triple_wrapped_certs_contain_noexisting_crluri.msg" />
+    <Content Include="msg\triple_wrapped_certs_contain_no_crluri.msg" />
+    <Content Include="msg\triple_wrapped_correct.msg" />
+    <Content Include="msg\triple_wrapped_cross_signed.msg" />
+    <Content Include="msg\triple_wrapped_expired_auth.msg" />
+    <Content Include="msg\triple_wrapped_expired_encr.msg" />
+    <Content Include="msg\triple_wrapped_invalid_cert_chain.msg" />
+    <Content Include="msg\triple_wrapped_invalid_cms_signed.msg" />
+    <Content Include="msg\triple_wrapped_invalid_encrypted.msg" />
+    <Content Include="msg\triple_wrapped_invalid_inner_signed.msg" />
+    <Content Include="msg\triple_wrapped_invalid_key_size.msg" />
+    <Content Include="msg\triple_wrapped_invalid_key_usage.msg" />
+    <Content Include="msg\triple_wrapped_invalid_signature.msg" />
+    <Content Include="msg\triple_wrapped_more_signing_times.msg" />
+    <Content Include="msg\triple_wrapped_multi_recipients.msg" />
+    <Content Include="msg\triple_wrapped_not_valid_yet_auth.msg" />
+    <Content Include="msg\triple_wrapped_revoked_cert.msg" />
+    <Content Include="msg\triple_wrapped_signed_with_other_key_and_algo.msg" />
+    <Content Include="msg\triple_wrapped_unauthorized_algos.msg" />
+    <Content Include="msg\triple_wrapped_unsupported_algos.msg" />
+    <Content Include="msg\triple_wrapped_was_not_valid_yet_auth.msg" />
+    <Content Include="msg\triple_wrapped_without_certset.msg" />
+    <Content Include="msg\triple_wrapped_without_inner_eid_cert.msg" />
+    <Content Include="msg\triple_wrapped_without_outer_eid_cert.msg" />
+    <Content Include="msg\triple_wrapped_with_2_signerinfos.msg" />
+    <Content Include="msg\triple_wrapped_wrong_encryption_key.msg" />
+    <Content Include="xsd\saml-assertion.xsd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="xsd\saml-protocol.xsd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="xsd\xmldsig.xsd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="COPYING" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="msg\clear.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\etee-crypto-core\etee-crypto-core.csproj">
+      <Project>{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}</Project>
+      <Name>etee-crypto-core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y $(ProjectDir)app.config $(TargetPath).config</PostBuildEvent>
+  </PropertyGroup>
+</Project>
