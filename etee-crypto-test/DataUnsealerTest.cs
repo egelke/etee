@@ -96,7 +96,11 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void Clear()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("clear.txt", FileMode.Open));
+            FileStream fs = new FileStream("clear.txt", FileMode.Open);
+            using (fs)
+            {
+                UnsealResult result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
@@ -104,7 +108,11 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void SignedEncryptedOnly()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("openssl_encrypted.msg", FileMode.Open));
+            FileStream fs = new FileStream("openssl_encrypted.msg", FileMode.Open);
+            using (fs)
+            {
+                UnsealResult result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
@@ -112,14 +120,23 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void SignedOnly()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("openssl_inner_signed.msg", FileMode.Open));
+            FileStream fs = new FileStream("openssl_inner_signed.msg", FileMode.Open);
+            using (fs)
+            {
+            UnsealResult result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
         public void InvalidAlgo()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("openssl_outer_signed.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("openssl_outer_signed.msg", FileMode.Open);
+            using (fs)
+            {
+                result = unsealer.Unseal(fs);
+            }
 
             Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual<Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus>(Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
@@ -132,7 +149,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void InvalidAlgoBigFile()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("openssl_outer_signed_big.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("openssl_outer_signed_big.msg", FileMode.Open);
+            using (fs)
+            {
+                result = unsealer.Unseal(fs);
+            }
 
             Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual<Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus>(Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
@@ -145,8 +167,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void eid()
         {
             unsealer = DataUnsealerFactory.Create(dirkEnc, dirkAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_both_eid_certs_signed.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_both_eid_certs_signed.msg", FileMode.Open);
+            using (fs)
+            {
+                result = unsealer.Unseal(fs);
+            }
 
             Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual<Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus>(Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus.None, result.SecurityInformation.TrustStatus);
@@ -160,8 +186,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void eidExpired()
         {
             unsealer = DataUnsealerFactory.Create(dirkEnc, dirkAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_both_expired_eid_certs_signed.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_both_expired_eid_certs_signed.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual<Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus>(Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus.None, result.SecurityInformation.TrustStatus);
@@ -176,8 +206,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void eidRevoked()
         {
             unsealer = DataUnsealerFactory.Create(dirkEnc, dirkAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_both_revoked_eid_certs_signed.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_both_revoked_eid_certs_signed.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         //[TestMethod]
@@ -185,8 +219,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void eidSuspended()
         {
             unsealer = DataUnsealerFactory.Create(dirkEnc, dirkAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_both_suspended_eid_certs_signed.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_both_suspended_eid_certs_signed.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         //[TestMethod]
@@ -194,8 +232,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void eidNoCrlUri()
         {
             unsealer = DataUnsealerFactory.Create(dirkEnc, dirkAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_certs_contain_no_crluri.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_certs_contain_no_crluri.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         //[TestMethod]
@@ -203,15 +245,24 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void eidNonExistingCrlUri()
         {
             unsealer = DataUnsealerFactory.Create(dirkEnc, dirkAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_certs_contain_noexisting_crluri.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_certs_contain_noexisting_crluri.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
         public void Correct()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_correct.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_correct.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -226,7 +277,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void crossSigned()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_cross_signed.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_cross_signed.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -245,16 +301,24 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void ExpiredAuth()
         {
             unsealer = DataUnsealerFactory.Create(nialaEnc, nialaAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_expired_auth.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_expired_auth.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
         public void ExpiredEnc()
         {
             unsealer = DataUnsealerFactory.Create(niala2Enc, niala2Auth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_expired_encr.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_expired_encr.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -273,8 +337,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void InvalidCertChain()
         {
             unsealer = DataUnsealerFactory.Create(niala3Enc, niala3Auth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_invalid_cert_chain.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_invalid_cert_chain.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -296,7 +364,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void InvalidCmsSigned()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_invalid_cms_signed.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_invalid_cms_signed.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
@@ -304,7 +377,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void InvalidEncrypted()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_invalid_encrypted.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_invalid_encrypted.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
@@ -312,15 +390,24 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void InvalidInnerSigned()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_invalid_inner_signed.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_invalid_inner_signed.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
         public void InvalidKeySize()
         {
             unsealer = DataUnsealerFactory.Create(oldHospEnc, oldHospAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_invalid_key_size.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_invalid_key_size.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -340,8 +427,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void InvalidKeyUsage()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_invalid_key_usage.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_invalid_key_usage.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -360,8 +451,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void InvalidSignature()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_invalid_signature.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_invalid_signature.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -381,15 +476,24 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void InvalidMultiSignTimes()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_more_signing_times.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_more_signing_times.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
         public void MultiRecipients()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_multi_recipients.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_multi_recipients.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -404,8 +508,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void NotValidYet()
         {
             unsealer = DataUnsealerFactory.Create(niala4Enc, niala4Auth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_not_valid_yet_auth.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_not_valid_yet_auth.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -429,8 +537,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void Revoked()
         {
             unsealer = DataUnsealerFactory.Create(dirkEnc, dirkAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_revoked_cert.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_revoked_cert.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
@@ -438,16 +550,24 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void DsaSignatureWithRsaKey()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_signed_with_other_key_and_algo.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_signed_with_other_key_and_algo.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
         public void UnauthorizedAlgos()
         {
             unsealer = DataUnsealerFactory.Create(hospEnc, hospAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_unauthorized_algos.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_unauthorized_algos.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -471,8 +591,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void UnsupportedAlgos()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_unsupported_algos.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_unsupported_algos.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -494,8 +618,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void WasNotValidYet()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_was_not_valid_yet_auth.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_was_not_valid_yet_auth.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
@@ -503,8 +631,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void MultiSigned()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_with_2_signerinfos.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_with_2_signerinfos.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         //[TestMethod]
@@ -512,16 +644,24 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void WithoutCerts()
         {
             unsealer = DataUnsealerFactory.Create(niala4Enc, niala4Auth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_without_certset.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_without_certset.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
         }
 
         [TestMethod]
         public void InvalidInnerSignature()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_without_inner_eid_cert.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_without_inner_eid_cert.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -541,8 +681,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void MissingOuterCertificate()
         {
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_without_outer_eid_cert.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_without_outer_eid_cert.msg", FileMode.Open);
+            using (fs)
+            {
+                 result = unsealer.Unseal(fs);
+            }
 
             byte[] data = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(data, 0, data.Length);
@@ -563,8 +707,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void WrongEncryption()
         {
             unsealer = DataUnsealerFactory.Create(aliceEnc, aliceAuth);
-
-            UnsealResult result = unsealer.Unseal(new FileStream("triple_wrapped_wrong_encryption_key.msg", FileMode.Open));
+            UnsealResult result;
+            FileStream fs = new FileStream("triple_wrapped_wrong_encryption_key.msg", FileMode.Open);
+            using (fs)
+            {
+                result = unsealer.Unseal(fs);
+            }
         }
     }
 }

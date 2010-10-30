@@ -66,22 +66,25 @@ namespace Siemens.EHealth.Client.Sso
             target.ClientCredentials.ClientCertificate.Certificate = clientCredentials.ClientCertificate.Certificate;
             target.InnerChannel.OperationTimeout = timeout;
 
+            /*
             //TODO::Remove after fix MS (Bug of cashed certificates when behind proxy)
             ServicePoint targetSp = ServicePointManager.FindServicePoint(target.Endpoint.Address.Uri, HttpWebRequest.DefaultWebProxy);
             if (targetSp != null)
             {
                 servicePointMethod.Invoke(targetSp, new Object[] { null });
             }
+             */
 
             XmlElement assertion = target.RequestTicket("Anonymous", clientCredentials.Session, clientCredentials.Duration, reqParams, tokenRequirement.ClaimTypeRequirements);
             
-
+            /*
             //TODO::Remove after fix MS (Bug of cashed certificates when behind proxy)
             targetSp = ServicePointManager.FindServicePoint(target.Endpoint.Address.Uri, HttpWebRequest.DefaultWebProxy);
             if (targetSp != null)
             {
                 servicePointMethod.Invoke(targetSp, new Object[] { null });
             }
+             */
 
             XmlNamespaceManager nsmngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
             nsmngr.AddNamespace("saml", "urn:oasis:names:tc:SAML:1.0:assertion");

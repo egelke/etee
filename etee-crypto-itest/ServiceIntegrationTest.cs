@@ -121,7 +121,7 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Send (using library)
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
-            KnownRecipient bob = new KnownRecipient("NIHII", "00000000202"); //Create bob, we don't have an ETK.
+            KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
             pmForAlice_S_0.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
 
@@ -165,7 +165,7 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Send (using library)
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
-            KnownRecipient bob = new KnownRecipient("NIHII", "00000000202"); //Create bob, we don't have an ETK.
+            KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
             pmForAlice_SR_0.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
 
@@ -209,7 +209,7 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Send (using library)
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
-            KnownRecipient bob = new KnownRecipient("NIHII", "00000000202"); //Create bob, we don't have an ETK.
+            KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
             pmForAlice_SR_S.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
 
@@ -253,7 +253,7 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Send (using library)
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
-            KnownRecipient bob = new KnownRecipient("NIHII", "00000000202"); //Create bob, we don't have an ETK.
+            KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
             pmForAlice_SR_SR.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
 
@@ -367,9 +367,9 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Send (using library)
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
-            KnownRecipient bob = new KnownRecipient("NIHII", "00000000202"); //Create bob, we don't have an ETK.
+            KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
-            KnownRecipient alice = new KnownRecipient("NIHII", "00000000101"); //Create alice, we don't have an ETK.
+            KnownRecipient alice = new KnownRecipient("NIHII", "00000196101"); //Create alice, we don't have an ETK.
             recipients.Add(alice); //Add alice as recipient
             pmForAlice_SR_S.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)
 
@@ -415,7 +415,7 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Send (using library)
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
-            KnownRecipient bob = new KnownRecipient("NIHII", "00000000202"); //Create bob, we don't have an ETK.
+            KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
             recipients.Add(new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:person:ssin", null));
             pmForAlice_SR_S.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)

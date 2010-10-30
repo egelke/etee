@@ -101,8 +101,10 @@ namespace Siemens.EHealth.Client.Sso.Sts.WcfAddition
             doc.Save(writer);
 
             FileStream fs = new FileStream("etee.xml", FileMode.Create);
-            doc.Save(fs);
-            fs.Close();
+            using (fs)
+            {
+                doc.Save(fs);
+            }
         }
     }
 }
