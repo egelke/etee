@@ -292,6 +292,12 @@ namespace Siemens.EHealth.Etee.Crypto.Library
                 etkRequest.SearchCriteria[0].Type = matches[0].Groups["type"].Value;
                 etkRequest.SearchCriteria[0].Value = matches[0].Groups["id"].Value;
 
+#if DEBUG
+                //Translate old Alice & Bob NIHII numbers into new onces
+                if (etkRequest.SearchCriteria[0].Value == "00000000101") etkRequest.SearchCriteria[0].Value = "00000196101";
+                if (etkRequest.SearchCriteria[0].Value == "00000000202") etkRequest.SearchCriteria[0].Value = "00000295202";
+#endif
+
                 etkResponse = etkDepot.GetEtk(etkRequest);
                 ServiceException.Check(etkResponse);
 

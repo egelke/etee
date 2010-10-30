@@ -18,8 +18,8 @@
     <HtmlHelpName>ETEE Library API</HtmlHelpName>
     <Language>en-US</Language>
     <DocumentationSources>
-      <DocumentationSource sourceFile="etee-crypto\bin\Release\Siemens.EHealth.Etee.Crypto.dll" xmlns="" />
-      <DocumentationSource sourceFile="etee-crypto\bin\Release\Siemens.EHealth.Etee.Crypto.xml" xmlns="" />
+      <DocumentationSource sourceFile="etee-crypto-core\bin\Release\Siemens.EHealth.Etee.Crypto.dll" xmlns="" />
+      <DocumentationSource sourceFile="etee-crypto-core\bin\Release\Siemens.EHealth.Etee.Crypto.xml" xmlns="" />
     </DocumentationSources>
     <HelpFileFormat>HtmlHelp1</HelpFileFormat>
     <NamespaceSummaries>

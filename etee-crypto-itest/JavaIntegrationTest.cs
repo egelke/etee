@@ -113,11 +113,7 @@ namespace Siemens.EHealth.Etee.ITest
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
-            FileStream etkFile = new FileStream("bobs_public_key.etk", FileMode.Open);
-            byte[] etkBytes = new byte[etkFile.Length];
-            etkFile.Read(etkBytes, 0, etkBytes.Length);
-
-            byte[] msg = sealer.Seal(new Crypto.EncryptionToken(etkBytes), Encoding.UTF8.GetBytes(text));
+            byte[] msg = sealer.Seal(new Crypto.EncryptionToken(Utils.ReadFully("bobs_public_key.etk")), Encoding.UTF8.GetBytes(text));
 
             FileStream msgFile = new FileStream("message_from_alice_for_bob.msg", FileMode.OpenOrCreate);
             using(msgFile)
@@ -136,8 +132,13 @@ namespace Siemens.EHealth.Etee.ITest
         {
             RunJava("be.smals.ehealth.etee.crypto.examples.SealForUnknown");
 
+            UnsealResult result;
             SecretKey kek = new SecretKey(Convert.FromBase64String("btSefztkXjZmlZyHQIumLA=="), Convert.FromBase64String("aaUnRynIwd3GFQmhXfW+VQ=="));
-            UnsealResult result = unsealer.Unseal(new FileStream("message_from_alice_for_unknown.msg", FileMode.Open), kek);
+            FileStream fs = new FileStream("message_from_alice_for_unknown.msg", FileMode.Open);
+            using(fs)
+            {
+                result = unsealer.Unseal(fs, kek);
+            }
 
             Assert.AreEqual<Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus>(Siemens.EHealth.Etee.Crypto.Decrypt.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual<ValidationStatus>(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
@@ -160,13 +161,9 @@ namespace Siemens.EHealth.Etee.ITest
             byte[] msg = sealer.Seal(Encoding.UTF8.GetBytes(text), kek);
 
             FileStream msgFile = new FileStream("message_from_alice_for_unknown.msg", FileMode.OpenOrCreate);
-            try
+            using(msgFile) 
             {
                 msgFile.Write(msg, 0, msg.Length);
-            }
-            finally
-            {
-                msgFile.Close();
             }
 
             String output = RunJava("be.smals.ehealth.etee.crypto.examples.UnsealByUnknown");

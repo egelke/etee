@@ -64,16 +64,17 @@ namespace Siemens.EHealth.Client.Sso.Sts
             clientToken.InclusionMode = SecurityTokenInclusionMode.AlwaysToRecipient;
             clientToken.RequireDerivedKeys = false;
             clientToken.ReferenceStyle = SecurityTokenReferenceStyle.Internal;
-            security.InitiatorTokenParameters = clientToken;
+            security.InitiatorTokenParameters = clientToken; //Creates an _unsigned_ binary token + signature that references the other binary token.
 
             X509SecurityTokenParameters serverToken = new X509SecurityTokenParameters();
             serverToken.X509ReferenceStyle = X509KeyIdentifierClauseType.Any;
             serverToken.InclusionMode = SecurityTokenInclusionMode.Never;
             serverToken.RequireDerivedKeys = false;
             serverToken.ReferenceStyle = SecurityTokenReferenceStyle.External;
-            security.RecipientTokenParameters = serverToken;
+            security.RecipientTokenParameters = serverToken; //Only to make asymetric binding work
 
-            security.EndpointSupportingTokenParameters.Signed.Add(clientToken);
+            security.EndpointSupportingTokenParameters.Signed.Add(clientToken); //Create a signed binary token + signature that does _not_ references other binary token.
+            //Later on the unsigned binary token is removed and the non referecing signature is removed.  The signed token and referencing signature are linked.
 
             security.EnableUnsecuredResponse = true;
             security.IncludeTimestamp = true;
