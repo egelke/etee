@@ -26,12 +26,13 @@ using Siemens.EHealth.Etee.Crypto.Configuration;
 using Siemens.EHealth.Etee.Crypto.Utils;
 using BC = Org.BouncyCastle.X509;
 using System.Security.Permissions;
+using System.Threading;
 
 namespace Siemens.EHealth.Etee.Crypto.Decrypt
 {
     internal class TripleUnwrapper : IDataUnsealer
     {
-        /*
+        
         private class VerifyParams
         {
             public VerifyParams(Stream verifiedContent, Stream signed, bool optimize, bool wait)
@@ -67,31 +68,28 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             public SecurityInformation result;
             public Exception exception;
         }
-         */
-
-        //private TraceSource trace = new TraceSource("EHealth.Etee");
 
         private X509Certificate2 enc;
 
         private X509Certificate2 auth;
 
-        //private Thread innerSignatureThread;
+        private Thread innerSignatureThread;
 
-        //private Thread decryptThread;
+        private Thread decryptThread;
 
-        //private Thread outerSignatureThread;
+        private Thread outerSignatureThread;
 
         private CertificateSecurityInformation overrideOrigine;
 
-        //private ManualResetEvent overrideOrigineMutex = new ManualResetEvent(false);
+        private ManualResetEvent overrideOrigineMutex = new ManualResetEvent(false);
 
         internal TripleUnwrapper(X509Certificate2 enc, X509Certificate2 auth)
         {
             this.enc = enc;
             this.auth = auth;
-            //this.innerSignatureThread = new Thread(this.Verify);
-            //this.decryptThread = new Thread(this.Decrypt);
-            //this.outerSignatureThread = new Thread(this.Verify);
+            this.innerSignatureThread = new Thread(this.Verify);
+            this.decryptThread = new Thread(this.Decrypt);
+            this.outerSignatureThread = new Thread(this.Verify);
         }
 
         #region DataUnsealer Members
@@ -189,7 +187,6 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             }
         }
 
-        /*
         private UnsealResult UnsealOptimized(ITempStreamFactory factory, Stream sealedData, SecretKey key)
         {
             overrideOrigine = null;
@@ -200,66 +197,51 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             VerifyParams outer;
             DecryptParams decrypt;
             VerifyParams inner;
+
             //Create pipe pair for outer signed stream
-            AnonymousPipeServerStream verifiedServer = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.None);
+            Stream verified = new MemoryPipeStream();
             try
             {
-                AnonymousPipeClientStream verifiedClient = new AnonymousPipeClientStream(PipeDirection.In, verifiedServer.GetClientHandleAsString());
+                //Verify outer signature
+                outer = new VerifyParams(verified, sealedData, true, false);
+                outerSignatureThread.Start(outer);
+
+                //Create pipe pair for decryption stream
+                Stream decryptedVerified = new MemoryPipeStream();
                 try
                 {
-                    //Verify outer signature
-                    outer = new VerifyParams(verifiedServer, sealedData, true, false);
-                    outerSignatureThread.Start(outer);
+                    //Decrypt
+                    decrypt = new DecryptParams(decryptedVerified, verified, key, true);
+                    decryptThread.Start(decrypt);
 
-                    //Create pipe pair for decryption stream
-                    AnonymousPipeServerStream decryptedVerifiedServer = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.None);
-                    try
-                    {
-                        AnonymousPipeClientStream decryptedVerifiedClient = new AnonymousPipeClientStream(PipeDirection.In, decryptedVerifiedServer.GetClientHandleAsString());
-                        try
-                        {
-                            //Decrypt
-                            decrypt = new DecryptParams(decryptedVerifiedServer, verifiedClient, key, true);
-                            decryptThread.Start(decrypt);
+                    //This is the output, so we need to make it a temp stream (temp file or memory stream)
+                    result.UnsealedData = factory.CreateNew();
 
-                            //This is the output, so we need to make it a temp stream (temp file or memory stream)
-                            result.UnsealedData = factory.CreateNew();
+                    //Verify inner signature
+                    inner = new VerifyParams(result.UnsealedData, decryptedVerified, true, true);
+                    innerSignatureThread.Start(inner);
 
-                            //Verify inner signature
-                            inner = new VerifyParams(result.UnsealedData, decryptedVerifiedClient, true, true);
-                            innerSignatureThread.Start(inner);
+                    //Wait to outer verification to finish & close source
+                    outerSignatureThread.Join();
+                    verified.Close();
+                    verified = null;
 
-                            //Wait to outer verification to finish & close source
-                            outerSignatureThread.Join();
-                            verifiedServer.Close();
-                            verifiedServer = null;
+                    //Wait to decryption to finish & close source
+                    decryptThread.Join();
+                    decryptedVerified.Close();
+                    decryptedVerified = null;
 
-                            //Wait to decryption to finish & close source
-                            decryptThread.Join();
-                            decryptedVerifiedServer.Close();
-                            decryptedVerifiedServer = null;
-
-                            //Wait to inner verification to finish
-                            innerSignatureThread.Join();
-                        }
-                        finally
-                        {
-                            if (decryptedVerifiedClient != null)  decryptedVerifiedClient.Close();
-                        }
-                    }
-                    finally
-                    {
-                        if (decryptedVerifiedServer != null) decryptedVerifiedServer.Close();
-                    }
+                    //Wait to inner verification to finish
+                    innerSignatureThread.Join();
                 }
                 finally
                 {
-                    if (verifiedClient != null) verifiedClient.Close();
+                    if (decryptedVerified != null) decryptedVerified.Close();
                 }
             }
             finally
             {
-                if (verifiedServer != null) verifiedServer.Close();
+                if (verified != null) verified.Close();
             }
 
             //Check results
@@ -312,7 +294,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 throw new InvalidOperationException(msg, e);
             }
         }
-         */
+        
 
         private UnsealResult Unseal(ITempStreamFactory factory, Stream sealedData, SecretKey key)
         {
@@ -348,7 +330,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             }
         }
 
-        /*
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void Verify(Object data)
         {
@@ -365,7 +347,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 param.exception = e;
             }
         }
-         */
+        
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "wait")]
         private SecurityInformation Verify(Stream verifiedContent, Stream signed, bool optimize, bool wait)
@@ -392,7 +374,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 {
                     CmsSignedDataParser signedParser = (CmsSignedDataParser) signedData;
                     StreamUtils.Copy(signedParser.GetSignedContent().ContentStream, verifiedContent);
-                    //if (wait) overrideOrigineMutex.WaitOne(); //wait until we get the override
+                    if (wait) overrideOrigineMutex.WaitOne(); //wait until we get the override
                     return Verifier.Verify(signedParser, overrideOrigine);
                 }
                 else
@@ -408,7 +390,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             }
         }
 
-        /*
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private void Decrypt(Object data)
         {
@@ -422,7 +404,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 param.exception = e;
             }
         }
-        */
+        
 
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
