@@ -26,12 +26,14 @@ using Siemens.EHealth.Etee.Crypto.Configuration;
 using Siemens.EHealth.Etee.Crypto.Utils;
 using BC = Org.BouncyCastle.X509;
 using System.Security.Permissions;
+using System;
+using System.Threading;
 
 namespace Siemens.EHealth.Etee.Crypto.Encrypt
 {
     internal class TripleWrapper : IDataSealer
     {
-        /*
+        
         private class SignParams
         {
             public SignParams(Stream signed, Stream unsigned, bool includeSigner)
@@ -70,24 +72,22 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
 
             public Exception exception;
         }
-         */
-
-        //private Guid traceId = Guid.NewGuid();
-
-        //private TraceSource trace = new TraceSource("EHealth.Etee");
 
         private X509Certificate2 sender;
 
 
-        //private Thread innerSignatureThread;
+        private Thread innerSignatureThread;
 
-        //private Thread encryptThread;
+        private Thread encryptThread;
 
-        //private Thread outerSignatureThread;
+        private Thread outerSignatureThread;
 
         internal TripleWrapper(X509Certificate2 sender)
         {
             this.sender = sender;
+            innerSignatureThread = new Thread(this.Sign);
+            encryptThread = new Thread(this.Encrypt);
+            outerSignatureThread = new Thread(this.Sign);
         }
 
         #region DataSealer Members
@@ -179,10 +179,8 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
         [PermissionSet(SecurityAction.LinkDemand, Name = "FullTrust")]
         public Stream Seal(ReadOnlyCollection<EncryptionToken> tokens, Stream unsealed, SecretKey key)
         {
-            
-                ITempStreamFactory factory = new TempFileStreamFactory();
-                return SealSemiOptimized(factory, unsealed, tokens, key);
-            
+            ITempStreamFactory factory = new TempFileStreamFactory();
+            return SealSemiOptimized(factory, unsealed, tokens, key);
         }
 
         #endregion
@@ -221,52 +219,58 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
             }
         }
 
-        /*
+
         private Stream SealOptimized(ITempStreamFactory factory, Stream unsealedStream, ICollection<EncryptionToken> tokens, SecretKey key)
         {
-            //Create pipe pair for inner signed stream
-            AnonymousPipeServerStream signedServer = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.None);
-            using (signedServer)
+            //Create pipe for inner signed stream
+            Stream signed = new MemoryPipeStream();
+            try
             {
-                AnonymousPipeClientStream signedClient = new AnonymousPipeClientStream(PipeDirection.In, signedServer.GetClientHandleAsString());
-                using (signedClient)
+                //Inner sign
+                SignParams inner = new SignParams(signed, unsealedStream, false);
+                innerSignatureThread.Start(inner);
+
+                //Create pipe for encrypted stresm
+                Stream signedEncrypted = new MemoryPipeStream();
+                try
                 {
-                    //Inner sign
-                    SignParams inner = new SignParams(signedServer, unsealedStream, false);
-                    innerSignatureThread.Start(inner);
+                    //Encrypt
+                    EncryptParams encrypt = new EncryptParams(signedEncrypted, signed, tokens, key);
+                    encryptThread.Start(encrypt);
 
-                    //Create pipe pair for encrypted stresm
-                    AnonymousPipeServerStream signedEncryptedServer = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.None);
-                    using (signedEncryptedServer)
-                    {
-                        AnonymousPipeClientStream signedEncryptedClient = new AnonymousPipeClientStream(PipeDirection.In, signedEncryptedServer.GetClientHandleAsString());
-                        using (signedEncryptedClient)
-                        {
-                            //Encrypt
-                            EncryptParams encrypt = new EncryptParams(signedEncryptedServer, signedClient, tokens, key);
-                            encryptThread.Start(encrypt);
+                    //This is the output, so we need to make it a temp stream (temp file or memory stream)
+                    Stream sealedStream = factory.CreateNew();
 
-                            //This is the output, so we need to make it a temp stream (temp file or memory stream)
-                            Stream sealedStream = factory.CreateNew();
+                    //Outer sign
+                    SignParams outer = new SignParams(sealedStream, signedEncrypted, true);
+                    outerSignatureThread.Start(outer);
 
-                            //Outer sign
-                            SignParams outer = new SignParams(sealedStream, signedEncryptedClient, true);
-                            outerSignatureThread.Start(outer);
+                    //Wait for all the threads to finish and check the results
+                    innerSignatureThread.Join();
+                    signed.Close();
+                    signed = null;
 
-                            //Wait for all the threads to finish and check the results
-                            innerSignatureThread.Join();
-                            encryptThread.Join();
-                            outerSignatureThread.Join();
-                            if (inner.exception != null) throw new InvalidOperationException("Inner signature failed", inner.exception);
-                            if (encrypt.exception != null) throw new InvalidOperationException("Encryption failed", encrypt.exception);
-                            if (outer.exception != null) throw new InvalidOperationException("Outer signature failed", outer.exception);
+                    encryptThread.Join();
+                    signedEncrypted.Close();
+                    signedEncrypted = null;
 
-                            sealedStream.Position = 0; //reset the stream
+                    outerSignatureThread.Join();
+                    sealedStream.Position = 0; //reset the stream
 
-                            return sealedStream;
-                        }
-                    }
+                    if (inner.exception != null) throw new InvalidOperationException("Inner signature failed", inner.exception);
+                    if (encrypt.exception != null) throw new InvalidOperationException("Encryption failed", encrypt.exception);
+                    if (outer.exception != null) throw new InvalidOperationException("Outer signature failed", outer.exception);
+
+                    return sealedStream;
                 }
+                finally
+                {
+                    if (signedEncrypted != null) signedEncrypted.Close();
+                }
+            }
+            finally
+            {
+                if (signed != null) signed.Close();
             }
         }
          
@@ -298,7 +302,7 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
                 param.exception = e;
             }
         }
-         */
+        
 
         protected void Sign(Stream signed, Stream unsigned, bool includeSigner)
         {

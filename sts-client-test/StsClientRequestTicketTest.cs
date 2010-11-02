@@ -74,7 +74,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            selfSignedSession = CertGenerator.GenerateSelfSigned(TimeSpan.FromMinutes(20));
+            selfSignedSession = CertGenerator.GenerateSelfSigned(TimeSpan.FromMinutes(30));
 
             
             IList<XmlElement> claims;

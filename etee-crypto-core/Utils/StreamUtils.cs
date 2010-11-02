@@ -45,7 +45,7 @@ namespace Siemens.EHealth.Etee.Crypto.Utils
         public static void Copy(Stream source, Stream destination)
         {
             int count = 0;
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[102400];
             while ((count = source.Read(buffer, 0, buffer.Length)) > 0)
             {
                 destination.Write(buffer, 0, count);
