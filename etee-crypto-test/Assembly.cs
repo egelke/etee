@@ -39,6 +39,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
             try
             {
+                LoadCert(store, "CA.cer");
                 LoadCert(store, "trustedRoot\\cacert.pem");
             }
             finally
@@ -51,6 +52,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
             try
             {
+                LoadCert(store, "interCA.cer");
                 LoadCert(store, "trustedRoot\\int\\cacert.pem");
                 LoadCert(store, "trustedRoot\\int_overlap\\cacert.pem");
                 LoadCert(store, "trustedRoot\\int_overlap2\\cacert.pem");

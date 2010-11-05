@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Security.Cryptography;
+using Org.BouncyCastle.Security;
 
 namespace Siemens.EHealth.Etee.Crypto.Configuration
 {
@@ -41,7 +42,7 @@ namespace Siemens.EHealth.Etee.Crypto.Configuration
         {
             string[] parts = value.Split('/');
             digestAlgorithm = new Oid(parts[1]);
-            encryptionAlgorithm = new Oid(parts[0]);
+            encryptionAlgorithm = new Oid(SignerUtilities.GetObjectIdentifier(parts[0]).Id, parts[0]);
         }
     }
 }

@@ -45,7 +45,7 @@ namespace Siemens.EHealth.Etee.Crypto.Configuration
         {
             get
             {
-                return new Oid("AES128");
+                return new Oid("2.16.840.1.101.3.4.1.2", "AES128");
             }
         }
     }
