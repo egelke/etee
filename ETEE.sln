@@ -28,7 +28,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-core", "etee-cr
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 9
+		SccNumberOfProjects = 10
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccLocalPath0 = .
@@ -56,6 +56,9 @@ Global
 		SccProjectUniqueName8 = sts-client\\sts-client.csproj
 		SccProjectName8 = sts-client
 		SccLocalPath8 = sts-client
+		SccProjectUniqueName9 = temp\\temp.vbproj
+		SccProjectName9 = temp
+		SccLocalPath9 = temp
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ETEE.vsmdi

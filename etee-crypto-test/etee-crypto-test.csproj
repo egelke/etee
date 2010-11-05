@@ -196,6 +196,9 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="COPYING" />
+    <None Include="imports\CA.cer" />
+    <None Include="imports\interCA.cer" />
+    <None Include="imports\web.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
