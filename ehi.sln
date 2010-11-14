@@ -14,9 +14,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sts-test", "sts-test\sts-te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "codage-test", "codage-test\codage-test.csproj", "{54E59C71-4528-43C5-97F1-5B54B539227F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unit-tests", "unit-tests\unit-tests.csproj", "{2C45B802-0342-4DF4-BD88-D46B75F45490}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 4
+		SccNumberOfProjects = 5
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccLocalPath0 = .
@@ -29,6 +31,9 @@ Global
 		SccProjectUniqueName3 = codage-test\\codage-test.csproj
 		SccProjectName3 = codage-test
 		SccLocalPath3 = codage-test
+		SccProjectUniqueName4 = unit-tests\\unit-tests.csproj
+		SccProjectName4 = unit-tests
+		SccLocalPath4 = unit-tests
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ehi.vsmdi
@@ -45,10 +50,14 @@ Global
 		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{54E59C71-4528-43C5-97F1-5B54B539227F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{54E59C71-4528-43C5-97F1-5B54B539227F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{54E59C71-4528-43C5-97F1-5B54B539227F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{54E59C71-4528-43C5-97F1-5B54B539227F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C45B802-0342-4DF4-BD88-D46B75F45490}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C45B802-0342-4DF4-BD88-D46B75F45490}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C45B802-0342-4DF4-BD88-D46B75F45490}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

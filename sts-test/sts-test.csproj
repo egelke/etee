@@ -59,22 +59,20 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Code.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequestTest.cs" />
-    <Compile Include="StsClientRequestTicketTest.cs" />
-    <Compile Include="Utils.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\library\library.csproj">
-      <Project>{F7E87297-87B7-4420-862C-327B59351EE4}</Project>
-      <Name>sts-client</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\debug.snk">
       <Link>debug.snk</Link>
     </None>
     <Content Include="COPYING" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\library\library.csproj">
+      <Project>{F7E87297-87B7-4420-862C-327B59351EE4}</Project>
+      <Name>library</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
