@@ -14,10 +14,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-test", "etee-cr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-library", "etee-crypto-library\etee-crypto-library.csproj", "{58029749-3EC1-4D76-8D0C-7BFED160F918}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sts-client", "sts-client\sts-client.csproj", "{F7E87297-87B7-4420-862C-327B59351EE4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sts-client-test", "sts-client-test\sts-client-test.csproj", "{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-itest", "etee-crypto-itest\etee-crypto-itest.csproj", "{2FD0ACDF-5220-4E15-AAD7-D75F7F48120E}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "etee-examples", "etee-examples\etee-examples.vbproj", "{A272CD7E-53CF-4D2B-80DF-60219148D47A}"
@@ -28,7 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-core", "etee-cr
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 10
+		SccNumberOfProjects = 7
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccLocalPath0 = .
@@ -50,15 +46,6 @@ Global
 		SccProjectUniqueName6 = etee-examples\\etee-examples.vbproj
 		SccProjectName6 = etee-examples
 		SccLocalPath6 = etee-examples
-		SccProjectUniqueName7 = sts-client-test\\sts-client-test.csproj
-		SccProjectName7 = sts-client-test
-		SccLocalPath7 = sts-client-test
-		SccProjectUniqueName8 = sts-client\\sts-client.csproj
-		SccProjectName8 = sts-client
-		SccLocalPath8 = sts-client
-		SccProjectUniqueName9 = temp\\temp.vbproj
-		SccProjectName9 = temp
-		SccLocalPath9 = temp
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ETEE.vsmdi
@@ -96,28 +83,6 @@ Global
 		{58029749-3EC1-4D76-8D0C-7BFED160F918}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{58029749-3EC1-4D76-8D0C-7BFED160F918}.Release|Win32.ActiveCfg = Release|Any CPU
 		{58029749-3EC1-4D76-8D0C-7BFED160F918}.Release|x86.ActiveCfg = Release|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Release|Win32.ActiveCfg = Release|Any CPU
-		{F7E87297-87B7-4420-862C-327B59351EE4}.Release|x86.ActiveCfg = Release|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Release|Win32.ActiveCfg = Release|Any CPU
-		{B2A261A1-17A9-435B-898D-C4EE7A99C8F1}.Release|x86.ActiveCfg = Release|Any CPU
 		{2FD0ACDF-5220-4E15-AAD7-D75F7F48120E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2FD0ACDF-5220-4E15-AAD7-D75F7F48120E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FD0ACDF-5220-4E15-AAD7-D75F7F48120E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
