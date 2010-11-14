@@ -1,12 +1,12 @@
 ﻿/*
- * This file is part of .Net ETEE for eHealth.
+ * This file is part of eHealth-Interoperability.
  * 
- * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
+ * eHealth-Interoperability is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * .Net ETEE for eHealth  is distributed in the hope that it will be useful,
+ * eHealth-Interoperability  is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -22,12 +22,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("sts-client-test")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("STS Test")]
+[assembly: AssemblyDescription("eHealth Interoperability library test for the eHealth STS")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("sts-client-test")]
-[assembly: AssemblyCopyright("Copyright ©  2010")]
+[assembly: AssemblyCompany("Siemens IT Solutions & Services")]
+[assembly: AssemblyProduct("eHealth-Interoperability")]
+[assembly: AssemblyCopyright("Copyright © Siemens IT Solutions & Services 2010")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
