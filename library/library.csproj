@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F7E87297-87B7-4420-862C-327B59351EE4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Siemens.EHealth.Client</RootNamespace>
+    <AssemblyName>Siemens.EHealth.Client</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.6.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\etee-crypto\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Sso\CertGenerator.cs" />
+    <Compile Include="Sso\Configuration\SessionBehaviorElement.cs" />
+    <Compile Include="Sso\Configuration\SessionCertificateElement.cs" />
+    <Compile Include="Sso\SessionBehavior.cs" />
+    <Compile Include="Sso\SsoBinding.cs" />
+    <Compile Include="Sso\Configuration\SsoBindingCollectionElement.cs" />
+    <Compile Include="Sso\Configuration\SsoBindingElement.cs" />
+    <Compile Include="Sso\Sts\Service\Response.cs" />
+    <Compile Include="Sso\Sts\Service\SamlException.cs" />
+    <Compile Include="Sso\Sts\Service\SamlFault.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sso\SsoClientCredentials.cs" />
+    <Compile Include="Sso\SsoSecurityTokenManager.cs" />
+    <Compile Include="Sso\SsoSecurityTokenProvider.cs" />
+    <Compile Include="Sso\Sts\Service\Request.cs" />
+    <Compile Include="Sso\Sts\Service\SamlSignedXml.cs" />
+    <Compile Include="Sso\Sts\Service\StatusCode.cs" />
+    <Compile Include="Sso\Sts\Service\StsClient.cs" />
+    <Compile Include="Sso\Sts\StsBinding.cs" />
+    <Compile Include="Sso\Sts\Configuration\StsBindingCollectionElement.cs" />
+    <Compile Include="Sso\Sts\Configuration\StsBindingElement.cs" />
+    <Compile Include="Sso\Sts\WcfAddition\EHealthBindingElement.cs" />
+    <Compile Include="Sso\Sts\WcfAddition\EHealthChannel.cs" />
+    <Compile Include="Sso\Sts\WcfAddition\EHealthChannelFactory.cs" />
+    <Compile Include="Sso\Sts\WcfAddition\EHealthElement.cs" />
+    <Compile Include="Sso\Sts\WcfAddition\EHealthMessage.cs" />
+    <Compile Include="Sso\Sts\WcfAddition\EHealthOutputChannel.cs" />
+    <Compile Include="Sso\Sts\WcfAddition\EHealthRequestChannel.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\debug.snk">
+      <Link>debug.snk</Link>
+    </None>
+    <Content Include="COPYING" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
