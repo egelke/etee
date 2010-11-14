@@ -38,6 +38,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Siemens.EHealth.Client, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Siemens.EHealth.Client.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -66,13 +70,12 @@
       <Project>{58029749-3EC1-4D76-8D0C-7BFED160F918}</Project>
       <Name>etee-crypto-library</Name>
     </ProjectReference>
-    <ProjectReference Include="..\sts-client\sts-client.csproj">
-      <Project>{F7E87297-87B7-4420-862C-327B59351EE4}</Project>
-      <Name>sts-client</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App.config" />
+    <Content Include="App.config">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Siemens.EHealth.Client.dll" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="COPYING" />
