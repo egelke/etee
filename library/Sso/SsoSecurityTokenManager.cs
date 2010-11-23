@@ -26,14 +26,15 @@ using System.ServiceModel.Security;
 using System.IdentityModel.Tokens;
 using System.ServiceModel.Security.Tokens;
 using System.Xml;
+using Siemens.EHealth.Client.Sso.WA;
+using System.ServiceModel.Description;
 
 namespace Siemens.EHealth.Client.Sso
 {
-    public class SsoSecurityTokenManager : ClientCredentialsSecurityTokenManager
+    public class SsoSecurityTokenManager : OptSecurityTokenManager
     {
 
-
-        public SsoSecurityTokenManager(SsoClientCredentials ssoClientCredentials)
+        public SsoSecurityTokenManager(ClientCredentials ssoClientCredentials)
             : base(ssoClientCredentials)
         {
 

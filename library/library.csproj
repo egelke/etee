@@ -62,6 +62,10 @@
     <Compile Include="Sso\SsoBinding.cs" />
     <Compile Include="Sso\Configuration\SsoBindingCollectionElement.cs" />
     <Compile Include="Sso\Configuration\SsoBindingElement.cs" />
+    <Compile Include="Sso\WA\DummyAuthorizationPolicy.cs" />
+    <Compile Include="Sso\WA\DummySecurityToken.cs" />
+    <Compile Include="Sso\WA\DummySecurityTokenAuthenticator.cs" />
+    <Compile Include="Sso\WA\DummySecurityTokenProvider.cs" />
     <Compile Include="Sso\Sts\Service\Response.cs" />
     <Compile Include="Sso\Sts\Service\SamlException.cs" />
     <Compile Include="Sso\Sts\Service\SamlFault.cs" />
@@ -76,6 +80,8 @@
     <Compile Include="Sso\Sts\StsBinding.cs" />
     <Compile Include="Sso\Sts\Configuration\StsBindingCollectionElement.cs" />
     <Compile Include="Sso\Sts\Configuration\StsBindingElement.cs" />
+    <Compile Include="Sso\WA\OptClientCredentials.cs" />
+    <Compile Include="Sso\WA\OptSecurityTokenManager.cs" />
     <Compile Include="Sso\Sts\WcfAddition\EHealthBindingElement.cs" />
     <Compile Include="Sso\Sts\WcfAddition\EHealthChannel.cs" />
     <Compile Include="Sso\Sts\WcfAddition\EHealthChannelFactory.cs" />
@@ -83,6 +89,7 @@
     <Compile Include="Sso\Sts\WcfAddition\EHealthMessage.cs" />
     <Compile Include="Sso\Sts\WcfAddition\EHealthOutputChannel.cs" />
     <Compile Include="Sso\Sts\WcfAddition\EHealthRequestChannel.cs" />
+    <Compile Include="Sso\WA\XmlSerializerObjectSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\debug.snk">

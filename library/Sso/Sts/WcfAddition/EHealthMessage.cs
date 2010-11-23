@@ -55,12 +55,6 @@ namespace Siemens.EHealth.Client.Sso.Sts.WcfAddition
             base.OnClose();
             msg.Close();
         }
-        /*
-        protected override string OnGetBodyAttribute(string localName, string ns)
-        {
-            return msg.GetBodyAttribute(localName, ns);
-        }
-         */
 
         protected override void OnWriteBodyContents(System.Xml.XmlDictionaryWriter writer)
         {
@@ -69,14 +63,16 @@ namespace Siemens.EHealth.Client.Sso.Sts.WcfAddition
 
         protected override void OnWriteMessage(System.Xml.XmlDictionaryWriter writer)
         {
- 
+            //Pre sign
 
 
+            //Sign
             MemoryStream stream = new MemoryStream();
             XmlWriter tmpWriter = new XmlTextWriter(stream, Encoding.UTF8);
             msg.WriteMessage(tmpWriter);
             tmpWriter.Flush();
 
+            //Post sign
             stream.Position = 0;
             XmlDocument doc = new XmlDocument();
             doc.PreserveWhitespace = true;
@@ -99,12 +95,6 @@ namespace Siemens.EHealth.Client.Sso.Sts.WcfAddition
                 }
             }
             doc.Save(writer);
-
-            FileStream fs = new FileStream("etee.xml", FileMode.Create);
-            using (fs)
-            {
-                doc.Save(fs);
-            }
         }
     }
 }

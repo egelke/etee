@@ -52,40 +52,18 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Code.cs" />
+    <Compile Include="Examples.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Service References\Proxy\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.svcmap</DependentUpon>
+    <Compile Include="Service\CodageClient.cs" />
+    <Compile Include="Service\Protocol.cs">
+      <DependentUpon>Protocol.xsd</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
-    <None Include="Service References\Proxy\eHealthCodage.wsdl" />
-    <None Include="Service References\Proxy\Siemens.EHealth.Client.CodageTest.Proxy.DecodeResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Proxy\Siemens.EHealth.Client.CodageTest.Proxy.EncodeResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadataStorage Include="Service References\Proxy\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Proxy\configuration91.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Proxy\configuration.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Proxy\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
+    <None Include="COPYING" />
+    <None Include="Service\Protocol.xsd">
+      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -59,7 +59,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Code.cs" />
+    <Compile Include="Examples.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -67,6 +67,7 @@
       <Link>debug.snk</Link>
     </None>
     <Content Include="COPYING" />
+    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\library\library.csproj">

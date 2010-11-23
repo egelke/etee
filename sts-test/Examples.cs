@@ -1,4 +1,21 @@
-﻿using System;
+﻿/*
+ * This file is part of eHealth-Interoperability.
+ * 
+ * eHealth-Interoperability is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * eHealth-Interoperability  is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,13 +26,15 @@ using System.ServiceModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 using Siemens.EHealth.Client.Sso;
+using Siemens.EHealth.Client.Sso.WA;
 using System.Collections.ObjectModel;
 using System.ServiceModel.Security.Tokens;
+using System.ServiceModel.Description;
 
 namespace Siemens.EHealth.Client.StsTest
 {
     [TestClass]
-    public class Code
+    public class Examples
     {
         private static X509Certificate2 selfSignedSession;
 
@@ -50,11 +69,12 @@ namespace Siemens.EHealth.Client.StsTest
         }
 
         [TestMethod]
-        public void Normal()
+        public void ConfigViaCode()
         {
             StsClient target = new StsClient(new StsBinding(), new EndpointAddress("https://wwwacc.ehealth.fgov.be/sts_1_1/SecureTokenService"));
+            target.Endpoint.Behaviors.Remove<ClientCredentials>();
+            target.Endpoint.Behaviors.Add(new OptClientCredentials());
             target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "c0f554147928c3722670a47be2f92a9089add107");
-            target.ClientCredentials.ServiceCertificate.SetDefaultCertificate(StoreLocation.LocalMachine, StoreName.AddressBook, X509FindType.FindByThumbprint, "23005f9a30f357dfb265de5277db54c5ff61d34d");
             XmlElement assertion = target.RequestTicket("Siemens", selfSignedSession, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
 
             Assert.AreEqual("Assertion", assertion.LocalName);

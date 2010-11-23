@@ -68,6 +68,7 @@
     <None Include="..\debug.snk">
       <Link>debug.snk</Link>
     </None>
+    <None Include="COPYING" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\library\library.csproj">
