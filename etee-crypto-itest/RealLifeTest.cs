@@ -87,7 +87,7 @@ namespace Siemens.EHealth.Etee.ITest
             KnownRecipient self = new KnownRecipient("CBE", "0459540270");
             KnownRecipient eh = new KnownRecipient("SSIN", "78042003561");
             UnknownRecipient anyPers = new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:person:ssin", null);
-            UnknownRecipient anyOrg = new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:ehealth:1.0:serviceprovider:cbe-number", null);
+            UnknownRecipient anyOrg = new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:kbo-cbe:cbe-number", null);
 
             List<Recipient> recipients = new List<Recipient>();
             recipients.Add(self);
