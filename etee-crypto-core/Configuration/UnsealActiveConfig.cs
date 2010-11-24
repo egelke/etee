@@ -57,7 +57,7 @@ namespace Siemens.EHealth.Etee.Crypto.Configuration
             {
                 if (keyEncryptionAlgorithms == null)
                 {
-                    keyEncryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] { new Oid("rsa"), new Oid("2.16.840.1.101.3.4.1.5", "aes128wrap") });
+                    keyEncryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] { new Oid("1.2.840.113549.1.1.1","rsa"), new Oid("2.16.840.1.101.3.4.1.5", "aes128wrap") });
                 }
                 return keyEncryptionAlgorithms;
             }

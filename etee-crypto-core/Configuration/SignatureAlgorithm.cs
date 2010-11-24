@@ -38,11 +38,10 @@ namespace Siemens.EHealth.Etee.Crypto.Configuration
             get { return encryptionAlgorithm; }
         }
 
-        public SignatureAlgorithm(String value)
+        public SignatureAlgorithm(Oid digestAlgoId, Oid encryptionAlgoId)
         {
-            string[] parts = value.Split('/');
-            digestAlgorithm = new Oid(parts[1]);
-            encryptionAlgorithm = new Oid(SignerUtilities.GetObjectIdentifier(parts[0]).Id, parts[0]);
-        }
+            digestAlgorithm = digestAlgoId;
+            encryptionAlgorithm = encryptionAlgoId;
+        }        
     }
 }
