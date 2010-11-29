@@ -27,12 +27,16 @@ using Siemens.EHealth.Etee.Crypto.Utils;
 using BC = Org.BouncyCastle.X509;
 using System.Security.Permissions;
 using System.Threading;
+using System.Diagnostics;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace Siemens.EHealth.Etee.Crypto.Decrypt
 {
     internal class TripleUnwrapper : IDataUnsealer
     {
-        
+        private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+
         private class VerifyParams
         {
             public VerifyParams(Stream verifiedContent, Stream signed, bool optimize, bool wait)
@@ -158,6 +162,8 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
 
         private UnsealResult UnsealSemiOptimized(ITempStreamFactory factory, Stream sealedData, SecretKey key)
         {
+            trace.TraceEvent(TraceEventType.Information, 0, "Unsealing message of {0} bytes for {1} recipient", sealedData.Length, key == null ? "known" : "unknown"); 
+
             overrideOrigine = null;
             UnsealResult result = new UnsealResult();
             result.SecurityInformation = new UnsealSecurityInformation();
@@ -298,6 +304,8 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
 
         private UnsealResult Unseal(ITempStreamFactory factory, Stream sealedData, SecretKey key)
         {
+            trace.TraceEvent(TraceEventType.Information, 0, "Unsealing message of {0} bytes for {1} recipient", sealedData.Length, key == null ? "known" : "unknown"); 
+
             overrideOrigine = null;
             UnsealResult result = new UnsealResult();
             result.SecurityInformation = new UnsealSecurityInformation();
@@ -352,6 +360,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "wait")]
         private SecurityInformation Verify(Stream verifiedContent, Stream signed, bool optimize, bool wait)
         {
+            trace.TraceEvent(TraceEventType.Information, 0, "Verifying the signature");
             try
             {
                 Object signedData;
@@ -365,6 +374,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                     {
                         signedData = new CmsSignedData(signed);
                     }
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Readed the cms header");
                 }
                 catch (Exception e)
                 {
@@ -374,6 +384,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 {
                     CmsSignedDataParser signedParser = (CmsSignedDataParser) signedData;
                     StreamUtils.Copy(signedParser.GetSignedContent().ContentStream, verifiedContent);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Calculated the message digest");
                     if (wait) overrideOrigineMutex.WaitOne(); //wait until we get the override
                     return Verifier.Verify(signedParser, overrideOrigine);
                 }
@@ -381,6 +392,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 {
                     CmsSignedData signedParsed = (CmsSignedData) signedData;
                     StreamUtils.Copy(signedParsed.SignedContent.Read(), verifiedContent);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Calculated the message digest");
                     return Verifier.Verify(signedParsed, overrideOrigine);
                 }
             }
@@ -410,6 +422,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         private SecurityInformation Decrypt(Stream clear, Stream cypher, SecretKey key, bool optimize)
         {
+            trace.TraceEvent(TraceEventType.Information, 0, "Decrypting message for {0} recipient", key == null ? "known" : "unknown");
             try
             {
                 SecurityInformation result = new SecurityInformation();
@@ -424,14 +437,25 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                     {
                         cypherData = new CmsEnvelopedData(cypher);
                     }
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Readed the cms header");
                 }
                 catch (Exception e)
                 {
+                    trace.TraceEvent(TraceEventType.Error, 0, "The messages isn't encrypted");
                     throw new InvalidMessageException("The message isn't a tripple wrapped message", e);
                 }
                 RecipientInformationStore recipientInfos = optimize ? ((CmsEnvelopedDataParser) cypherData).GetRecipientInfos() : ((CmsEnvelopedData) cypherData).GetRecipientInfos();
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Got the recipient info of the encrypted message");
 
-                if ((optimize ? ((CmsEnvelopedDataParser)cypherData).EncryptionAlgOid : ((CmsEnvelopedData)cypherData).EncryptionAlgOid) != EteeActiveConfig.Unseal.EncryptionAlgorithm.Value) result.securityViolations.Add(SecurityViolation.NotAllowedEncryptionAlgorithm);
+                string encryptionAlgOid = optimize ? ((CmsEnvelopedDataParser)cypherData).EncryptionAlgOid : ((CmsEnvelopedData)cypherData).EncryptionAlgOid;
+                if (encryptionAlgOid != EteeActiveConfig.Unseal.EncryptionAlgorithm.Value)
+                {
+                    result.securityViolations.Add(SecurityViolation.NotAllowedEncryptionAlgorithm);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "The encryption algorithm {0} isn't allowed, only {1} ({2}) is", encryptionAlgOid, 
+                        EteeActiveConfig.Unseal.EncryptionAlgorithm.Value, EteeActiveConfig.Unseal.EncryptionAlgorithm.FriendlyName);
+                }
+                trace.TraceEvent(TraceEventType.Verbose, 0, "The encryption algorithm is verified: {0}", encryptionAlgOid);
+
                 //EXTEND: check key size of message
 
                 //Get recipient, should be receiver.
@@ -443,13 +467,20 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                     {
                         //Get receiver
                         BC::X509Certificate bcEnc = DotNetUtilities.FromX509Certificate(enc);
+                        trace.TraceEvent(TraceEventType.Verbose, 0, "Selected decryption certificate {0}", bcEnc.SubjectDN.ToString());
+
                         RecipientID recipientId = new RecipientID();
                         recipientId.SerialNumber = bcEnc.SerialNumber;
                         recipientId.Issuer = bcEnc.IssuerDN;
                         recipientInfo = recipientInfos.GetFirstRecipient(recipientId);
-                        if (recipientInfo == null) throw new InvalidMessageException("The message isn't a message that is addressed to you.  Or it is an unaddressed message or it is addressed to somebody else");
+                        if (recipientInfo == null)
+                        {
+                            trace.TraceEvent(TraceEventType.Error, 0, "The recipients doe not contain the issuer/serialnumber combination of your encryption certificate");
+                            throw new InvalidMessageException("The message isn't a message that is addressed to you.  Or it is an unaddressed message or it is addressed to somebody else");
+                        }
+                        trace.TraceEvent(TraceEventType.Verbose, 0, "Found decryption certificate in recipients of the cms message");
 
-                        //Validate receiver (=zelf) using standard validation tools
+                        //Validate receiver (=self) using standard validation tools
                         result.Subject = Verifier.Verify(bcEnc, DotNetUtilities.FromX509Certificate(auth));
 
                         //Get receiver key
@@ -457,38 +488,66 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                     }
                     else
                     {
+                        trace.TraceEvent(TraceEventType.Error, 0, "The unsealer does not have an decryption certificate and no symmetric key was provided");
                         throw new InvalidOperationException("There should be an receiver (=yourself) and/or a key provided");
                     }
                 }
                 else
                 {
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Found symmetric key: {0}", key.IdString);
+
                     RecipientID recipientId = new RecipientID();
                     recipientId.KeyIdentifier = key.Id;
                     recipientInfo = recipientInfos.GetFirstRecipient(recipientId);
-                    if (recipientInfo == null) throw new InvalidMessageException("The key isn't for this unaddressed message");
+                    if (recipientInfo == null)
+                    {
+                        trace.TraceEvent(TraceEventType.Error, 0, "The symmetric key was not found in this cms message");
+                        throw new InvalidMessageException("The key isn't for this unaddressed message");
+                    }
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Found symmertic key in recipients of the cms message");
+
+                    //Get receivers key
                     recipientKey = key.BCKey;
 
                     //Validate the unaddressed key
-                    if ((((KeyParameter)recipientKey).GetKey().Length * 8) < EteeActiveConfig.Unseal.MinimuumEncryptionKeySize.SymmetricRecipientKey) result.securityViolations.Add(SecurityViolation.NotAllowedEncryptionKeySize);
+                    if ((((KeyParameter)recipientKey).GetKey().Length * 8) < EteeActiveConfig.Unseal.MinimuumEncryptionKeySize.SymmetricRecipientKey)
+                    {
+                        result.securityViolations.Add(SecurityViolation.NotAllowedEncryptionKeySize);
+                        trace.TraceEvent(TraceEventType.Warning, 0, "The symmetric key was only {0} bits while it should be at leasst {0}", 
+                            ((KeyParameter)recipientKey).GetKey().Length * 8,  EteeActiveConfig.Unseal.MinimuumEncryptionKeySize.SymmetricRecipientKey);
+                    }
                 }
 
                 //check if key encryption algorithm is allowed
                 int i = 0;
                 bool found = false;
+                StringBuilder algos = new StringBuilder();
                 while (!found && i < EteeActiveConfig.Unseal.KeyEncryptionAlgorithms.Count)
                 {
-                    found = EteeActiveConfig.Unseal.KeyEncryptionAlgorithms[i++].Value == recipientInfo.KeyEncryptionAlgOid;
+                    Oid algo = EteeActiveConfig.Unseal.KeyEncryptionAlgorithms[i++];
+                    algos.Append(algo.Value + " (" + algo.FriendlyName + ")");
+                    found = algo.Value == recipientInfo.KeyEncryptionAlgOid;
                 }
-                if (!found) result.securityViolations.Add(SecurityViolation.NotAllowedKeyEncryptionAlgorithm);
+                if (!found)
+                {
+                    result.securityViolations.Add(SecurityViolation.NotAllowedKeyEncryptionAlgorithm);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "Encryption algorithm is {0} while it should be one of the following {1}",
+                        recipientInfo.KeyEncryptionAlgOid, algos);
+                }
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Finished verifying the encryption algorithm: {0}", recipientInfo.KeyEncryptionAlgOid);
 
                 //Decrypt!
                 CmsTypedStream clearStream = recipientInfo.GetContentStream(recipientKey);
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Accessed the encrypted content");
+
                 StreamUtils.Copy(clearStream.ContentStream, clear);
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Decrypted the content");
 
                 return result;
             }
             catch (CmsException cmse)
             {
+                trace.TraceEvent(TraceEventType.Error, 0, "The message isn't a CMS message");
                 throw new InvalidMessageException("The message isn't a tripple wrapped message", cmse);
             }
         }

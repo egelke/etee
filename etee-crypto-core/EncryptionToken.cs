@@ -28,6 +28,7 @@ using Org.BouncyCastle.X509.Store;
 using Org.BouncyCastle.Security;
 using System.Collections;
 using Siemens.EHealth.Etee.Crypto.Decrypt;
+using System.Diagnostics;
 
 namespace Siemens.EHealth.Etee.Crypto
 {
@@ -43,7 +44,7 @@ namespace Siemens.EHealth.Etee.Crypto
     /// </remarks>
     public class EncryptionToken
     {
-
+        private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
 
         private byte[] content;
         private CmsSignedData raw;
@@ -147,6 +148,8 @@ namespace Siemens.EHealth.Etee.Crypto
         /// <returns>Detailed information about the verification</returns>
         public EtkSecurityInformation Verify()
         {
+            trace.TraceEvent(TraceEventType.Information, 0, "Verifying ETK: {0}", ToBCCertificate().SubjectDN.ToString());
+
             BC::X509Certificate encCert;
             BC::X509Certificate authCert = null;
             EtkSecurityInformation result = new EtkSecurityInformation();
@@ -163,7 +166,11 @@ namespace Siemens.EHealth.Etee.Crypto
             if (authCertMatch.Count == 1)
             {
                 IEnumerator iterator = authCertMatch.GetEnumerator();
-                if (!iterator.MoveNext()) throw new InvalidOperationException("Could not retrieve certificate, please report issue");
+                if (!iterator.MoveNext())
+                {
+                    trace.TraceEvent(TraceEventType.Error, 0, "Certificarte present but could not be retrieved");
+                    throw new InvalidOperationException("Could not retrieve certificate, please report issue");
+                }
                 authCert = (BC::X509Certificate)iterator.Current;
             }
 
