@@ -22,9 +22,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-examples2", "etee-exam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-core", "etee-crypto-core\etee-crypto-core.csproj", "{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-demo-console", "etee-demo-console\etee-demo-console.csproj", "{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 7
+		SccNumberOfProjects = 8
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccLocalPath0 = .
@@ -46,6 +48,9 @@ Global
 		SccProjectUniqueName6 = etee-examples\\etee-examples.vbproj
 		SccProjectName6 = etee-examples
 		SccLocalPath6 = etee-examples
+		SccProjectUniqueName7 = etee-demo-console\\etee-demo-console.csproj
+		SccProjectName7 = etee-demo-console
+		SccLocalPath7 = etee-demo-console
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ETEE.vsmdi
@@ -81,6 +86,7 @@ Global
 		{58029749-3EC1-4D76-8D0C-7BFED160F918}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58029749-3EC1-4D76-8D0C-7BFED160F918}.Release|Any CPU.Build.0 = Release|Any CPU
 		{58029749-3EC1-4D76-8D0C-7BFED160F918}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{58029749-3EC1-4D76-8D0C-7BFED160F918}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{58029749-3EC1-4D76-8D0C-7BFED160F918}.Release|Win32.ActiveCfg = Release|Any CPU
 		{58029749-3EC1-4D76-8D0C-7BFED160F918}.Release|x86.ActiveCfg = Release|Any CPU
 		{2FD0ACDF-5220-4E15-AAD7-D75F7F48120E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -130,6 +136,18 @@ Global
 		{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}.Release|Win32.ActiveCfg = Release|Any CPU
 		{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}.Release|x86.ActiveCfg = Release|Any CPU
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|Win32.ActiveCfg = Debug|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|x86.ActiveCfg = Debug|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|x86.Build.0 = Debug|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|Any CPU.ActiveCfg = Release|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|Mixed Platforms.Build.0 = Release|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|Win32.ActiveCfg = Release|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|x86.ActiveCfg = Release|x86
+		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
