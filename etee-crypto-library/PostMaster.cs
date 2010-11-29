@@ -146,6 +146,20 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             }
         }
 
+        public void Receive(Stream outStream, out X509Certificate2 sender)
+        {
+            Stream tmp = Receive(out sender);
+            using (tmp)
+            {
+                int read;
+                byte[] buffer = new byte[1024];
+                while ((read = tmp.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    outStream.Write(buffer, 0, read);
+                }
+            }
+        }
+
         public Stream Receive(out X509Certificate2 sender)
         {
             byte[] keyId;
