@@ -24,16 +24,36 @@ using System.Security.Cryptography.X509Certificates;
 using System.IO;
 using Siemens.EHealth.Etee.Crypto.Library;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace Siemens.EHealth.Etee.ITest
 {
     [TestClass]
     public class RealLifeTest
     {
+        private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+
         private static BasicPostMaster outgoing;
         private static BasicPostMaster incommingSis;
         private static BasicPostMaster incommingSisAsMe;
         private static BasicPostMaster incommingSisByItself;
+
+        private TestContext testContextInstance;
+        /// <summary>
+        ///Gets or sets the test context which provides
+        ///information about and functionality for the current test run.
+        ///</summary>
+        public TestContext TestContext
+        {
+            get
+            {
+                return testContextInstance;
+            }
+            set
+            {
+                testContextInstance = value;
+            }
+        }
 
         [ClassInitialize]
         public static void InitializeClass(TestContext testContext)
@@ -66,7 +86,7 @@ namespace Siemens.EHealth.Etee.ITest
         [TestInitialize]
         public void SetupTest()
         {
-
+            trace.TraceEvent(TraceEventType.Information, 0, "Starting {0}.{1} test", this.GetType().Name, TestContext.TestName);
         }
 
         [TestCleanup]

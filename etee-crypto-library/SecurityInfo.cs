@@ -55,7 +55,7 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             my.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
             X509Certificate2Collection allEncCerts = my.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.KeyEncipherment, false);
             X509Certificate2Collection encCerts = allEncCerts.Find(X509FindType.FindByIssuerDistinguishedName, authCert.Subject, false);
-            if (encCerts.Count != 1) throw new Exception(); //TODO: Improve
+            if (encCerts.Count != 1) throw new ArgumentException("No encryption cert was found", "authCert");
             return new SecurityInfo(authCert, encCerts[0]);
         }
 

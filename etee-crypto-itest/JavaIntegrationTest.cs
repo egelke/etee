@@ -32,6 +32,7 @@ namespace Siemens.EHealth.Etee.ITest
     [TestClass]
     public class JavaIntegrationTest
     {
+        private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
 
         private static X509Certificate2 bobEnc;
 
@@ -39,6 +40,22 @@ namespace Siemens.EHealth.Etee.ITest
 
         private static X509Certificate2 aliceAuth;
 
+        private TestContext testContextInstance;
+        /// <summary>
+        ///Gets or sets the test context which provides
+        ///information about and functionality for the current test run.
+        ///</summary>
+        public TestContext TestContext
+        {
+            get
+            {
+                return testContextInstance;
+            }
+            set
+            {
+                testContextInstance = value;
+            }
+        }
 
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
@@ -58,6 +75,8 @@ namespace Siemens.EHealth.Etee.ITest
         [TestInitialize()]
         public void MyTestInitialize()
         {
+            trace.TraceEvent(TraceEventType.Information, 0, "Starting {0}.{1} test", this.GetType().Name, TestContext.TestName);
+
             unsealer = DataUnsealerFactory.Create(bobEnc, bobAuth);
             sealer = DataSealerFactory.Create(aliceAuth);
         }

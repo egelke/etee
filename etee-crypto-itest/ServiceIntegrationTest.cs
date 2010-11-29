@@ -24,6 +24,7 @@ using Siemens.EHealth.Etee.Crypto.Library;
 using System.IO;
 using System.Collections.ObjectModel;
 using System.Security.Cryptography.X509Certificates;
+using System.Diagnostics;
 
 namespace Siemens.EHealth.Etee.ITest
 {
@@ -72,6 +73,31 @@ namespace Siemens.EHealth.Etee.ITest
             pmForBob_SR_0 = new BasicPostMaster(new SecurityInfo(bob, bobEnc), etkDepot);
             //Requires eHealth-cert + access to ETK-depot + authorized access to KGSS
             pmForBob_SR_SR = new BasicPostMaster(new SecurityInfo(bob, bobEnc), etkDepot, myKgss);
+        }
+
+        private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+
+        private TestContext testContextInstance;
+        /// <summary>
+        ///Gets or sets the test context which provides
+        ///information about and functionality for the current test run.
+        ///</summary>
+        public TestContext TestContext
+        {
+            get
+            {
+                return testContextInstance;
+            }
+            set
+            {
+                testContextInstance = value;
+            }
+        }
+
+        [TestInitialize]
+        public void SetupTest()
+        {
+            trace.TraceEvent(TraceEventType.Information, 0, "Starting {0}.{1} test", this.GetType().Name, TestContext.TestName);
         }
 
         [TestCleanup()]

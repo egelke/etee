@@ -32,11 +32,13 @@ using System.Security.Cryptography;
 using Siemens.EHealth.Etee.Crypto.Decrypt;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Asn1.Cms;
+using System.Diagnostics;
 
 namespace Siemens.EHealth.Etee.Crypto.Decrypt
 {
     internal static class Verifier
     {
+        private static TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
 
         private static void Translate(CertificateSecurityInformation dest, X509ChainElementEnumerator srcChain, bool partial)
         {
@@ -161,20 +163,31 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands")]
         internal static CertificateSecurityInformation VerifyInternal(BC::X509Certificate cert, X509Certificate2Collection extraStore, DateTime date)
         {
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Verifying if certificate {0} was valid on {1}", cert.SubjectDN.ToString(), date);
+
             CertificateSecurityInformation result = new CertificateSecurityInformation();
 
             AsymmetricKeyParameter key = cert.GetPublicKey();
 
             //check key type
-            if (!(key is RsaKeyParameters) && !(key is DsaKeyParameters)) result.securityViolations.Add(CertSecurityViolation.NotValidKeyType);
+            if (!(key is RsaKeyParameters) && !(key is DsaKeyParameters))
+            {
+                result.securityViolations.Add(CertSecurityViolation.NotValidKeyType);
+                trace.TraceEvent(TraceEventType.Warning, 0, "The key should be RSA or DSA but was {0}", key.GetType());
+            }
 
             //check key size
-            if (!VerifyKeySize(key, EteeActiveConfig.Unseal.MinimuumSignatureKeySize)) result.securityViolations.Add(CertSecurityViolation.NotValidKeySize);
+            if (!VerifyKeySize(key, EteeActiveConfig.Unseal.MinimuumSignatureKeySize))
+            {
+                result.securityViolations.Add(CertSecurityViolation.NotValidKeySize);
+                trace.TraceEvent(TraceEventType.Warning, 0, "The key was smaller then {0}", EteeActiveConfig.Unseal.MinimuumSignatureKeySize);
+            }
 
             //check key usage
             if (!cert.GetKeyUsage()[0])
             {
                 result.securityViolations.Add(CertSecurityViolation.NotValidForUsage);
+                trace.TraceEvent(TraceEventType.Warning, 0, "The key usage did not have the signature flag set");
             }
 
             //Check certificate status + validity
@@ -185,6 +198,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             chain.ChainPolicy.VerificationTime = date;
             if (extraStore != null) chain.ChainPolicy.ExtraStore.AddRange(extraStore);
             chain.Build(new X509Certificate2(cert.GetEncoded()));
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Create key chain (includes revocation check)");
 
             bool partial = false;
             foreach (X509ChainStatus status in chain.ChainStatus)
@@ -199,6 +213,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                     case X509ChainStatusFlags.CtlNotSignatureValid:
                     case X509ChainStatusFlags.CtlNotTimeValid:
                     case X509ChainStatusFlags.CtlNotValidForUsage:
+                        trace.TraceEvent(TraceEventType.Error, 0, "Unexpected X509ChainStatusFlag: {0}", status.Status);
                         throw new NotSupportedException("This case isn't supported yet, please contact support");
                     default:
                         //Ignore
@@ -212,6 +227,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 Translate(result, chainEnum, partial);
             }
 
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Verified certificate {0} for date {1}", cert.SubjectDN.ToString(), date);
             return result;
         }
 
@@ -220,6 +236,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
         {
             if (key is RsaKeyParameters)
             {
+                trace.TraceEvent(TraceEventType.Verbose, 0, "The key has a size of {0}", ((RsaKeyParameters)key).Modulus.BitLength);
                 if (((RsaKeyParameters)key).Modulus.BitLength < minKeySize)
                 {
                     return false;
@@ -227,6 +244,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             }
             else if (key is DsaKeyParameters)
             {
+                trace.TraceEvent(TraceEventType.Verbose, 0, "The key has a size of {0}", ((DsaKeyParameters)key).Parameters.P.BitLength);
                 if (((DsaKeyParameters)key).Parameters.P.BitLength < minKeySize)
                 {
                     return false;
@@ -261,6 +279,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "crls")]
         public static SecurityInformation Verify(IX509Store certs, IX509Store crls, SignerInformationStore signerInfos, CertificateSecurityInformation overrideOrigine, bool strict, bool isStream)
         {
+            
             SignerInformation signerInfo = null;
             BC::X509Certificate signerCert = null;
             SecurityInformation result = new SecurityInformation();
@@ -270,18 +289,22 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             {
                 case 0:
                     result.securityViolations.Add(SecurityViolation.NotSigned);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "Althoug it is a correct CMS file it isn't signed");
                     return result;
                 case 1:
                     IEnumerator iterator = signerInfos.GetSigners().GetEnumerator();
                     if (!iterator.MoveNext()) throw new InvalidOperationException("There is one signature, but it could not be retrieved");
                     signerInfo = (SignerInformation)iterator.Current;
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Found signature");
                     break;
                 default:
+                    trace.TraceEvent(TraceEventType.Error, 0, "Found more then one signature, this isn't supported (yet)");
                     throw new NotSupportedException("The library doesn't support messages that is signed multiple times");
             }
 
             if (isStream && signerInfo.SignedAttributes == null)
             {
+                trace.TraceEvent(TraceEventType.Error, 0, "PSS and streams wihtout attributes aren't supported (yet)");
                 throw new NotSupportedException("PSS without signed attributes isn't supported");
             }
 
@@ -291,46 +314,66 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 if (signerInfo.DigestAlgOid != EteeActiveConfig.Unseal.SignatureAlgorithm.DigestAlgorithm.Value)
                 {
                     result.securityViolations.Add(SecurityViolation.NotAllowedSignatureDigestAlgorithm);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "The signature digest algorithm {0} isn't allowed, only {1} ({2})  is", signerInfo.DigestAlgOid,
+                        EteeActiveConfig.Unseal.SignatureAlgorithm.DigestAlgorithm.Value, EteeActiveConfig.Unseal.SignatureAlgorithm.DigestAlgorithm.FriendlyName);
                 }
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Verified the signature digest algorithm");
 
                 //check if signer used correct encrypt algo
                 if (signerInfo.EncryptionAlgOid != EteeActiveConfig.Unseal.SignatureAlgorithm.EncryptionAlgorithm.Value)
                 {
                     result.securityViolations.Add(SecurityViolation.NotAllowedSignatureEncryptionAlgorithm);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "The signature encryption algorithm {0} isn't allowed, only {1} ({2})  is", signerInfo.EncryptionAlgOid,
+                        EteeActiveConfig.Unseal.SignatureAlgorithm.EncryptionAlgorithm.Value, EteeActiveConfig.Unseal.SignatureAlgorithm.EncryptionAlgorithm.FriendlyName);
                 }
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Verified the signature encryption algorithm");
             }
 
             if (overrideOrigine == null)
             {
+                trace.TraceEvent(TraceEventType.Verbose, 0, "No override certificate is provided, finding it in the CMS message.");
+
                 //if no signer cert is provided, use the one in the file
                 ICollection signerCerts = certs.GetMatches(signerInfo.SignerID);
                 switch (signerCerts.Count)
                 {
                     case 0:
                         result.securityViolations.Add(SecurityViolation.NotFoundSigner);
+                        trace.TraceEvent(TraceEventType.Warning, 0, "Could not find the signer certificate");
                         return result;
                     case 1:
                         IEnumerator iterator = signerCerts.GetEnumerator();
-                        if (!iterator.MoveNext()) throw new InvalidOperationException("Signer certificate found, but could not be retrieved");
+                        if (!iterator.MoveNext())
+                        {
+                            trace.TraceEvent(TraceEventType.Error, 0, "Found the signer certificate, but the enumeration was emtpy");
+                            throw new InvalidOperationException("Signer certificate found, but could not be retrieved");
+                        }
                         signerCert = (BC::X509Certificate)iterator.Current;
+                        trace.TraceEvent(TraceEventType.Verbose, 0, "Found the signer certificate: {0}", signerCert.SubjectDN.ToString());
                         if (signerInfo != null && signerInfo.SignedAttributes != null)
                         {
+                            trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains signed attributes");
                             Org.BouncyCastle.Asn1.Cms.Attribute time = signerInfo.SignedAttributes[CmsAttributes.SigningTime];
                             if (time != null && time.AttrValues.Count == 1)
                             {
-                                result.Subject = Verifier.Verify(signerCert, Time.GetInstance(time.AttrValues[0]).Date);
+                                DateTime signedOn = Time.GetInstance(time.AttrValues[0]).Date;
+                                trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains a signing time: {0}", signedOn);
+                                result.Subject = Verifier.Verify(signerCert, signedOn);
                             }
                             else
                             {
+                                trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message does not contain a signing time");
                                 result.Subject = Verifier.Verify(signerCert);
                             }
                         }
                         else
                         {
+                            trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message doesn ot contain signed attributes");
                             result.Subject = Verifier.Verify(signerCert);
                         }
                         break;
                     default:
+                        trace.TraceEvent(TraceEventType.Error, 0, "Several certificates correspond to the signer");
                         throw new NotSupportedException("More then one certificate found that corresponds to the sender information in the message, this isn't supported by the library");
                 }
             }
@@ -338,11 +381,18 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             {
                 result.Subject = overrideOrigine;
                 signerCert = DotNetUtilities.FromX509Certificate(overrideOrigine.Certificate);
+                trace.TraceEvent(TraceEventType.Verbose, 0, "An override certifificate was provided: {0}", signerCert.SubjectDN.ToString());
             }
 
             //verify the signature
-            if (!signerInfo.Verify(signerCert.GetPublicKey())) result.securityViolations.Add(SecurityViolation.NotSignatureValid);
+            if (!signerInfo.Verify(signerCert.GetPublicKey()))
+            {
+                result.securityViolations.Add(SecurityViolation.NotSignatureValid);
+                trace.TraceEvent(TraceEventType.Warning, 0, "The signature value was invalid");
+            }
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Signature value verification finished");
 
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Signature block verified");
             return result;
         }
     }
