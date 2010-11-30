@@ -164,7 +164,10 @@ namespace Siemens.EHealth.Etee.Crypto.Library
         {
             byte[] keyId;
             Stream cryphered = OnTransferFrom(out keyId);
-            return OnDecrypt(cryphered, keyId, out sender);
+            using (cryphered)
+            {
+                return OnDecrypt(cryphered, keyId, out sender);
+            }
         }
 
         protected abstract Stream OnTransferFrom(out byte[] keyId);

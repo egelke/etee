@@ -11,12 +11,20 @@ using System.Collections.ObjectModel;
 using System.Deployment.Application;
 using System.IO.IsolatedStorage;
 using System.Text.RegularExpressions;
+using Siemens.EHealth.Client.Sso;
+using System.IdentityModel.Tokens;
+using Siemens.EHealth.Client.Sso.Sts;
+using System.Xml;
+using System.ServiceModel.Security.Tokens;
+using System.ServiceModel.Description;
+using Siemens.EHealth.Client.Sso.WA;
 
 namespace Siemens.EHealth.Etee.Demo.Console
 {
     class Program
     {
         private static LocalFilePostMaster pm;
+        private static readonly Regex certParse = new Regex(@"CN=""?(?<type>\w*)\\?=(?<value>\d*)");
         private static readonly Regex knownParse = new Regex(@"(?<type>\w*)=(?<value>\d*)(,\s)?(?<app>\w*)?");
         private static readonly Regex unknownParse = new Regex(@"\{(?<ns>.*)\}(?<name>[^=]*)=?(?<value>\d*)?");
 
@@ -68,7 +76,7 @@ namespace Siemens.EHealth.Etee.Demo.Console
             System.Console.ReadLine();
         }
 
-      
+
 
         private static LocalFilePostMaster Setup(string[] args)
         {
@@ -150,14 +158,58 @@ namespace Siemens.EHealth.Etee.Demo.Console
                         System.Console.WriteLine("ID (number) of the certificate must be listed");
                         continue;
                     }
+                    X509Certificate2 cert = signingCerts[certId - 1];
 
                     BasicHttpBinding etkDepotBinding = new BasicHttpBinding(BasicHttpSecurityMode.Transport);
                     etkDepotBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.None;
                     EtkDepotPortTypeClient ektDepotClient = new EtkDepotPortTypeClient(etkDepotBinding, new EndpointAddress(etkDepot));
 
-                    KgssPortTypeClient kgssClient = new KgssPortTypeClient(etkDepotBinding, new EndpointAddress(kgss));
+                    SsoBinding kgssBinding = new SsoBinding();
+                    kgssBinding.Security.Mode = WSFederationHttpSecurityMode.Message;
+                    kgssBinding.Security.Message.IssuedKeyType = SecurityKeyType.AsymmetricKey;
+                    kgssBinding.Security.Message.NegotiateServiceCredential = false;
+                    kgssBinding.Security.Message.EstablishSecurityContext = false;
+                    kgssBinding.Security.Message.IssuerAddress = new EndpointAddress(sts);
+                    kgssBinding.Security.Message.IssuerBinding = new StsBinding();
+                    kgssBinding.Security.Message.IssuedTokenType = SecurityTokenTypes.Saml;
+                    Match certCN = certParse.Match(cert.Subject);
+                    if (!certCN.Groups["type"].Success || !certCN.Groups["value"].Success)
+                    {
+                        System.Console.WriteLine("The selected certifcate doesn't have a valid CN");
+                        continue;
+                    }
+                    string type = certCN.Groups["type"].Value;
+                    string value = certCN.Groups["value"].Value;
+                    switch (type)
+                    {
+                        case "CBE":
+                            //TODO: make dynamic...
+                            XmlDocument doc = new XmlDocument();
+                            doc.LoadXml(String.Format("<saml:Attribute xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\" AttributeNamespace=\"urn:be:fgov:identification-namespace\" AttributeName=\"urn:be:fgov:kbo-cbe:cbe-number\">" +
+                                "<saml:AttributeValue xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">{0}</saml:AttributeValue>" +
+                                "</saml:Attribute>", value));
+                            kgssBinding.Security.Message.TokenRequestParameters.Add(doc.DocumentElement);
+                            doc = new XmlDocument();
+                            doc.LoadXml(String.Format("<saml:Attribute xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\" AttributeNamespace=\"urn:be:fgov:identification-namespace\" AttributeName=\"urn:be:fgov:ehealth:1.0:certificateholder:enterprise:cbe-number\">" +
+                                "<saml:AttributeValue xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">{0}</saml:AttributeValue>" +
+                                "</saml:Attribute>", value));
+                            kgssBinding.Security.Message.TokenRequestParameters.Add(doc.DocumentElement);
+                            kgssBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:kbo-cbe:cbe-number"));
+                            kgssBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:enterprise:cbe-number"));
+                            break;
+                        default:
+                            System.Console.WriteLine("Sorry, this type of client isn't (yet) supported");
+                            continue;
+                    }
+                    
+                    KgssPortTypeClient kgssClient = new KgssPortTypeClient(kgssBinding, new EndpointAddress(kgss));
+                    kgssClient.Endpoint.Behaviors.Remove<ClientCredentials>();
+                    kgssClient.Endpoint.Behaviors.Add(new SsoClientCredentials());
+                    //TODO: allow different certs for auth and session
+                    kgssClient.Endpoint.Behaviors.Add(new SessionBehavior(cert, new TimeSpan(1, 0, 0)));
+                    kgssClient.ClientCredentials.ClientCertificate.Certificate = cert; 
 
-                    return new LocalFilePostMaster(SecurityInfo.Create(signingCerts[certId - 1]), ektDepotClient, kgssClient);
+                    return new LocalFilePostMaster(SecurityInfo.Create(cert), ektDepotClient, kgssClient);
                 }
             }
             finally
@@ -289,6 +341,7 @@ namespace Siemens.EHealth.Etee.Demo.Console
             catch (Exception e)
             {
                 System.Console.WriteLine("Could not encrypt because: " + e.Message);
+                System.Console.WriteLine(e.StackTrace);
             }
         }
 
@@ -302,8 +355,10 @@ namespace Siemens.EHealth.Etee.Demo.Console
                 FileStream clear = new FileStream(clearName, FileMode.Create);
                 using (clear)
                 {
+                    System.Console.Write("Key filename (empty => no key => known recipient): ");
+                    pm.KeyName = System.Console.ReadLine();
+                    if (String.IsNullOrWhiteSpace(pm.KeyName)) pm.KeyName = null;
                     System.Console.Write("Input filename: ");
-                    pm.KeyName = null;
                     pm.MsgName = System.Console.ReadLine();
                     System.Console.WriteLine("Starting Decryption");
                     try
@@ -320,7 +375,8 @@ namespace Siemens.EHealth.Etee.Demo.Console
             }
             catch (Exception e)
             {
-                System.Console.WriteLine("Could not encrypt because: " + e.Message);
+                System.Console.WriteLine("Could not decrypt because: " + e.Message);
+                System.Console.WriteLine(e.StackTrace);
             }
         }
     }
