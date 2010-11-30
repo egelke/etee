@@ -10,12 +10,15 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.Deployment.Application;
 using System.IO.IsolatedStorage;
+using System.Text.RegularExpressions;
 
 namespace Siemens.EHealth.Etee.Demo.Console
 {
     class Program
     {
         private static LocalFilePostMaster pm;
+        private static readonly Regex knownParse = new Regex(@"(?<type>\w*)=(?<value>\d*)(,\s)?(?<app>\w*)?");
+        private static readonly Regex unknownParse = new Regex(@"\{(?<ns>.*)\}(?<name>[^=]*)=?(?<value>\d*)?");
 
         static void Main(string[] args)
         {
@@ -152,7 +155,9 @@ namespace Siemens.EHealth.Etee.Demo.Console
                     etkDepotBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.None;
                     EtkDepotPortTypeClient ektDepotClient = new EtkDepotPortTypeClient(etkDepotBinding, new EndpointAddress(etkDepot));
 
-                    return new LocalFilePostMaster(SecurityInfo.Create(signingCerts[certId - 1]), ektDepotClient);
+                    KgssPortTypeClient kgssClient = new KgssPortTypeClient(etkDepotBinding, new EndpointAddress(kgss));
+
+                    return new LocalFilePostMaster(SecurityInfo.Create(signingCerts[certId - 1]), ektDepotClient, kgssClient);
                 }
             }
             finally
@@ -173,30 +178,82 @@ namespace Siemens.EHealth.Etee.Demo.Console
 
         private static void Encrypt()
         {
-            string type;
-            string app;
-            string value;
+
+            int nr = 1;
+            bool hasUnknown = false;
             List<Recipient> recipients = new List<Recipient>();
-            System.Console.WriteLine("The in.msg will be encrypted, please specify the recipients: ");
+            System.Console.WriteLine(String.Format("Running pre-requisites of encryption"));
+            System.Console.WriteLine("Specify the known recipients (leave emtpty to stop): ");
+            System.Console.WriteLine("Format '<<Type>>=<<Value>>[, <<Application>>]'");
+            System.Console.WriteLine("Example 'NIHII=00000000' or 'CBE=00000000000, MyApp'");
             while (true)
             {
-                System.Console.Write("The value (leave empty to start encryption): ");
-                value = System.Console.ReadLine();
-                if (String.IsNullOrWhiteSpace(value)) break;
-                System.Console.Write("The type [NIHII]: ");
-                type = System.Console.ReadLine();
-                if (String.IsNullOrWhiteSpace(type)) type = "NIHII";
-                System.Console.Write("The application []: ");
-                app = System.Console.ReadLine();
+                string type;
+                string app;
+                string value;
+                string input;
 
-                if (String.IsNullOrWhiteSpace(app))
+                System.Console.Write(String.Format("{0} : ", nr));
+                input = System.Console.ReadLine();
+                if (String.IsNullOrWhiteSpace(input)) break;
+                Match match = knownParse.Match(input);
+                if (!match.Groups["type"].Success || !match.Groups["value"].Success)
                 {
+                    System.Console.WriteLine("The input was not in the correct format");
+                    continue;
+                }
+                type = match.Groups["type"].Value;
+                value = match.Groups["value"].Value;
+                if (match.Groups["app"].Success && !String.IsNullOrWhiteSpace(match.Groups["app"].Value))
+                {
+                    app = match.Groups["app"].Value;
+                    System.Console.WriteLine(String.Format("Adding '{0}={1}, {2}' to recipients", type, value, app));
                     recipients.Add(new KnownRecipient(type, value, app));
                 }
                 else
                 {
+                    app = null;
+                    System.Console.WriteLine(String.Format("Adding '{0}={1}' to recipients", type, value));
                     recipients.Add(new KnownRecipient(type, value));
                 }
+                nr++;
+            }
+            System.Console.WriteLine("Specify the unknown recipients (leave emtpty to stop): ");
+            System.Console.WriteLine("Format '{<<namespace>>}<<name>>[=<<value>>]', no value means everybody");
+            System.Console.WriteLine("Example '{urn:be:fgov:identification-namespace}urn:be:fgov:kbo-cbe:cbe-number'");
+            System.Console.WriteLine("Example '{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin=79021802145'");
+            while (true)
+            {
+                string ns;
+                string name;
+                string value;
+                string input;
+
+                System.Console.Write(String.Format("{0} : ", nr));
+                input = System.Console.ReadLine();
+                if (String.IsNullOrWhiteSpace(input)) break;
+                Match match = unknownParse.Match(input);
+                if (!match.Groups["ns"].Success || !match.Groups["name"].Success)
+                {
+                    System.Console.WriteLine("The input was not in the correct format");
+                    continue;
+                }
+                ns = match.Groups["ns"].Value;
+                name = match.Groups["name"].Value;
+                if (match.Groups["value"].Success && !String.IsNullOrWhiteSpace(match.Groups["value"].Value))
+                {
+                    value = match.Groups["value"].Value;
+                    System.Console.WriteLine(String.Format("Adding '{{{0}}}{1}={2}' to recipients", ns, name, value));
+                    recipients.Add(new UnknownRecipient(ns, name, value));
+                }
+                else
+                {
+                    value = null;
+                    System.Console.WriteLine(String.Format("Adding '{{{0}}}{1}=*' to recipients", ns, name));
+                    recipients.Add(new UnknownRecipient(ns, name, value));
+                }
+                nr++;
+                hasUnknown = true;
             }
 
             try
@@ -207,8 +264,16 @@ namespace Siemens.EHealth.Etee.Demo.Console
                 FileStream clear = new FileStream(clearName, FileMode.Open);
                 using (clear)
                 {
+                    if (hasUnknown)
+                    {
+                        System.Console.Write("Key filename: ");
+                        pm.KeyName = System.Console.ReadLine();
+                    }
+                    else
+                    {
+                        pm.KeyName = null;
+                    }
                     System.Console.Write("Output filename: ");
-                    pm.KeyName = null;
                     pm.MsgName = System.Console.ReadLine();
                     System.Console.WriteLine("Starting Encryption");
                     try
