@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2009 (http://www.altova.com) by Smals-MVM ASBL/VZW (Smals-MVM ASBL/VZW) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns1="urn:be:fgov:ehealth:consultRN:1_0:protocol" xmlns:co="urn:be:fgov:ehealth:consultRN:1_0:core" targetNamespace="urn:be:fgov:ehealth:consultRN:1_0:protocol">
+	<xs:include schemaLocation="../commons/ConsultRN_protocol-1-0.xsd"/>
+	<xs:import namespace="urn:be:fgov:ehealth:consultRN:1_0:core" schemaLocation="../commons/PersonInformation-1-0.xsd"/>
+	<xs:element name="SearchBySSINRequest">
+		<xs:annotation>
+			<xs:documentation>request to service searchBySSIN</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="ns1:ConsultRnRequest">
+					<xs:sequence>
+						<xs:element name="Inscription" type="co:InscriptionType">
+							<xs:annotation>
+								<xs:documentation>The SSIN to search for (and information about the inscription done in organisation)</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="SearchBySSINReply">
+		<xs:annotation>
+			<xs:documentation>reply of service searchBySSIN</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="ns1:ConsultRnReply">
+					<xs:sequence>
+						<xs:element name="Person" type="co:PersonType" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>person found</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

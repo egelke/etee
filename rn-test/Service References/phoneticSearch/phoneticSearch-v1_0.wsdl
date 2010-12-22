@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="phoneticSearch" 
+									targetNamespace="http://ehealth.fgov.be/consultRN/phoneticSearch/v1_0/" 
+									xmlns:tns="http://ehealth.fgov.be/consultRN/phoneticSearch/v1_0/" 
+									xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+									xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+									xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+									xmlns:crnp="urn:be:fgov:ehealth:consultRN:1_0:protocol"
+									xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
+									xmlns:wssu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" 
+									>
+			
+  <wsp:UsingPolicy wsdl:Required="true"/>
+<wsp:Policy wssu:Id="Wssp1.2-2007-Wss1.0-X509-Basic256.xml" xmlns:wssu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702">
+    <sp:AsymmetricBinding>
+        <wsp:Policy>
+            <sp:InitiatorToken>
+                <wsp:Policy>
+                    <sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+                        <wsp:Policy>
+                            <sp:WssX509V3Token10 />
+                        </wsp:Policy>
+                    </sp:X509Token>
+                </wsp:Policy>
+            </sp:InitiatorToken>
+            <sp:RecipientToken>
+                <wsp:Policy>
+                    <sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+                        <wsp:Policy>
+                            <sp:WssX509V3Token10 />
+                        </wsp:Policy>
+                    </sp:X509Token>
+                </wsp:Policy>
+            </sp:RecipientToken>
+            <sp:AlgorithmSuite>
+                <wsp:Policy>
+                    <sp:Basic256 />
+                </wsp:Policy>
+            </sp:AlgorithmSuite>
+            <sp:Layout>
+                <wsp:Policy>
+                    <sp:Lax />
+                </wsp:Policy>
+            </sp:Layout>
+            <sp:IncludeTimestamp />
+            <sp:ProtectTokens />
+            <sp:OnlySignEntireHeadersAndBody />
+        </wsp:Policy>
+    </sp:AsymmetricBinding>
+    <sp:SignedParts>
+        <sp:Body />
+    </sp:SignedParts>
+    <sp:Wss10>
+        <wsp:Policy>
+            <sp:MustSupportRefKeyIdentifier />
+            <sp:MustSupportRefIssuerSerial />
+        </wsp:Policy>
+    </sp:Wss10>
+</wsp:Policy>
+				  	
+	<wsdl:types>
+    	<xsd:schema targetNamespace="http://ehealth.fgov.be/consultRN/phoneticSearch/v1_0/">
+    		<xsd:import namespace="urn:be:fgov:ehealth:consultRN:1_0:protocol" schemaLocation="../PhoneticSearch-1-0.xsd">
+			</xsd:import>
+		</xsd:schema>
+	</wsdl:types>
+	
+	<wsdl:message name="phoneticRequest">
+		<wsdl:part name="request" element="crnp:SearchPhoneticRequest"/>
+	</wsdl:message>
+	<wsdl:message name="phoneticResponse">
+		<wsdl:part name="response" element="crnp:SearchPhoneticReply"/>
+	</wsdl:message>
+    
+    <wsdl:portType name="phoneticSearchPortType">
+    	<wsdl:operation name="search">
+    		<wsdl:input message="tns:phoneticRequest"/>
+    		<wsdl:output message="tns:phoneticResponse"/>
+    	</wsdl:operation>
+    </wsdl:portType>
+    
+    <wsdl:binding name="phoneticSearchSoap" type="tns:phoneticSearchPortType">
+    	<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    	<wsdl:operation name="search">
+    		<soap:operation soapAction="http://ehealth.fgov.be/consultRN/identifyPerson/phoneticSearch/search" style="document"/>
+    		<wsdl:input>
+					<wsp:Policy>
+							<wsp:PolicyReference URI="#Wssp1.2-2007-Wss1.0-X509-Basic256.xml"/>
+					</wsp:Policy>
+    			<soap:body use="literal"/>
+    		</wsdl:input>
+    		<wsdl:output>
+    			<soap:body use="literal"/>
+    		</wsdl:output>
+    	</wsdl:operation>
+    </wsdl:binding>
+    
+    <wsdl:service name="phoneticSearch">
+		<wsdl:port name="phoneticSearch" binding="tns:phoneticSearchSoap">
+			<soap:address location="http://ehealth.fgov.be/consultRN/identifyPerson/phoneticSearch"/>
+		</wsdl:port>
+	</wsdl:service>
+	
+</wsdl:definitions>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2009 (http://www.altova.com) by Smals-MVM ASBL/VZW (Smals-MVM ASBL/VZW) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns1="urn:be:fgov:ehealth:consultRN:1_0:protocol" xmlns:co="urn:be:fgov:ehealth:consultRN:1_0:core" targetNamespace="urn:be:fgov:ehealth:consultRN:1_0:protocol">
+	<xs:include schemaLocation="../commons/ConsultRN_protocol-1-0.xsd"/>
+	<xs:import namespace="urn:be:fgov:ehealth:consultRN:1_0:core" schemaLocation="../commons/PersonInformation-1-0.xsd"/>
+	<xs:complexType name="PhoneticCriteriaType">
+		<xs:annotation>
+			<xs:documentation>set of criteria available</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="LastName" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>last name of the person to look for</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="FirstName" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>first name of the person to look for</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="MiddleName" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>middle name of the person to look for</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="BirthDate" type="co:IncompleteDate">
+				<xs:annotation>
+					<xs:documentation>birthdate of the person. may be incomplete. possible formats: yyyy-mm-dd, yyyy-mm-00, yyyy-00-00</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Gender" type="co:GenderType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Gender code</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Tolerance" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Amount that the birthdate of the result may differ from the specified one. Must be specified unless the BirthDate field contains a complete date (in which case 0 is assumed). Unit type depends on format of Birtdate: yyyymmdd: days; yyyymm00: months; yyyy0000: years</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:integer">
+						<xs:whiteSpace value="collapse"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="Maximum" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>the maximum numbers of results to return. If more results are found, an error will be returned</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:integer">
+						<xs:whiteSpace value="collapse"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="SearchPhoneticRequest">
+		<xs:annotation>
+			<xs:documentation>request to service searchPhonetic</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="ns1:ConsultRnRequest">
+					<xs:sequence>
+						<xs:element name="PhoneticCriteria" type="ns1:PhoneticCriteriaType">
+							<xs:annotation>
+								<xs:documentation>The criteria that found citizens must match</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="SearchPhoneticReply">
+		<xs:annotation>
+			<xs:documentation>reply of service search phonetic</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="ns1:ConsultRnReply">
+					<xs:sequence>
+						<xs:element name="Person" type="co:PersonType" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>list of person found</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

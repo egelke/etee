@@ -1,0 +1,174 @@
+<!-- edited with XMLSpy v2009 (http://www.altova.com) by Smals-MVM ASBL/VZW (Smals-MVM ASBL/VZW) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:co="urn:be:fgov:ehealth:consultRN:1_0:core" xmlns:eH="urn:be:fgov:ehealth:commons:1_0:core" targetNamespace="urn:be:fgov:ehealth:consultRN:1_0:core">
+	<xs:import namespace="urn:be:fgov:ehealth:commons:1_0:core" schemaLocation="../ehealth-commons/ehealth-commons-schema-core-1_0.xsd"/>
+	<xs:simpleType name="IncompleteDate">
+		<xs:annotation>
+			<xs:documentation>a possibly incomplete date. Format yyyy-mm-dd, yyyy-mm-00 or yyyy-00-00</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="10"/>
+			<xs:whiteSpace value="collapse"/>
+			<xs:pattern value="[1-2][0-9]{3}\-[0-1][0-9]\-[0-3][0-9]"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="OriginType">
+		<xs:annotation>
+			<xs:documentation>Origin of a piece of information</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BCSS_KSZ"/>
+			<xs:enumeration value="RN_RR"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="PlainAddressType">
+		<xs:sequence>
+			<xs:element name="Address" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>the adress in an unformatted form</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Country" type="co:CountryType">
+				<xs:annotation>
+					<xs:documentation>the country of this adress</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="StandardAddressType">
+		<xs:sequence>
+			<xs:element name="Street" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The street name</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Description" type="eH:LocalisedString" minOccurs="0" maxOccurs="5"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Housenumber" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The house number</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="Box" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The box number</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="Municipality" type="co:MunicipalityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>information about the municipality</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Country" type="co:CountryType">
+				<xs:annotation>
+					<xs:documentation>the country of this adress</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CountryType">
+		<xs:annotation>
+			<xs:documentation>code and description of a country</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="InsCode" type="co:NIScode_country" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>country code (see http://www.statbel.fgov.be)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Description" type="eH:LocalisedString" minOccurs="0" maxOccurs="5">
+				<xs:annotation>
+					<xs:documentation>country description (in the language of the user)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MunicipalityType">
+		<xs:annotation>
+			<xs:documentation>code, postalcode and description of a municipality</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="InsCode" type="co:NIScode_municipality" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>municipality code (see http://www.statbel.fgov.be)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="PostalCode" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>postal code</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Description" type="eH:LocalisedString" minOccurs="0" maxOccurs="5">
+				<xs:annotation>
+					<xs:documentation>municipality description (in the language of the user)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="WhereType">
+		<xs:annotation>
+			<xs:documentation>municipality and country</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Description" type="eH:LocalisedString" minOccurs="0" maxOccurs="5">
+				<xs:annotation>
+					<xs:documentation>general description of the place</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Municipality" type="co:MunicipalityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>information about the municipality</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Country" type="co:CountryType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>information about the country</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="AddressType">
+		<xs:choice>
+			<xs:element name="PlainAddress" type="co:PlainAddressType">
+				<xs:annotation>
+					<xs:documentation>information about the adress non structured (text + country)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="StandardAddress" type="co:StandardAddressType">
+				<xs:annotation>
+					<xs:documentation>information about the adress in a structured way</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+		<xs:attribute name="ModificationDate" type="co:IncompleteDate" use="optional"/>
+		<xs:attribute name="Origin" type="co:OriginType" use="optional"/>
+	</xs:complexType>
+	<xs:simpleType name="NIScode_municipality">
+		<xs:annotation>
+			<xs:documentation>integer (five position) identifiyng a municipality</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:maxInclusive value="99999"/>
+			<xs:minInclusive value="0"/>
+			<xs:whiteSpace value="collapse"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="NIScode_country">
+		<xs:annotation>
+			<xs:documentation>integer (three position) identifiyng a country</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:maxInclusive value="999"/>
+			<xs:minInclusive value="0"/>
+			<xs:whiteSpace value="collapse"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
