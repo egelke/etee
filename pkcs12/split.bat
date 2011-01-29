@@ -51,33 +51,53 @@ echo Done
 echo.
 echo Looking for entries
 echo. > "%pth%certs.chain"
-FOR /F "delims=: tokens=1,2" %%i in (%pth%export.txt) do (
-	set i2=%%i%
-	set i2=!i2: =!
+FOR /F "delims=:] tokens=1,2,3" %%i in ('find /n /v ""^<%pth%export.txt') do (
 	set j2=%%j%
 	set j2=!j2: =!
-	if "!i2!" == "friendlyName" (
-		set name=!j2!
+	set k2=%%k%
+	set k2=!k2: =!
+	if "!j2!" == "friendlyName" (
+		set name=!k2!
 	)
-	if "%%i" == "-----BEGIN ENCRYPTED PRIVATE KEY-----" (
-		echo 	Found key: !name!
-		echo. > "%pth%!name!.key"
-		set key=true
+
+	set suffix=%%j
+	set prefix=%%j
+	set suffix=!suffix:~-16!
+	set prefix=!prefix:~0,8!
+
+	if "!suffix!" == "PRIVATE KEY-----" (
+		if "!prefix!" == "-----BEG" (
+			echo 	Found key: !name!
+			echo. > "%pth%!name!.key"
+			set key=true
+		)
 	)
 	if !key! == true (
-		echo %%i >> "%pth%!name!.key"	
+		if "%%j" == "" (
+			echo. >> "%pth%!name!.key"
+		) else ( 
+			if "%%k" == "" (
+				echo %%j >> "%pth%!name!.key"
+			) else (
+				echo %%j:%%k >> "%pth%!name!.key"
+			)
+		)
 	)
-	if "%%i" == "-----END ENCRYPTED PRIVATE KEY-----" (
-		set key=false
+	if "!suffix!" == "PRIVATE KEY-----" (
+		if "!prefix!" == "-----END" (
+			set key=false
+		)
 	)
-	if "%%i" == "-----BEGIN CERTIFICATE-----" (
+	
+
+	if "%%j" == "-----BEGIN CERTIFICATE-----" (
 		echo 	Found certificate: !name!
 		set cert=true
 	)
 	if !cert! == true (
-		echo %%i >> "%pth%certs.chain"	
+		echo %%j >> "%pth%certs.chain"	
 	)
-	if "%%i" == "-----END CERTIFICATE-----" (
+	if "%%j" == "-----END CERTIFICATE-----" (
 		set cert=false
 	)
 )
