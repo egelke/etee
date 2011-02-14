@@ -80,5 +80,15 @@ namespace Siemens.EHealth.Client.StsTest
             Assert.AreEqual("Assertion", assertion.LocalName);
             Assert.AreEqual("urn:oasis:names:tc:SAML:1.0:assertion", assertion.NamespaceURI);
         }
+
+        [TestMethod]
+        public void ConfigViaConfig()
+        {
+            StsClient target = new StsClient("SSIN=79021802145");
+            XmlElement assertion = target.RequestTicket("Siemens", selfSignedSession, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
+
+            Assert.AreEqual("Assertion", assertion.LocalName);
+            Assert.AreEqual("urn:oasis:names:tc:SAML:1.0:assertion", assertion.NamespaceURI);
+        }
     }
 }
