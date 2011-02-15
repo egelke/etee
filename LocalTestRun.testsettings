@@ -2,6 +2,7 @@
 <TestSettings name="LocalTestRun" id="cf8f450d-c5e0-40cc-8dd0-89f8ddc33855" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
   <Description>These are default test settings for a local test run.</Description>
   <Deployment>
+    <DeploymentItem filename="unit-tests\EHealthP12\" />
     <DeploymentItem filename="sts-test\xsd\" />
   </Deployment>
   <Execution>

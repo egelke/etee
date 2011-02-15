@@ -90,6 +90,7 @@
     <Compile Include="Sso\Sts\WcfAddition\EHealthOutputChannel.cs" />
     <Compile Include="Sso\Sts\WcfAddition\EHealthRequestChannel.cs" />
     <Compile Include="Sso\WA\XmlSerializerObjectSerializer.cs" />
+    <Compile Include="Tool\EHealthP12.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\debug.snk">
@@ -98,6 +99,7 @@
     <Content Include="BouncyCastle.Crypto.dll" />
     <Content Include="COPYING" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
