@@ -1,0 +1,9 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Siemens.EHealth.Client.UnitTest.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="RealP12Pwd" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">pYTeRG3xJyuWP8sJA7LWUUg1FFzS0vKqopBEFSJ+RdBAwlWcqkex7h3Fwwtqj8qY0BMQFhd+3gaVuV6YtY4A7W/Al8OcnwUfhHRDOVE296Uw45dN1wRoChIrzGVMkfjHoNaIdmqJQzWgU0xWg+o8O/W6w6vy2Z9obPa9LW1xVEX1i3yURP9py/dZ8AVqix4a5mlvoNlqdn4rAgV4sxFKLNWSikdmOvgOU0xD6xucfvOrVmWjfa0ckW8SJm80v2/hV17QjTXecdavZxewKHK6L6uNZhSgdqxYwths1H4Sv/KcyjBI2w7ICyC6Oe4tbyJXJvaZVxnnJfxNg9iSgyUR5A==+yjFPx/R88Iix4mWxcVvnIe/7dnJrN5ARSSRJMIUYoco5n2JNnwi0Qt/YJ0nBuFSK7iOwu5l0Zr4R2WeJwJ+khwLo4b0h710tWD9a98x4fgdUFOrW278Kn5aK6MMN/XwqHHC12oR2Pv795Huw2/yhj9wkJMteHDkMmmU6iemQTnXb5I44B1bLZQIuORLpHHyFmoa3LQqr01ANs1TxPOMmL0K8yec5FX3loJBZDr5nJfZUo3fqw3yORaYAkr9xqOINgtV3XLQ5H6N9CFg+Q==</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

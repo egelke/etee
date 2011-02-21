@@ -42,7 +42,7 @@ namespace Siemens.EHealth.Client.RnTest
             IdentifyPersonClient client = new IdentifyPersonClient(new StsBinding(), new EndpointAddress(new Uri("https://services-acpt.ehealth.fgov.be/consultRN/identifyPerson/v1")));
             client.Endpoint.Behaviors.Remove<ClientCredentials>();
             client.Endpoint.Behaviors.Add(new OptClientCredentials());
-            client.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "c175242f2454fa00b69b49308f82cae919f8e8f5");
+            client.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "cf692e24bac7c1d990496573e64ef999468be67e");
  
             SearchBySSINRequest request = new SearchBySSINRequest();
             request.ApplicationID = "YourID";

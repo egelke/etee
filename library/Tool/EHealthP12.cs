@@ -220,12 +220,22 @@ namespace Siemens.EHealth.Client.Tool
 
         public IEnumerator<KeyValuePair<string, X509Certificate2>> GetEnumerator()
         {
-            throw new NotImplementedException();
+            List<KeyValuePair<string, X509Certificate2>> aliasList = new List<KeyValuePair<string, X509Certificate2>>();
+            IEnumerator aliasEnum = store.Aliases.GetEnumerator();
+            while (aliasEnum.MoveNext())
+            {
+                String alias = (String)aliasEnum.Current;
+                if (store.IsKeyEntry(alias))
+                {
+                    aliasList.Add(new KeyValuePair<string, X509Certificate2>(alias, ConvertToDotNet(alias)));
+                }
+            }
+            return new SynchronizedReadOnlyCollection<KeyValuePair<string, X509Certificate2>>(aliasList).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return GetEnumerator();
         }
 
         private X509Certificate2 ConvertToDotNet(string entryAlias)
