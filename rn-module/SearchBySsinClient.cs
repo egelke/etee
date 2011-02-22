@@ -6,39 +6,38 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Net.Security;
 using Siemens.EHealth.Client.Sso.WA;
-using Siemens.EHealth.Client.RnTest.IdentifyPerson;
 
-namespace Siemens.EHealth.Client.RnTest.Service_References.phoneticSearch
+namespace Siemens.EHealth.Client.Rn.IdentifyPerson
 {
-    [ServiceContractAttribute(ProtectionLevel = ProtectionLevel.Sign, Namespace = "http://ehealth.fgov.be/consultRN/searchPersonBySSIN/v1_0/", ConfigurationName = "IdentifyPersonV1", Name = "IdentifyPersonPort")]
-    public interface IdentifyPersonPort
+    [ServiceContractAttribute(ProtectionLevel = ProtectionLevel.Sign, Namespace = "http://ehealth.fgov.be/consultRN/searchPersonBySSIN/v1_0/", ConfigurationName = "SearchBySsinV1", Name = "SearchBySsinPort")]
+    public interface SearchBySsinPort
     {
         [OperationContractAttribute(Action = "*", ReplyAction = "*")]
         Message Request(Message request);
     }
 
-    public class IdentifyPersonClient : ClientBase<IdentifyPersonPort>
+    public class SearchBySsinClient : ClientBase<SearchBySsinPort>
     {
-        public IdentifyPersonClient()
+        public SearchBySsinClient()
         {
         }
 
-        public IdentifyPersonClient(string endpointConfigurationName) :
+        public SearchBySsinClient(string endpointConfigurationName) :
             base(endpointConfigurationName)
         {
         }
 
-        public IdentifyPersonClient(string endpointConfigurationName, string remoteAddress) :
+        public SearchBySsinClient(string endpointConfigurationName, string remoteAddress) :
             base(endpointConfigurationName, remoteAddress)
         {
         }
 
-        public IdentifyPersonClient(string endpointConfigurationName, EndpointAddress remoteAddress) :
+        public SearchBySsinClient(string endpointConfigurationName, EndpointAddress remoteAddress) :
             base(endpointConfigurationName, remoteAddress)
         {
         }
 
-        public IdentifyPersonClient(Binding binding, EndpointAddress remoteAddress) :
+        public SearchBySsinClient(Binding binding, EndpointAddress remoteAddress) :
             base(binding, remoteAddress)
         {
         }

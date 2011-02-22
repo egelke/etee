@@ -1,6 +1,6 @@
 <!-- edited with XMLSpy v2009 (http://www.altova.com) by Smals-MVM ASBL/VZW (Smals-MVM ASBL/VZW) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:co="urn:be:fgov:ehealth:consultRN:1_0:core" xmlns:eH="urn:be:fgov:ehealth:commons:1_0:core" targetNamespace="urn:be:fgov:ehealth:consultRN:1_0:core">
-	<xs:import namespace="urn:be:fgov:ehealth:commons:1_0:core" schemaLocation="../ehealth-commons/ehealth-commons-schema-core-1_0.xsd"/>
+	<xs:import namespace="urn:be:fgov:ehealth:commons:1_0:core" schemaLocation="../EHealthCommons/ehealth-commons-schema-core-1_0.xsd"/>
 	<xs:simpleType name="IncompleteDate">
 		<xs:annotation>
 			<xs:documentation>a possibly incomplete date. Format yyyy-mm-dd, yyyy-mm-00 or yyyy-00-00</xs:documentation>

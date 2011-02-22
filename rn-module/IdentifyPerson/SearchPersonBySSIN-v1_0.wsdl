@@ -60,7 +60,7 @@
 	
 	<wsdl:types>
     	<xsd:schema targetNamespace="http://ehealth.fgov.be/consultRN/searchPersonBySSIN/v1_0/">
-    		<xsd:import namespace="urn:be:fgov:ehealth:consultRN:1_0:protocol" schemaLocation="IdentifyPerson-1-0.xsd">
+    		<xsd:import namespace="urn:be:fgov:ehealth:consultRN:1_0:protocol" schemaLocation="SearchPersonBySSIN-1-0.xsd">
 			</xsd:import>
 		</xsd:schema>
 	</wsdl:types>

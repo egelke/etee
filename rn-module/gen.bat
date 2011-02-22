@@ -1,0 +1,1 @@
+xsd /c /n:Siemens.EHealth.Client.Rn.IdentifyPerson IdentifyPerson\PhoneticSearch-1-0.xsd IdentifyPerson\SearchPersonBySSIN-1-0.xsd Commons\addressInformation-1-0.xsd Commons\ConsultRN_protocol-1-0.xsd Commons\PersonInformation-1-0.xsd EHealthCommons\ehealth-commons-schema-core-1_0.xsd EHealthCommons\ehealth-commons-schema-protocol-1_0.xsd

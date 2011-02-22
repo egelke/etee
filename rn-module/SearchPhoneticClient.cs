@@ -5,40 +5,39 @@ using System.Text;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Net.Security;
-using Siemens.EHealth.Client.RnTest.PhoneticSearch;
 using Siemens.EHealth.Client.Sso.WA;
 
-namespace Siemens.EHealth.Client.RnTest.Service_References.phoneticSearch
+namespace Siemens.EHealth.Client.Rn.IdentifyPerson
 {
-    [ServiceContractAttribute(ProtectionLevel = ProtectionLevel.Sign, Namespace = "http://ehealth.fgov.be/consultRN/phoneticSearch/v1_0/", ConfigurationName = "PhoneticSearchV1", Name = "PhoneticSearchPort")]
-    public interface PhoneticSearchPort
+    [ServiceContractAttribute(ProtectionLevel = ProtectionLevel.Sign, Namespace = "http://ehealth.fgov.be/consultRN/phoneticSearch/v1_0/", ConfigurationName = "SearchPhoneticV1", Name = "SearchPhoneticPort")]
+    public interface SearchPhoneticPort
     {
         [OperationContractAttribute(Action = "*", ReplyAction = "*")]
         Message Request(Message request);
     }
 
-    public class PhoneticSearhClient : ClientBase<PhoneticSearchPort>
+    public class SearchPhoneticClient : ClientBase<SearchPhoneticPort>
     {
-        public PhoneticSearhClient()
+        public SearchPhoneticClient()
         {
         }
 
-        public PhoneticSearhClient(string endpointConfigurationName) :
+        public SearchPhoneticClient(string endpointConfigurationName) :
             base(endpointConfigurationName)
         {
         }
 
-        public PhoneticSearhClient(string endpointConfigurationName, string remoteAddress) :
+        public SearchPhoneticClient(string endpointConfigurationName, string remoteAddress) :
             base(endpointConfigurationName, remoteAddress)
         {
         }
 
-        public PhoneticSearhClient(string endpointConfigurationName, EndpointAddress remoteAddress) :
+        public SearchPhoneticClient(string endpointConfigurationName, EndpointAddress remoteAddress) :
             base(endpointConfigurationName, remoteAddress)
         {
         }
 
-        public PhoneticSearhClient(Binding binding, EndpointAddress remoteAddress) :
+        public SearchPhoneticClient(Binding binding, EndpointAddress remoteAddress) :
             base(binding, remoteAddress)
         {
         }

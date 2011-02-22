@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -25,36 +25,52 @@ using Siemens.EHealth.Client.Sso.Sts;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Description;
 using Siemens.EHealth.Client.Sso.WA;
-using Siemens.EHealth.Client.RnTest.Service_References.phoneticSearch;
-using Siemens.EHealth.Client.RnTest.IdentifyPerson;
+using Siemens.EHealth.Client.Rn.IdentifyPerson;
 
 
 
 namespace Siemens.EHealth.Client.RnTest
 {
     [TestClass]
-    public class IdentifyPersonExamples
+    public class PhoneticSearchExamples
     {
+        private static SearchPhoneticRequest request;
+
+        [ClassInitialize()]
+        public static void MyClassInitialize(TestContext testContext)
+        {
+            request = new SearchPhoneticRequest();
+            request.ApplicationID = "YourID";
+            
+        }
+
         [TestMethod]
         public void ConfigViaCode()
         {
             //create service stub
-            IdentifyPersonClient client = new IdentifyPersonClient(new StsBinding(), new EndpointAddress(new Uri("https://services-acpt.ehealth.fgov.be/consultRN/identifyPerson/v1")));
+            SearchPhoneticClient client = new SearchPhoneticClient(new StsBinding(), new EndpointAddress(new Uri("https://services-acpt.ehealth.fgov.be/consultRN/identifyPerson/v1")));
             client.Endpoint.Behaviors.Remove<ClientCredentials>();
             client.Endpoint.Behaviors.Add(new OptClientCredentials());
             client.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "cf692e24bac7c1d990496573e64ef999468be67e");
  
-            SearchBySSINRequest request = new SearchBySSINRequest();
-            request.ApplicationID = "YourID";
-            request.Inscription = new InscriptionType();
-            request.Inscription.SSIN = "79021802145";
-            request.Inscription.Period = new PeriodType();
-            request.Inscription.Period.BeginDate = DateTime.Now.AddDays(-1.0);
-            request.Inscription.Period.EndDateSpecified = false;
+            //Call with prepared request
+            SearchPhoneticReply response = client.Search(request);
 
-            SearchBySSINReply response = client.Search(request);
+            //Verify result
             Assert.AreEqual(response.Status.Message[0].Value, "100", response.Status.Code);
-            Assert.AreEqual(request.Inscription.SSIN, response.Person.SSIN);
+        }
+
+        [TestMethod]
+        public void ConfigViaFile()
+        {
+            //create service stub
+            SearchPhoneticClient client = new SearchPhoneticClient("Phonetic");
+
+            //Call with prepared request
+            SearchPhoneticReply response = client.Search(request);
+
+            //Verify result
+            Assert.AreEqual(response.Status.Message[0].Value, "100", response.Status.Code);
         }
     }
 }

@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System.Reflection;
@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Beta")]
 [assembly: AssemblyCompany("Siemens IT Solutions & Services")]
 [assembly: AssemblyProduct("eHealth-Interoperability")]
-[assembly: AssemblyCopyright("Copyright © Siemens IT Solutions & Services 2010")]
+[assembly: AssemblyCopyright("Copyright © Siemens IT Solutions & Services 2010-2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

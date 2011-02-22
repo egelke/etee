@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSpy v2009 (http://www.altova.com) by Smals-MVM ASBL/VZW (Smals-MVM ASBL/VZW) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns1="urn:be:fgov:ehealth:consultRN:1_0:protocol" xmlns:ns2="urn:be:fgov:ehealth:commons:1_0:protocol" xmlns:co="urn:be:fgov:ehealth:consultRN:1_0:core" xmlns:ns3="urn:be:fgov:ehealth:commons:1_0:core" targetNamespace="urn:be:fgov:ehealth:consultRN:1_0:protocol">
-	<xs:import namespace="urn:be:fgov:ehealth:commons:1_0:protocol" schemaLocation="../ehealth-commons/ehealth-commons-schema-protocol-1_0.xsd"/>
+	<xs:import namespace="urn:be:fgov:ehealth:commons:1_0:protocol" schemaLocation="../EHealthCommons/ehealth-commons-schema-protocol-1_0.xsd"/>
 	<xs:import namespace="urn:be:fgov:ehealth:consultRN:1_0:core" schemaLocation="PersonInformation-1-0.xsd"/>
-	<xs:import namespace="urn:be:fgov:ehealth:commons:1_0:core" schemaLocation="../ehealth-commons/ehealth-commons-schema-core-1_0.xsd"/>
+	<xs:import namespace="urn:be:fgov:ehealth:commons:1_0:core" schemaLocation="../EHealthCommons/ehealth-commons-schema-core-1_0.xsd"/>
 	<xs:complexType name="ConsultRnRequest">
 		<xs:annotation>
 			<xs:documentation>standard structure of consultRN request</xs:documentation>
