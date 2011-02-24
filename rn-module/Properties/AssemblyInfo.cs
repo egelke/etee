@@ -33,8 +33,8 @@ using System.Runtime.InteropServices;
 [assembly: Guid("20575d71-f6d2-4ff9-957a-3a3fb4399200")]
 
 
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.0.1")]
+[assembly: AssemblyFileVersion("1.0.0.1")]
 
 #if DEBUG
 [assembly: AssemblyKeyFile(@"../debug.snk")]

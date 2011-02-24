@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSpy v2009 (http://www.altova.com) by Smals-MVM ASBL/VZW (Smals-MVM ASBL/VZW) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns1="urn:be:fgov:ehealth:consultRN:1_0:protocol" xmlns:co="urn:be:fgov:ehealth:consultRN:1_0:core" targetNamespace="urn:be:fgov:ehealth:consultRN:1_0:protocol">
-	<xs:include schemaLocation="../commons/ConsultRN_protocol-1-0.xsd"/>
-	<xs:import namespace="urn:be:fgov:ehealth:consultRN:1_0:core" schemaLocation="../Commons/PersonInformation-1-0.xsd"/>
+	<xs:include schemaLocation="Commons/ConsultRN_protocol-1-0.xsd"/>
+	<xs:import namespace="urn:be:fgov:ehealth:consultRN:1_0:core" schemaLocation="Commons/PersonInformation-1-0.xsd"/>
 	<xs:complexType name="PhoneticCriteriaType">
 		<xs:annotation>
 			<xs:documentation>set of criteria available</xs:documentation>

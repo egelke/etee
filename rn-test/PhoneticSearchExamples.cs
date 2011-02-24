@@ -25,7 +25,7 @@ using Siemens.EHealth.Client.Sso.Sts;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Description;
 using Siemens.EHealth.Client.Sso.WA;
-using Siemens.EHealth.Client.Rn.IdentifyPerson;
+using Siemens.EHealth.Client.ConsultRn;
 
 
 
@@ -40,7 +40,13 @@ namespace Siemens.EHealth.Client.RnTest
         public static void MyClassInitialize(TestContext testContext)
         {
             request = new SearchPhoneticRequest();
-            request.ApplicationID = "YourID";
+            request.ApplicationID = "79021802145";
+            request.PhoneticCriteria = new PhoneticCriteriaType();
+            request.PhoneticCriteria.LastName = "Brouckaert";
+            request.PhoneticCriteria.FirstName = "Bryan";
+            request.PhoneticCriteria.BirthDate = "1979-02-18";
+            request.PhoneticCriteria.Gender = new GenderType();
+            request.PhoneticCriteria.Gender.Value = GenderPossibility.MALE;
             
         }
 
@@ -58,6 +64,9 @@ namespace Siemens.EHealth.Client.RnTest
 
             //Verify result
             Assert.AreEqual(response.Status.Message[0].Value, "100", response.Status.Code);
+            PersonType bryan = response.Person.Where(p => p.SSIN == "79021802145").Single();
+            Assert.AreEqual(bryan.PersonData.Birth.Date, "1979-02-18");
+            Assert.AreEqual(bryan.PersonData.Birth.Localisation.Municipality.PostalCode, "8630");
         }
 
         [TestMethod]
@@ -71,6 +80,9 @@ namespace Siemens.EHealth.Client.RnTest
 
             //Verify result
             Assert.AreEqual(response.Status.Message[0].Value, "100", response.Status.Code);
+            PersonType bryan = response.Person.Where(p => p.SSIN == "79021802145").Single();
+            Assert.AreEqual(bryan.PersonData.Birth.Date, "1979-02-18");
+            Assert.AreEqual(bryan.PersonData.Birth.Localisation.Municipality.PostalCode, "8630");
         }
     }
 }

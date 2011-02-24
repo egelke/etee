@@ -25,7 +25,7 @@ using Siemens.EHealth.Client.Sso.Sts;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Description;
 using Siemens.EHealth.Client.Sso.WA;
-using Siemens.EHealth.Client.Rn.IdentifyPerson;
+using Siemens.EHealth.Client.ConsultRn;
 
 
 
@@ -40,7 +40,7 @@ namespace Siemens.EHealth.Client.RnTest
         public static void MyClassInitialize(TestContext testContext)
         {
             request = new SearchBySSINRequest();
-            request.ApplicationID = "YourID";
+            request.ApplicationID = "79021802145";
             request.Inscription = new InscriptionType();
             request.Inscription.SSIN = "79021802145";
             request.Inscription.Period = new PeriodType();
