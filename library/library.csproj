@@ -59,6 +59,9 @@
     <Compile Include="Sso\CertGenerator.cs" />
     <Compile Include="Sso\Configuration\SessionBehaviorElement.cs" />
     <Compile Include="Sso\Configuration\SessionCertificateElement.cs" />
+    <Compile Include="Sso\FileSessionCache.cs" />
+    <Compile Include="Sso\ISessionCache.cs" />
+    <Compile Include="Sso\MemorySessionCache.cs" />
     <Compile Include="Sso\SessionBehavior.cs" />
     <Compile Include="Sso\SsoBinding.cs" />
     <Compile Include="Sso\Configuration\SsoBindingCollectionElement.cs" />

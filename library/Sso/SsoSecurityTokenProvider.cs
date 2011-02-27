@@ -60,23 +60,83 @@ namespace Siemens.EHealth.Client.Sso
                     reqParams.Add(param);
                 }
             }
+            //Check the cache for existing session.
+            String id;
+            List<String> idSort;
+            ISessionCache cache = new MemorySessionCache();
+            id = clientCredentials.ClientCertificate.Certificate.Thumbprint + ";";
+            id += clientCredentials.Session.Thumbprint + ";";
+            idSort = new List<string>();
+            foreach (XmlElement reqParam in reqParams)
+            {
+                String val;
+                val = "{" + reqParam.GetAttribute("AttributeNamespace") + "}";
+                val += reqParam.GetAttribute("AttributeName");
+                val += "=";
+                val += reqParam.GetElementsByTagName("AttributeValue", "urn:oasis:names:tc:SAML:1.0:assertion")[0].InnerText;
+                val += ";";
+                idSort.Add(val);
+            }
+            idSort.Sort();
+            foreach (String val in idSort)
+            {
+                id += val;
+            }
+            idSort = new List<string>();
+            foreach (ClaimTypeRequirement req in tokenRequirement.ClaimTypeRequirements)
+            {
+                String val = req.ClaimType + ";";
+                idSort.Add(val);
+            }
+            idSort.Sort();
+            foreach (String val in idSort)
+            {
+                id += val;
+            }
 
+            XmlNamespaceManager nsmngr = null;
+            DateTime notOnOrAfter = DateTime.MinValue;            
 
-            //Get a new assertion token for the session
-            StsClient target = new StsClient(tokenRequirement.IssuerBinding, tokenRequirement.IssuerAddress);
-            target.Endpoint.Behaviors.Remove<ClientCredentials>();
-            target.Endpoint.Behaviors.Add(new OptClientCredentials());
-            target.ClientCredentials.ClientCertificate.Certificate = clientCredentials.ClientCertificate.Certificate;
-            target.InnerChannel.OperationTimeout = timeout;
+            //Get the value from the cache
+            XmlElement assertion = cache.Get(id);
+            
+            //If cache had a result, check if it is still valid
+            if (assertion != null) 
+            {
+                nsmngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
+                nsmngr.AddNamespace("saml", "urn:oasis:names:tc:SAML:1.0:assertion");
 
-            XmlElement assertion = target.RequestTicket("Anonymous", clientCredentials.Session, clientCredentials.Duration, reqParams, tokenRequirement.ClaimTypeRequirements);
+                notOnOrAfter = DateTime.Parse(assertion.SelectSingleNode("saml:Conditions/@NotOnOrAfter", nsmngr).Value, null, DateTimeStyles.RoundtripKind);
 
-            XmlNamespaceManager nsmngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
-            nsmngr.AddNamespace("saml", "urn:oasis:names:tc:SAML:1.0:assertion");
+                if (notOnOrAfter < DateTime.UtcNow) 
+                {
+                    assertion = null;
+                    cache.Remove(id);
+                }
+            }
+            
+            //If the cache wasn't successful, create new.
+            if (assertion == null)
+            {
+                //Get a new assertion token for the session
+                StsClient target = new StsClient(tokenRequirement.IssuerBinding, tokenRequirement.IssuerAddress);
+                target.Endpoint.Behaviors.Remove<ClientCredentials>();
+                target.Endpoint.Behaviors.Add(new OptClientCredentials());
+                target.ClientCredentials.ClientCertificate.Certificate = clientCredentials.ClientCertificate.Certificate;
+                target.InnerChannel.OperationTimeout = timeout;
+
+                assertion = target.RequestTicket("Anonymous", clientCredentials.Session, clientCredentials.Duration, reqParams, tokenRequirement.ClaimTypeRequirements);
+
+                nsmngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
+                nsmngr.AddNamespace("saml", "urn:oasis:names:tc:SAML:1.0:assertion");
+
+                notOnOrAfter = DateTime.Parse(assertion.SelectSingleNode("saml:Conditions/@NotOnOrAfter", nsmngr).Value, null, DateTimeStyles.RoundtripKind);
+
+                cache.Add(id, assertion, notOnOrAfter);
+            }
 
             //Get some date from the assertion token
             DateTime notBefore = DateTime.Parse(assertion.SelectSingleNode("saml:Conditions/@NotBefore", nsmngr).Value, null, DateTimeStyles.RoundtripKind);
-            DateTime notOnOrAfter = DateTime.Parse(assertion.SelectSingleNode("saml:Conditions/@NotOnOrAfter", nsmngr).Value, null, DateTimeStyles.RoundtripKind);
             String assertionId = assertion.SelectSingleNode("@AssertionID", nsmngr).Value;
 
             // Create a KeyIdentifierClause for the SamlSecurityToken
