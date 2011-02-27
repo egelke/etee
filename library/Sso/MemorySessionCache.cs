@@ -11,6 +11,11 @@ namespace Siemens.EHealth.Client.Sso
     {
         private static IDictionary<String, XmlElement> cache = new ConcurrentDictionary<String, XmlElement>();
 
+        public MemorySessionCache(XmlElement config)
+        {
+            //No configuration possible.
+        }
+
         public XmlElement Get(string id)
         {
             XmlElement token;

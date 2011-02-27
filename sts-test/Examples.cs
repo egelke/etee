@@ -89,6 +89,8 @@ namespace Siemens.EHealth.Client.StsTest
 
             Assert.AreEqual("Assertion", assertion.LocalName);
             Assert.AreEqual("urn:oasis:names:tc:SAML:1.0:assertion", assertion.NamespaceURI);
+
+
         }
     }
 }

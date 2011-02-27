@@ -60,10 +60,12 @@ namespace Siemens.EHealth.Client.Sso
                     reqParams.Add(param);
                 }
             }
+
+            ISessionCache cache = (ISessionCache) Activator.CreateInstance(clientCredentials.Cache, clientCredentials.Config);
+
             //Check the cache for existing session.
             String id;
             List<String> idSort;
-            ISessionCache cache = new MemorySessionCache();
             id = clientCredentials.ClientCertificate.Certificate.Thumbprint + ";";
             id += clientCredentials.Session.Thumbprint + ";";
             idSort = new List<string>();

@@ -41,6 +41,13 @@ namespace Siemens.EHealth.Client.Sso.Configuration
             set { base["sessionCertificate"] = value; }
         }
 
+        [ConfigurationProperty("cache")]
+        public CacheElement Cache
+        {
+            get { return (CacheElement)base["cache"]; }
+            set { base["cache"] = value; }
+        }
+
         public override Type BehaviorType
         {
             get { return typeof(SessionBehavior); }
@@ -76,7 +83,21 @@ namespace Siemens.EHealth.Client.Sso.Configuration
             {
                 duration = new TimeSpan(1, 0, 0, 0);
             }
-            return new SessionBehavior(session, duration);
+            Type cacheType;
+            try
+            {
+                cacheType = Type.GetType(Cache.Type);
+            }
+            catch (Exception e)
+            {
+                throw new ConfigurationErrorsException("Invalid cache type", e);
+            }
+            if (!(typeof(ISessionCache).IsAssignableFrom(cacheType)))
+            {
+                throw new ConfigurationErrorsException("The cache type must implement ISessionCache");
+            }
+
+            return new SessionBehavior(session, duration, cacheType, Cache.Content);
         }
     }
 }

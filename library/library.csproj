@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Sso\CertGenerator.cs" />
+    <Compile Include="Sso\Configuration\CacheElement.cs" />
     <Compile Include="Sso\Configuration\SessionBehaviorElement.cs" />
     <Compile Include="Sso\Configuration\SessionCertificateElement.cs" />
     <Compile Include="Sso\FileSessionCache.cs" />

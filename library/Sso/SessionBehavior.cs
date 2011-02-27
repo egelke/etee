@@ -22,6 +22,7 @@ using System.Text;
 using System.ServiceModel.Description;
 using System.Security.Cryptography.X509Certificates;
 using System.Configuration;
+using System.Xml;
 
 namespace Siemens.EHealth.Client.Sso
 {
@@ -32,10 +33,16 @@ namespace Siemens.EHealth.Client.Sso
 
         private TimeSpan duration;
 
-        public SessionBehavior(X509Certificate2 session, TimeSpan duration)
+        private Type cache;
+
+        private XmlDocument config;
+
+        public SessionBehavior(X509Certificate2 session, TimeSpan duration, Type cache, XmlDocument config)
         {
             this.session = session;
             this.duration = duration;
+            this.cache = cache;
+            this.config = config;
         }
 
         #region IEndpointBehavior Members
@@ -43,9 +50,11 @@ namespace Siemens.EHealth.Client.Sso
         public void AddBindingParameters(ServiceEndpoint endpoint, System.ServiceModel.Channels.BindingParameterCollection bindingParameters)
         {
             SsoClientCredentials cred = bindingParameters.Find<SsoClientCredentials>();
-            if (cred == null) throw new ConfigurationErrorsException("The session behavior must be used in conjunction with SoClientCredentials");
+            if (cred == null) throw new ConfigurationErrorsException("The session behavior must be used in conjunction with SsoClientCredentials");
             cred.Session = session;
             cred.Duration = duration;
+            cred.Cache = cache;
+            cred.Config = config;
         }
 
         public void ApplyClientBehavior(ServiceEndpoint endpoint, System.ServiceModel.Dispatcher.ClientRuntime clientRuntime)

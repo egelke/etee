@@ -12,7 +12,18 @@ namespace Siemens.EHealth.Client.Sso
     {
         private static readonly DataContractSerializer serializer = new DataContractSerializer(typeof(Dictionary<String, XmlElement>));
 
-        private String fileName = @"c:\tmp\ehSessionCache.xml";
+        private String fileName;
+
+        public FileSessionCache(XmlDocument config)
+        {
+            if (config == null
+                || config.GetElementsByTagName("fileName").Count == 0)
+            {
+                throw new InvalidOperationException("FileSessionCache requires a <fileName>-element in the configuration");
+            }
+
+            fileName = config.GetElementsByTagName("fileName")[0].InnerText;
+        }
 
         public XmlElement Get(string id)
         {

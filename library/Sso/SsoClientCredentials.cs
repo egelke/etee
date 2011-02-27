@@ -34,6 +34,10 @@ namespace Siemens.EHealth.Client.Sso
 
         private TimeSpan duration = new TimeSpan(1, 0, 0, 0); //defaults to 1 day
 
+        private Type cache = typeof(Siemens.EHealth.Client.Sso.MemorySessionCache);
+
+        private XmlDocument config = null;
+
         public X509Certificate2 Session
         {
             get
@@ -55,6 +59,30 @@ namespace Siemens.EHealth.Client.Sso
             set
             {
                 duration = value;
+            }
+        }
+
+        public Type Cache
+        {
+            get
+            {
+                return cache;
+            }
+            set
+            {
+                cache = value;
+            }
+        }
+
+        public XmlDocument Config
+        {
+            get
+            {
+                return config;
+            }
+            set
+            {
+                config = value;
             }
         }
 
