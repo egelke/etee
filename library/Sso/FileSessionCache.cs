@@ -5,85 +5,89 @@ using System.Text;
 using System.Xml;
 using System.IO;
 using System.Runtime.Serialization;
+using System.Threading;
+using System.Security.Cryptography;
 
 namespace Siemens.EHealth.Client.Sso
 {
     internal class FileSessionCache : ISessionCache
     {
-        private static readonly DataContractSerializer serializer = new DataContractSerializer(typeof(Dictionary<String, XmlElement>));
+        private static readonly DataContractSerializer serializer = new DataContractSerializer(typeof(XmlElement));
 
-        private String fileName;
+        private static readonly SHA1 sha = SHA1.Create();
+
+        private String path;
 
         public FileSessionCache(XmlDocument config)
         {
-            if (config == null
-                || config.GetElementsByTagName("fileName").Count == 0)
+            if (config == null || config.GetElementsByTagName("path").Count == 0)
             {
-                throw new InvalidOperationException("FileSessionCache requires a <fileName>-element in the configuration");
+                throw new InvalidOperationException("FileSessionCache requires a <path>-element in the configuration");
             }
-
-            fileName = config.GetElementsByTagName("fileName")[0].InnerText;
+            path = config.GetElementsByTagName("path")[0].InnerText;
         }
 
         public XmlElement Get(string id)
         {
-            Dictionary<String, XmlElement> dic = Dictionary;
-
-            XmlElement value;
-            if (dic.TryGetValue(id, out value))
+            FileStream stream = null;
+            try
             {
-                return value;
+                stream = new FileStream(ToFileName(id), FileMode.Open, FileAccess.Read, FileShare.Read);
             }
-            else
+            catch (FileNotFoundException)
             {
                 return null;
+            }
+
+            using (stream)
+            {
+                return (XmlElement) serializer.ReadObject(stream);
             }
         }
 
         public void Add(string id, XmlElement value, DateTime expires)
         {
-            Dictionary<String, XmlElement> dic = Dictionary;
-
-            dic.Add(id, value);
-
-            Save(dic);
+            FileStream stream = null;
+            String fileName = ToFileName(id);
+            try
+            {
+                stream = new FileStream(fileName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException ioe)
+            {
+                if (File.Exists(fileName))
+                {
+                    //The file exits, so we should not create it any more
+                    return;
+                }
+                else
+                {
+                    throw ioe;
+                }
+            }
+            using (stream)
+            {
+                serializer.WriteObject(stream, value);
+            }
         }
 
         public void Remove(string id)
         {
-            Dictionary<String, XmlElement> dic = Dictionary;
-
-            dic.Remove(id);
-
-            Save(dic);
-        }
-
-        private Dictionary<String, XmlElement> Dictionary
-        {
-            get
+            try
             {
-                if (File.Exists(fileName))
-                {
-                    FileStream file = new FileStream(fileName, FileMode.Open);
-                    using (file)
-                    {
-                        return (Dictionary<String, XmlElement>)serializer.ReadObject(file);
-                    }
-                }
-                else
-                {
-                    return new Dictionary<string, XmlElement>();
-                }
+                File.Delete(ToFileName(id));
+            }
+            catch (DirectoryNotFoundException)
+            {
+                //If not found, then it already gone...
             }
         }
 
-        private void Save(Dictionary<String, XmlElement> dictionary)
+        private String ToFileName(string id)
         {
-            FileStream file = new FileStream(fileName, FileMode.Create);
-            using (file)
-            {
-                serializer.WriteObject(file, dictionary);
-            }
+            byte[] buffer = new byte[16];
+            Array.Copy(sha.ComputeHash(Encoding.UTF8.GetBytes(id)), buffer, buffer.Length);
+            return path + @"\" + new Guid(buffer).ToString() + ".xml";
         }
     }
 }

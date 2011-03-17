@@ -30,6 +30,7 @@ using Siemens.EHealth.Client.Sso.WA;
 using System.Collections.ObjectModel;
 using System.ServiceModel.Security.Tokens;
 using System.ServiceModel.Description;
+using System.Security.Cryptography.Xml;
 
 namespace Siemens.EHealth.Client.StsTest
 {
@@ -74,7 +75,7 @@ namespace Siemens.EHealth.Client.StsTest
             StsClient target = new StsClient(new StsBinding(), new EndpointAddress("https://wwwacc.ehealth.fgov.be/sts_1_1/SecureTokenService"));
             target.Endpoint.Behaviors.Remove<ClientCredentials>();
             target.Endpoint.Behaviors.Add(new OptClientCredentials());
-            target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "c0f554147928c3722670a47be2f92a9089add107");
+            target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "cf692e24bac7c1d990496573e64ef999468be67e");
             XmlElement assertion = target.RequestTicket("Siemens", selfSignedSession, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
 
             Assert.AreEqual("Assertion", assertion.LocalName);
@@ -90,7 +91,50 @@ namespace Siemens.EHealth.Client.StsTest
             Assert.AreEqual("Assertion", assertion.LocalName);
             Assert.AreEqual("urn:oasis:names:tc:SAML:1.0:assertion", assertion.NamespaceURI);
 
+            
+        }
 
+        public class CustomIdSignedXml : SignedXml
+        {
+            public CustomIdSignedXml(XmlDocument x)
+                : base(x)
+            {
+            }
+
+            public CustomIdSignedXml(XmlElement x)
+                : base(x)
+            {
+            }
+
+            public override XmlElement GetIdElement(XmlDocument document, string idValue)
+            {
+                XmlElement idElem = base.GetIdElement(document, idValue);
+                if (idElem != null)
+                    return idElem;
+
+                idElem = document.SelectSingleNode("//*[@AssertionID=\"" + idValue + "\"]") as XmlElement;
+
+                return idElem;
+            }
+
+            
+        }
+
+        [TestMethod]
+        public void Hack()
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.PreserveWhitespace = true;
+            doc.Load(@"C:\TMP\cache.xml");
+
+
+            SignedXml sig = new CustomIdSignedXml(doc);
+            XmlNodeList nodeList = doc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
+            foreach (XmlElement e in nodeList)
+            {
+                sig.LoadXml(e);
+                Assert.IsTrue(sig.CheckSignature());
+            }
         }
     }
 }
