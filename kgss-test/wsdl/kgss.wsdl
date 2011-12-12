@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s2:definitions targetNamespace="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:s0="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:s1="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:s2="http://schemas.xmlsoap.org/wsdl/" xmlns:s3="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:s4="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy">
+  <!--s0:Policy s1:Id="samlPolicy-holder-of-key-signed-Smals" xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy">
+    <s0:ExactlyOne>
+      <s0:All>
+        <sp:AsymmectricBinding >
+          <s0:Policy>
+            <sp:InitiatorToken>
+              <s0:Policy>
+                <sp:IssuedToken sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+                  <sp:Issuer>
+                    <wsa:Address xmlns:wsa="http://www.w3.org/2005/08/addressing">http://wwwacc.ehealth.fgov.be/sts_1_1/SecureTokenService</wsa:Address>
+                  </sp:Issuer>
+                  <sp:IssuerName>urn:be:fgov:ehealth:sts:protocol:v1</sp:IssuerName>
+                  <sp:RequestSecurityTokenTemplate>
+                    
+                  </sp:RequestSecurityTokenTemplate>
+                </sp:IssuedToken>
+              </s0:Policy>
+            </sp:InitiatorToken>
+            <sp:RecipientToken>
+              <s0:Policy>
+                <sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+                  <s0:Policy>
+                    <sp:WssX509V3Token10 />
+                  </s0:Policy>
+                </sp:X509Token>
+              </s0:Policy>
+            </sp:RecipientToken>
+            <sp:AlgorithmSuite>
+              <s0:Policy>
+                <sp:Basic256 />
+              </s0:Policy>
+            </sp:AlgorithmSuite>
+            <sp:Layout>
+              <s0:Policy>
+                <sp:Lax />
+              </s0:Policy>
+            </sp:Layout>
+            <sp:IncludeTimestamp />
+            <sp:ProtectTokens />
+            <sp:OnlySignEntireHeadersAndBody />
+          </s0:Policy>
+        </sp:AsymmectricBinding>
+        <sp:SignedParts>
+          <sp:Body />
+        </sp:SignedParts>
+        <sp:Wss10 xmlns:ns2="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702">
+          <s0:Policy>
+            <sp:MustSupportRefKeyIdentifier />
+            <sp:MustSupportRefIssuerSerial />
+          </s0:Policy>
+        </sp:Wss10>
+      </s0:All>
+    </s0:ExactlyOne>
+  </s0:Policy-->
+  <!--s0:Policy s1:Id="samlPolicy-holder-of-key-signed-Smals">
+    <wssp:Identity xmlns:wssp="http://www.bea.com/wls90/security/policy">
+      <wssp:SupportedTokens>
+        <wssp:SecurityToken TokenType="http://docs.oasis-open.org/wss/2004/01/oasis-2004-01-saml-token-profile-1.0#SAMLAssertionID">
+          <wssp:Claims>
+            <wssp:ConfirmationMethod>
+						holder-of-key
+					</wssp:ConfirmationMethod>
+          </wssp:Claims>
+        </wssp:SecurityToken>
+      </wssp:SupportedTokens>
+    </wssp:Identity>
+    <wssp:Integrity SignToken="false" xmlns:wls="http://www.bea.com/wls90/security/policy/wsee#part" xmlns:wssp="http://www.bea.com/wls90/security/policy" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+      <wssp:SignatureAlgorithm URI="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+      <wssp:CanonicalizationAlgorithm URI="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+      <wssp:Target>
+        <wssp:DigestAlgorithm URI="http://www.w3.org/2000/09/xmldsig#sha1"/>
+        <wssp:MessageParts Dialect="http://schemas.xmlsoap.org/2002/12/wsse#part">
+				wsp:Body()
+			</wssp:MessageParts>
+      </wssp:Target>
+      <wssp:SupportedTokens>
+        <wssp:SecurityToken TokenType="http://docs.oasis-open.org/wss/2004/01/oasis-2004-01-saml-token-profile-1.0#SAMLAssertionID">
+          <wssp:Claims>
+            <wssp:ConfirmationMethod>
+						holder-of-key
+					</wssp:ConfirmationMethod>
+          </wssp:Claims>
+        </wssp:SecurityToken>
+      </wssp:SupportedTokens>
+    </wssp:Integrity>
+    <wssp:MessageAge Age="300" xmlns:wssp="http://www.bea.com/wls90/security/policy"/>
+  </s0:Policy-->
+  <wsp:UsingPolicy s2:Required="true"/>
+  <s2:types>
+    <xs:schema xmlns:kgss="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:s0="http://schemas.xmlsoap.org/wsdl/" xmlns:s1="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:s2="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:types="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" schemaLocation="kgss-protocol.xsd"/>
+    </xs:schema>
+  </s2:types>
+  <s2:message name="GetNewKeyRequestMessage">
+    <s2:part element="s3:GetNewKeyRequest" name="body"/>
+  </s2:message>
+  <s2:message name="GetNewKeyResponseMessage">
+    <s2:part element="s3:GetNewKeyResponse" name="body"/>
+  </s2:message>
+  <s2:message name="GetKeyRequestMessage">
+    <s2:part element="s3:GetKeyRequest" name="body"/>
+  </s2:message>
+  <s2:message name="GetKeyResponseMessage">
+    <s2:part element="s3:GetKeyResponse" name="body"/>
+  </s2:message>
+  <s2:portType name="KgssPortType">
+    <s2:operation name="GetNewKey">
+      <s2:input message="s3:GetNewKeyRequestMessage"/>
+      <s2:output message="s3:GetNewKeyResponseMessage"/>
+    </s2:operation>
+    <s2:operation name="GetKey">
+      <s2:input message="s3:GetKeyRequestMessage"/>
+      <s2:output message="s3:GetKeyResponseMessage"/>
+    </s2:operation>
+  </s2:portType>
+  <s2:binding name="KgssSoapBinding" type="s3:KgssPortType">
+    <s4:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <s2:operation name="GetNewKey">
+      <s4:operation/>
+      <s2:input>
+        <s4:body use="literal"/>
+      </s2:input>
+      <s2:output>
+        <s4:body use="literal"/>
+      </s2:output>
+    </s2:operation>
+    <s2:operation name="GetKey">
+      <s4:operation/>
+      <s2:input>
+        <s4:body use="literal"/>
+        <wsp:Policy>
+          <wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals"/>
+        </wsp:Policy>
+      </s2:input>
+      <s2:output>
+        <s4:body use="literal"/>
+      </s2:output>
+    </s2:operation>
+  </s2:binding>
+  <s2:service name="KgssService">
+    <s2:port binding="s3:KgssSoapBinding" name="KgssPort">
+      <s4:address location="http://services-acpt.ehealth.fgov.be/Kgss/v1"/>
+    </s2:port>
+  </s2:service>
+</s2:definitions>

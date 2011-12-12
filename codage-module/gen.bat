@@ -1,0 +1,1 @@
+xsd /c /n:Siemens.EHealth.Client.Codage xsd\Protocol.xsd

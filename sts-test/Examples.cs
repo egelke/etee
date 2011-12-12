@@ -37,7 +37,7 @@ namespace Siemens.EHealth.Client.StsTest
     [TestClass]
     public class Examples
     {
-        private static X509Certificate2 selfSignedSession;
+        private static X509Certificate2 session;
 
         private static Collection<XmlElement> assertedDefault;
 
@@ -46,7 +46,27 @@ namespace Siemens.EHealth.Client.StsTest
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            selfSignedSession = CertGenerator.GenerateSelfSigned(TimeSpan.FromMinutes(30));
+            
+            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            my.Open(OpenFlags.ReadOnly);
+            try
+            {
+                X509Certificate2Collection fcollection = (X509Certificate2Collection)my.Certificates.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
+                X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection, "Certificate Select", "Select a certificate from authentication", X509SelectionFlag.SingleSelection);
+                if (scollection.Count == 0)
+                {
+                    session = CertGenerator.GenerateSelfSigned(TimeSpan.FromMinutes(30));
+                }
+                else
+                {
+                    session = scollection[0];
+                }
+            }
+            finally
+            {
+                my.Close();
+            }
+
 
 
             IList<XmlElement> claims;
@@ -75,8 +95,8 @@ namespace Siemens.EHealth.Client.StsTest
             StsClient target = new StsClient(new StsBinding(), new EndpointAddress("https://wwwacc.ehealth.fgov.be/sts_1_1/SecureTokenService"));
             target.Endpoint.Behaviors.Remove<ClientCredentials>();
             target.Endpoint.Behaviors.Add(new OptClientCredentials());
-            target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "cf692e24bac7c1d990496573e64ef999468be67e");
-            XmlElement assertion = target.RequestTicket("Siemens", selfSignedSession, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
+            target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "f4432a43f6089c5c739465da9e574e441b4db730");
+            XmlElement assertion = target.RequestTicket("Egelke", session, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
 
             Assert.AreEqual("Assertion", assertion.LocalName);
             Assert.AreEqual("urn:oasis:names:tc:SAML:1.0:assertion", assertion.NamespaceURI);
@@ -86,7 +106,12 @@ namespace Siemens.EHealth.Client.StsTest
         public void ConfigViaConfig()
         {
             StsClient target = new StsClient("SSIN=79021802145");
-            XmlElement assertion = target.RequestTicket("Siemens", selfSignedSession, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
+            XmlElement assertion = target.RequestTicket("Egelke", session, TimeSpan.FromHours(12), assertedDefault, requestedDefault);
+            
+            XmlDocument doc = new XmlDocument();
+            doc.ImportNode(assertion, true);
+            doc.AppendChild(assertion);
+            doc.Save(@"D:\tmp\tst.xml");
 
             Assert.AreEqual("Assertion", assertion.LocalName);
             Assert.AreEqual("urn:oasis:names:tc:SAML:1.0:assertion", assertion.NamespaceURI);

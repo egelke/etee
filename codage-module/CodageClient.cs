@@ -26,7 +26,7 @@ using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using Siemens.EHealth.Client.Sso.WA;
 
-namespace Siemens.EHealth.Client.CodageTest.Service
+namespace Siemens.EHealth.Client.Codage
 {
     [ServiceContractAttribute(ProtectionLevel = ProtectionLevel.Sign, Namespace = "http://www.ehealth.be/webservices/cod", ConfigurationName = "CodageV1", Name="CodagePort")]
     public interface CodagePort

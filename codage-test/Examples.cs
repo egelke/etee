@@ -25,6 +25,7 @@ using Siemens.EHealth.Client.Sso.Sts;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Description;
 using Siemens.EHealth.Client.Sso.WA;
+using Siemens.EHealth.Client.Codage;
 
 
 
@@ -37,70 +38,83 @@ namespace Siemens.EHealth.Client.CodageTest
         public void ConfigViaCode()
         {
             //create service stub
-            Service.CodageClient client = new Service.CodageClient(new StsBinding(), new EndpointAddress("https://wwwacc.ehealth.fgov.be:443/codage_1_0/codage"));
+            CodageClient client = new CodageClient(new StsBinding(), new EndpointAddress("https://wwwacc.ehealth.fgov.be:443/codage_1_0/codage"));
             client.Endpoint.Behaviors.Remove<ClientCredentials>();
             client.Endpoint.Behaviors.Add(new OptClientCredentials());
-            client.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "c175242f2454fa00b69b49308f82cae919f8e8f5");
+            client.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "f4432a43f6089c5c739465da9e574e441b4db730");
 
+            DoTest(client);
+        }
+
+        [TestMethod]
+        public void ConfigViaConfig()
+        {
+            CodageClient client = new CodageClient("Ssin");
+
+            DoTest(client);
+        }
+
+        private static void DoTest(CodageClient client)
+        {
             //Do encoding
-            Service.OriginalDataType org1 = new Service.OriginalDataType();
+            OriginalDataType org1 = new OriginalDataType();
             org1.randomize = false;
             org1.id = "1";
             org1.inputData = "79021802145";
 
-            Service.OriginalDataType org2 = new Service.OriginalDataType();
+            OriginalDataType org2 = new OriginalDataType();
             org2.randomize = true;
             org2.id = "2";
             org2.inputData = "0459540270";
 
-            Service.EncodeRequestType encReq = new Service.EncodeRequestType();
+            EncodeRequestType encReq = new EncodeRequestType();
             encReq.applicationName = "Test";
-            encReq.originalData = new Service.OriginalDataType[] { org1, org2 };
+            encReq.originalData = new OriginalDataType[] { org1, org2 };
 
-            Service.EncodeResponseType encResp = client.Encode(encReq);
-         
+            EncodeResponseType encResp = client.Encode(encReq);
+
             //Verify encoding result
             Assert.IsFalse(string.IsNullOrWhiteSpace(encResp.ticketNumber));
             if (encResp.globalError != null) Assert.Fail(encResp.globalError.errorValue);
             Assert.AreEqual(encReq.applicationName, encResp.applicationName);
 
-            IEnumerable<Service.ErrorType> encErrors = from r in encResp.response where r.error != null select r.error;
+            IEnumerable<ErrorType> encErrors = from r in encResp.response where r.error != null select r.error;
             Assert.Equals(0, encErrors.Count());
             //Here you normaly check the errors, but since it is only a test it fails right here
 
-            Service.EncodedDataType encDetail1 = (from r in encResp.response where r.encodedData != null && r.encodedData.id == "1" select r.encodedData).Single();
+            EncodedDataType encDetail1 = (from r in encResp.response where r.encodedData != null && r.encodedData.id == "1" select r.encodedData).Single();
             Assert.IsNotNull(encDetail1.value);
             Assert.AreNotEqual(0, encDetail1.value.Length);
 
-            Service.EncodedDataType encDetail2 = (from r in encResp.response where r.encodedData != null && r.encodedData.id == "2" select r.encodedData).Single();
+            EncodedDataType encDetail2 = (from r in encResp.response where r.encodedData != null && r.encodedData.id == "2" select r.encodedData).Single();
             Assert.IsNotNull(encDetail2.value);
             Assert.AreNotEqual(0, encDetail2.value.Length);
 
             //Do decoding
-            Service.EncodedDataType enc1 = new Service.EncodedDataType();
+            EncodedDataType enc1 = new EncodedDataType();
             enc1.id = "1";
-            enc1.value =  encDetail1.value;
+            enc1.value = encDetail1.value;
 
-            Service.EncodedDataType enc2 = new Service.EncodedDataType();
+            EncodedDataType enc2 = new EncodedDataType();
             enc2.id = "2";
             enc2.value = encDetail2.value;
-            
-            Service.DecodeRequestType decReq = new Service.DecodeRequestType();
-            decReq.applicationName = "Test";
-            decReq.encodedData = new Service.EncodedDataType[] { enc1, enc2 };
 
-            Service.DecodeResponseType decResp = client.Decode(decReq);
+            DecodeRequestType decReq = new DecodeRequestType();
+            decReq.applicationName = "Test";
+            decReq.encodedData = new EncodedDataType[] { enc1, enc2 };
+
+            DecodeResponseType decResp = client.Decode(decReq);
             Assert.IsFalse(string.IsNullOrWhiteSpace(decResp.ticketNumber));
             if (decResp.globalError != null) Assert.Fail(decResp.globalError.errorValue);
 
-            IEnumerable<Service.ErrorType> decErrors = from r in decResp.response where r.error != null select r.error;
+            IEnumerable<ErrorType> decErrors = from r in decResp.response where r.error != null select r.error;
             Assert.AreEqual(0, decErrors.Count());
             //Here you normaly check the errors, but since it is only a test it fails right here
 
-            Service.DecodedDataType decDetail1 = (from r in decResp.response where r.decodedData != null && r.decodedData.id == "1" select r.decodedData).Single();
+            DecodedDataType decDetail1 = (from r in decResp.response where r.decodedData != null && r.decodedData.id == "1" select r.decodedData).Single();
             Assert.AreEqual(org1.inputData, decDetail1.outputData);
 
-            Service.DecodedDataType decDetail2 = (from r in decResp.response where r.decodedData != null && r.decodedData.id == "2" select r.decodedData).Single();
+            DecodedDataType decDetail2 = (from r in decResp.response where r.decodedData != null && r.decodedData.id == "2" select r.decodedData).Single();
             Assert.AreEqual(org2.inputData, decDetail2.outputData);
         }
     }

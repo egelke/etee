@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WL5G3N1:definitions xmlns:WL5G3N3="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:WL5G3N0="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:WL5G3N2="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" targetNamespace="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:WL5G3N1="http://schemas.xmlsoap.org/wsdl/">
+  <wsp:UsingPolicy WL5G3N1:Required="true" />
+  <wsp:Policy WL5G3N0:Id="samlPolicy-holder-of-key-signed-Smals">
+    <wssp:Identity xmlns:wssp="http://www.bea.com/wls90/security/policy">
+      <wssp:SupportedTokens>
+        <wssp:SecurityToken TokenType="http://docs.oasis-open.org/wss/2004/01/oasis-2004-01-saml-token-profile-1.0#SAMLAssertionID">
+          <wssp:Claims>
+            <wssp:ConfirmationMethod>
+						holder-of-key
+					</wssp:ConfirmationMethod>
+          </wssp:Claims>
+        </wssp:SecurityToken>
+      </wssp:SupportedTokens>
+    </wssp:Identity>
+    <wssp:Integrity SignToken="false" xmlns:wls="http://www.bea.com/wls90/security/policy/wsee#part" xmlns:wssp="http://www.bea.com/wls90/security/policy" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+      <wssp:SignatureAlgorithm URI="http://www.w3.org/2000/09/xmldsig#rsa-sha1" />
+      <wssp:CanonicalizationAlgorithm URI="http://www.w3.org/2001/10/xml-exc-c14n#" />
+      <wssp:Target>
+        <wssp:DigestAlgorithm URI="http://www.w3.org/2000/09/xmldsig#sha1" />
+        <wssp:MessageParts Dialect="http://schemas.xmlsoap.org/2002/12/wsse#part">
+				wsp:Body()
+			</wssp:MessageParts>
+      </wssp:Target>
+      <!--
+		<wssp:Target>
+			<wssp:DigestAlgorithm URI="http://www.w3.org/2000/09/xmldsig#sha1" />
+			<wssp:MessageParts Dialect="http://www.bea.com/wls90/security/policy/wsee#part">
+				wls:SecurityHeader(wsu:Timestamp)
+			</wssp:MessageParts>
+		</wssp:Target>
+		-->
+      <!--
+		<wssp:Target>
+			<wssp:DigestAlgorithm URI="http://www.w3.org/2000/09/xmldsig#sha1" />
+			<wssp:MessageParts Dialect="http://www.bea.com/wls90/security/policy/wsee#part">
+				wls:SecurityHeader(Assertion)
+			</wssp:MessageParts>
+		</wssp:Target>
+		-->
+      <wssp:SupportedTokens>
+        <wssp:SecurityToken TokenType="http://docs.oasis-open.org/wss/2004/01/oasis-2004-01-saml-token-profile-1.0#SAMLAssertionID">
+          <wssp:Claims>
+            <wssp:ConfirmationMethod>
+						holder-of-key
+					</wssp:ConfirmationMethod>
+          </wssp:Claims>
+        </wssp:SecurityToken>
+      </wssp:SupportedTokens>
+    </wssp:Integrity>
+    <wssp:MessageAge Age="300" xmlns:wssp="http://www.bea.com/wls90/security/policy" />
+  </wsp:Policy>
+  <WL5G3N1:types>
+    <xs:schema xmlns:WL5G3N0="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:types="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:WL5G3N2="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:WL5G3N1="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:kgss="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import schemaLocation="https://services-acpt.ehealth.fgov.be:443/Kgss/v1?SCHEMA%2Fetee%2Feteekgss%2Fschemas%2Fehealth-etee-kgss-schema-protocol-3_1" namespace="urn:be:fgov:ehealth:etee:kgss:1_0:protocol" />
+    </xs:schema>
+  </WL5G3N1:types>
+  <WL5G3N1:message name="GetNewKeyRequestMessage">
+    <WL5G3N1:part name="body" element="WL5G3N2:GetNewKeyRequest" />
+  </WL5G3N1:message>
+  <WL5G3N1:message name="GetNewKeyResponseMessage">
+    <WL5G3N1:part name="body" element="WL5G3N2:GetNewKeyResponse" />
+  </WL5G3N1:message>
+  <WL5G3N1:message name="GetKeyRequestMessage">
+    <WL5G3N1:part name="body" element="WL5G3N2:GetKeyRequest" />
+  </WL5G3N1:message>
+  <WL5G3N1:message name="GetKeyResponseMessage">
+    <WL5G3N1:part name="body" element="WL5G3N2:GetKeyResponse" />
+  </WL5G3N1:message>
+  <WL5G3N1:portType name="KgssPortType">
+    <WL5G3N1:operation name="GetNewKey">
+      <WL5G3N1:input message="WL5G3N2:GetNewKeyRequestMessage" />
+      <WL5G3N1:output message="WL5G3N2:GetNewKeyResponseMessage" />
+    </WL5G3N1:operation>
+    <WL5G3N1:operation name="GetKey">
+      <WL5G3N1:input message="WL5G3N2:GetKeyRequestMessage" />
+      <WL5G3N1:output message="WL5G3N2:GetKeyResponseMessage" />
+    </WL5G3N1:operation>
+  </WL5G3N1:portType>
+  <WL5G3N1:binding name="KgssSoapBinding" type="WL5G3N2:KgssPortType">
+    <WL5G3N3:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <WL5G3N1:operation name="GetNewKey">
+      <WL5G3N3:operation soapAction="" />
+      <WL5G3N1:input>
+        <WL5G3N3:body use="literal" />
+      </WL5G3N1:input>
+      <WL5G3N1:output>
+        <WL5G3N3:body use="literal" />
+      </WL5G3N1:output>
+    </WL5G3N1:operation>
+    <WL5G3N1:operation name="GetKey">
+      <WL5G3N3:operation soapAction="" />
+      <WL5G3N1:input>
+        <wsp:Policy>
+          <wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals" />
+        </wsp:Policy>
+        <WL5G3N3:body use="literal" />
+      </WL5G3N1:input>
+      <WL5G3N1:output>
+        <WL5G3N3:body use="literal" />
+      </WL5G3N1:output>
+    </WL5G3N1:operation>
+  </WL5G3N1:binding>
+  <WL5G3N1:service name="KgssService">
+    <WL5G3N1:port name="KgssPort" binding="WL5G3N2:KgssSoapBinding">
+      <WL5G3N3:address location="https://lrehtapp901a.ehealth.fgov.be:11001/Kgss/v1" />
+    </WL5G3N1:port>
+  </WL5G3N1:service>
+</WL5G3N1:definitions>
