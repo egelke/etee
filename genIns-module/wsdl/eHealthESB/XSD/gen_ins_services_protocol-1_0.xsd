@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns="urn:be:fgov:ehealth:genericinsurability:protocol:v1" xmlns:gc="urn:be:fgov:ehealth:genericinsurability:core:v1" xmlns:protocol="urn:be:fgov:ehealth:commons:protocol:v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="urn:be:fgov:ehealth:genericinsurability:protocol:v1" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+	<!-- core elements and types -->
+	<xs:import namespace="urn:be:fgov:ehealth:genericinsurability:core:v1" schemaLocation="gen_ins_services_core-1_0.xsd"/>
+	<!--eHealth commons protocol -->
+	<xs:import namespace="urn:be:fgov:ehealth:commons:protocol:v1" schemaLocation="../../ehealth-commons/XSD/ehealth-commons-schema-protocol-1_5.xsd"/>
+	<!-- GenericInsurability service -->
+	<!-- protocol elements -->
+	<!-- GetInsurability -->
+	<xs:element name="GetInsurabilityRequest" type="GetInsurabilityAsXmlOrFlatRequestType"/>
+	<xs:element name="GetInsurabilityResponse" type="GetInsurabilityResponseType"/>
+	<!-- GetInsurabilityAsFlat -->
+	<xs:element name="GetInsurabilityAsFlatRequest" type="GetInsurabilityAsXmlOrFlatRequestType"/>
+	<xs:element name="GetInsurabilityAsFlatResponse" type="GetInsurabilityAsFlatResponseType"/>
+	<!-- protocol types -->
+	<xs:complexType name="GetInsurabilityAsXmlOrFlatRequestType">
+		<xs:complexContent>
+			<xs:extension base="protocol:RequestType">
+				<xs:sequence>
+					<xs:element name="CommonInput" type="gc:CommonInputType"/>
+					<xs:element name="RecordCommonInput" type="gc:RecordCommonInputType"/>
+					<xs:element name="Request" type="gc:SingleInsurabilityRequestType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="GetInsurabilityResponseType">
+		<xs:complexContent>
+			<xs:extension base="protocol:ResponseType">
+				<xs:sequence>
+					<xs:element name="CommonOutput" type="gc:CommonOutputType"/>
+					<xs:element name="RecordCommonOutput" type="gc:RecordCommonOutputType"/>
+					<xs:element name="Response" type="gc:SingleInsurabilityResponseType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="GetInsurabilityAsFlatResponseType">
+		<xs:complexContent>
+			<xs:extension base="protocol:ResponseType">
+				<xs:sequence>
+					<xs:element name="CommonOutput" type="gc:CommonOutputType"/>
+					<xs:element name="RecordCommonOutput" type="gc:RecordCommonOutputType"/>
+					<xs:element name="Response" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

@@ -95,7 +95,7 @@ namespace Siemens.EHealth.Client.StsTest
             StsClient target = new StsClient(new StsBinding(), new EndpointAddress("https://wwwacc.ehealth.fgov.be/sts_1_1/SecureTokenService"));
             target.Endpoint.Behaviors.Remove<ClientCredentials>();
             target.Endpoint.Behaviors.Add(new OptClientCredentials());
-            target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "f4432a43f6089c5c739465da9e574e441b4db730");
+            target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindBySubjectName, "CBE=0254014195, ISP_PROD");
             XmlElement assertion = target.RequestTicket("Egelke", session, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
 
             Assert.AreEqual("Assertion", assertion.LocalName);

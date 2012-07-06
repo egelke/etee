@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="GenericInsurabilityWebservice" targetNamespace="urn:be:fgov:ehealth:genericinsurability:protocol:v1" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:genins="urn:be:fgov:ehealth:genericinsurability:protocol:v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap11="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:err="urn:be:fgov:ehealth:errors:soa:v1">
+	<documentation>Version 1.0</documentation>
+	<types>
+		<xsd:schema>
+			<xsd:import namespace="urn:be:fgov:ehealth:genericinsurability:protocol:v1" schemaLocation="../XSD/gen_ins_services_protocol-1_0.xsd"/>
+			<xsd:import namespace="urn:be:fgov:ehealth:errors:soa:v1" schemaLocation="../../ehealth-errors/ehealth-errors-schema-soa-1_0.xsd"/>
+		</xsd:schema>
+	</types>
+	<message name="GetInsurabilityRequest">
+		<part name="body" element="genins:GetInsurabilityRequest"/>
+	</message>
+	<message name="GetInsurabilityResponse">
+		<part name="body" element="genins:GetInsurabilityResponse"/>
+	</message>
+	<message name="GetInsurabilityAsFlatRequest">
+		<part name="body" element="genins:GetInsurabilityAsFlatRequest"/>
+	</message>
+	<message name="GetInsurabilityAsFlatResponse">
+		<part name="body" element="genins:GetInsurabilityAsFlatResponse"/>
+	</message>
+	<message name="SystemError">
+		<part name="fault" element="err:SystemError"/>
+	</message>
+	<portType name="GenericInsurabilityPortType">
+		<operation name="getInsurability">
+			<input message="genins:GetInsurabilityRequest"/>
+			<output message="genins:GetInsurabilityResponse"/>
+			<fault message="genins:SystemError" name="SystemError"/>
+		</operation>
+		<operation name="getInsurabilityAsFlat">
+			<input message="genins:GetInsurabilityAsFlatRequest"/>
+			<output message="genins:GetInsurabilityAsFlatResponse"/>
+			<fault message="genins:SystemError" name="SystemError"/>
+		</operation>
+	</portType>
+	<binding name="GenericInsurabilitySoapBinding" type="genins:GenericInsurabilityPortType">
+		<soap11:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="getInsurability">
+			<soap11:operation style="document" soapAction="urn:be:fgov:ehealth:genericinsurability:protocol:v1:GetInsurability"/>
+			<input>
+				<soap11:body use="literal"/>
+			</input>
+			<output>
+				<soap11:body use="literal"/>
+			</output>
+			<fault name="SystemError">
+				<soap11:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="getInsurabilityAsFlat">
+			<soap11:operation style="document" soapAction="urn:be:fgov:ehealth:genericinsurability:protocol:v1:GetInsurabilityAsFlat"/>
+			<input>
+				<soap11:body use="literal"/>
+			</input>
+			<output>
+				<soap11:body use="literal"/>
+			</output>
+			<fault name="SystemError">
+				<soap11:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+	</binding>
+	<service name="GenericInsurabilityService">
+		<port name="GenericInsurabilityServiceSOAP11" binding="genins:GenericInsurabilitySoapBinding">
+			<soap11:address location="https://services-int.ehealth.fgov.be/GenericInsurability/v1"/>
+		</port>
+	</service>
+</definitions>

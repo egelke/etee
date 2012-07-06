@@ -1,0 +1,48 @@
+<wsp:Policy wsu:Id="Wssp1.2-2007-Saml1.1-HolderOfKey-Wss1.0-eHealth.xml" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702">
+    <sp:AsymmetricBinding>
+        <wsp:Policy>
+            <sp:InitiatorToken>
+                <wsp:Policy>
+                    <sp:SamlToken sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+                        <wsp:Policy>
+                            <sp:WssSamlV11Token10 />
+                        </wsp:Policy>
+                    </sp:SamlToken>
+                </wsp:Policy>
+            </sp:InitiatorToken>
+            <sp:RecipientToken>
+                <wsp:Policy>
+                    <sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+                        <wsp:Policy>
+                            <sp:WssX509V3Token10 />
+                        </wsp:Policy>
+                    </sp:X509Token>
+                </wsp:Policy>
+            </sp:RecipientToken>
+            <sp:AlgorithmSuite>
+                <wsp:Policy>
+                    <sp:Basic256 />
+                </wsp:Policy>
+            </sp:AlgorithmSuite>
+            <sp:Layout>
+                <wsp:Policy>
+                    <sp:Lax />
+                </wsp:Policy>
+            </sp:Layout>
+            <sp:IncludeTimestamp />
+            <!-- comment this out if you want that the samlToken must be signed by the client -->
+            <!-- sp:ProtectTokens / -->
+            <sp:OnlySignEntireHeadersAndBody />
+        </wsp:Policy>
+    </sp:AsymmetricBinding>
+    <sp:SignedParts>
+        <sp:Header Name="Timestamp" Namespace="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" />
+        <sp:Body />
+    </sp:SignedParts>
+    <sp:Wss10>
+        <wsp:Policy>
+            <sp:MustSupportRefKeyIdentifier />
+            <sp:MustSupportRefIssuerSerial />
+        </wsp:Policy>
+    </sp:Wss10>
+</wsp:Policy>

@@ -1,0 +1,1 @@
+SvcUtil /noConfig /namespace:*,Egelke.EHealth.Client.GenIns wsdl\eHealthESB\WSDL\GenericInsurabilityWebService-1_0.wsdl wsdl\eHealthESB\XSD\*.xsd wsdl\ehealth-commons\XSD\*.xsd wsdl\ehealth-errors\*.xsd wsdl\external\XSD\*.xsd
