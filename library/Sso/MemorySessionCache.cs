@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 
 namespace Siemens.EHealth.Client.Sso
 {
-    internal class MemorySessionCache : ISessionCache
+    public class MemorySessionCache : ISessionCache
     {
         private static IDictionary<String, XmlElement> cache = new ConcurrentDictionary<String, XmlElement>();
 
