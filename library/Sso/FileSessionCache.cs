@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 
 namespace Siemens.EHealth.Client.Sso
 {
-    internal class FileSessionCache : ISessionCache
+    public class FileSessionCache : ISessionCache
     {
         private static readonly DataContractSerializer serializer = new DataContractSerializer(typeof(XmlElement));
 
