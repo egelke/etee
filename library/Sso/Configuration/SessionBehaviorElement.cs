@@ -63,7 +63,7 @@ namespace Siemens.EHealth.Client.Sso.Configuration
             else
             {
                 X509Store store = new X509Store(SessionCertificate.StoreName, SessionCertificate.StoreLocation);
-                store.Open(OpenFlags.ReadOnly);
+                store.Open(OpenFlags.IncludeArchived | OpenFlags.MaxAllowed);
                 try
                 {
                     X509Certificate2Collection found = store.Certificates.Find(SessionCertificate.X509FindType, SessionCertificate.FindValue, false);

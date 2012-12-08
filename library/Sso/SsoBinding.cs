@@ -39,21 +39,35 @@ namespace Siemens.EHealth.Client.Sso
 
         protected override SecurityBindingElement CreateMessageSecurity()
         {
-            if (this.Security.Mode != WSFederationHttpSecurityMode.Message) throw new InvalidOperationException("Only message security is supported");
+            if (this.Security.Mode == WSFederationHttpSecurityMode.None) throw new InvalidOperationException("Only message and  security is supported");
             if (this.Security.Message.IssuedKeyType != SecurityKeyType.AsymmetricKey) throw new InvalidOperationException("Only Asymmectric Keys are supported");
             if (this.Security.Message.NegotiateServiceCredential) throw new InvalidOperationException("Negocatiation of service credentials not supported");
             if (this.Security.Message.EstablishSecurityContext) throw new InvalidOperationException("Secure conversation not supported");
 
-            SymmetricSecurityBindingElement baseSecurity = (SymmetricSecurityBindingElement) base.CreateMessageSecurity();
+            SecurityBindingElement security;
             
-            AsymmetricSecurityBindingElement security = new AsymmetricSecurityBindingElement();
-            security.InitiatorTokenParameters = baseSecurity.EndpointSupportingTokenParameters.Endorsing[0];
+            if (this.Security.Mode == WSFederationHttpSecurityMode.Message)
+            {
+                SymmetricSecurityBindingElement baseSecurity = (SymmetricSecurityBindingElement)base.CreateMessageSecurity();
+                AsymmetricSecurityBindingElement asecurity = new AsymmetricSecurityBindingElement();
+                asecurity.InitiatorTokenParameters = baseSecurity.EndpointSupportingTokenParameters.Endorsing[0];
 
-            X509SecurityTokenParameters serverToken = new X509SecurityTokenParameters();
-            serverToken.X509ReferenceStyle = X509KeyIdentifierClauseType.Any;
-            serverToken.InclusionMode = SecurityTokenInclusionMode.Never;
-            serverToken.RequireDerivedKeys = false;
-            security.RecipientTokenParameters = serverToken;
+                X509SecurityTokenParameters serverToken = new X509SecurityTokenParameters();
+                serverToken.X509ReferenceStyle = X509KeyIdentifierClauseType.Any;
+                serverToken.InclusionMode = SecurityTokenInclusionMode.Never;
+                serverToken.RequireDerivedKeys = false;
+                asecurity.RecipientTokenParameters = serverToken;
+                security = asecurity;
+            }
+            else
+            {
+                TransportSecurityBindingElement baseSecurity = (TransportSecurityBindingElement)base.CreateMessageSecurity();
+                TransportSecurityBindingElement tsecurity = new TransportSecurityBindingElement();
+
+                tsecurity.EndpointSupportingTokenParameters.Endorsing.Add(baseSecurity.EndpointSupportingTokenParameters.Endorsing[0]);
+
+                security = tsecurity;
+            }
 
             security.EnableUnsecuredResponse = true;
             security.IncludeTimestamp = true;
@@ -70,7 +84,14 @@ namespace Siemens.EHealth.Client.Sso
             BindingElementCollection elements = new BindingElementCollection();
 
             elements.Add(CreateMessageSecurity());
-            elements.Add(new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8));
+            if (this.MessageEncoding == WSMessageEncoding.Text)
+            {
+                elements.Add(new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8));
+            }
+            else
+            {
+                elements.Add(new MtomMessageEncodingBindingElement(MessageVersion.Soap11WSAddressing10, Encoding.UTF8));
+            }
             elements.Add(GetTransport());
 
             return elements;

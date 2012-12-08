@@ -58,7 +58,16 @@ namespace Siemens.EHealth.Client.Sso
                 if (tokenRequirement.KeyType != SecurityKeyType.AsymmetricKey) throw new NotSupportedException("Only Asymmetric keys are supported");
                 //TODO:Add more
 
-                return new SsoSecurityTokenProvider((SsoClientCredentials) ClientCredentials, (IssuedSecurityTokenParameters) ((AsymmetricSecurityBindingElement) sbe).InitiatorTokenParameters);
+                IssuedSecurityTokenParameters sessionTokenParams = null;
+                if (sbe is AsymmetricSecurityBindingElement)
+                {
+                    sessionTokenParams = (IssuedSecurityTokenParameters) ((AsymmetricSecurityBindingElement)sbe).InitiatorTokenParameters;
+                }
+                if (sbe is TransportSecurityBindingElement)
+                {
+                    sessionTokenParams = (IssuedSecurityTokenParameters)((TransportSecurityBindingElement)sbe).EndpointSupportingTokenParameters.Endorsing[0];
+                }
+                return new SsoSecurityTokenProvider((SsoClientCredentials)ClientCredentials, sessionTokenParams);
             }
             else
             {
