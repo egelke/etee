@@ -52,10 +52,40 @@ namespace Egelke.EHealth.Client.EhBoxTest
             publishMessage.ContentContext.ContentSpecification.ApplicationName = "eH-I";
             
             //Publish the news.
-            SendMessageResponse rsp = publish.sendMessage(publishMessage);
+            SendMessageResponse publishResp = publish.sendMessage(publishMessage);
 
-            //check the response
-            Assert.AreEqual("100", rsp.Status.Code);
+            //check the publish response
+            Assert.AreEqual("100", publishResp.Status.Code);
+
+            //Check if the message is received.
+            ehBoxConsultationPortTypeClient consult = new ehBoxConsultationPortTypeClient("Consult");
+            
+            GetMessageAcknowledgmentsStatusRequestType ackReq = new GetMessageAcknowledgmentsStatusRequestType();
+            ackReq.MessageId = publishResp.Id;
+            ackReq.StartIndex = 1;
+            ackReq.EndIndex = 100;
+
+            //Loop until the new is received.
+            int loop = 0;
+            GetMessageAcknowledgmentsStatusResponseType ackResp = null;
+            while (loop < 8 && (ackResp == null || !ackResp.AcknowledgmentsStatus[0].ReceivedSpecified))
+            {
+
+                //Give eHealth some time (each time a little more)
+                System.Threading.Thread.Sleep(new TimeSpan(0, 0, Fibonacci(loop++)));
+
+                //Get the status
+                ackResp = consult.getMessageAcknowledgmentsStatus(ackReq);
+
+                //check the publish response
+                Assert.AreEqual("100", ackResp.Status.Code);
+            }
+        }
+
+        private int Fibonacci(int n)
+        {
+            if (n < 2) return 1;
+            return Fibonacci(n - 1) + Fibonacci(n - 2);
         }
     }
 }
