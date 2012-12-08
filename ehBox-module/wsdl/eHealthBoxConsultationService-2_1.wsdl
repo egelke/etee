@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:ehboxp="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:err="urn:be:fgov:ehealth:errors:service:v1" xmlns:mon="urn:be:fgov:ehealth:ehbox:monitoring:protocol:v2" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"  xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" targetNamespace="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2">
+
+	<wsp:Policy wsu:Id="Mtom.xml">
+		<wsoma:OptimizedMimeSerialization xmlns:wsoma="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization"/>
+	</wsp:Policy>
+	
+	<wsp:Policy wsu:Id="X509IdentifyAndSignMessage" xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702">
+		<sp:AsymmetricBinding>
+			<wsp:Policy>
+				<sp:InitiatorToken>
+					<wsp:Policy>
+						<sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+							<wsp:Policy>
+								<sp:RequireThumbprintReference />
+								<sp:WssX509V3Token11 />
+							</wsp:Policy>
+						</sp:X509Token>
+					</wsp:Policy>
+				</sp:InitiatorToken>
+				<sp:RecipientToken>
+					<wsp:Policy>
+						<sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+							<wsp:Policy>
+								<sp:RequireThumbprintReference />
+								<sp:WssX509V3Token11 />
+							</wsp:Policy>
+						</sp:X509Token>
+					</wsp:Policy>
+				</sp:RecipientToken>
+				<sp:AlgorithmSuite>
+					<wsp:Policy>
+						<sp:Basic256 />
+					</wsp:Policy>
+				</sp:AlgorithmSuite>
+				<sp:Layout>
+					<wsp:Policy>
+						<sp:Lax />
+					</wsp:Policy>
+				</sp:Layout>
+				<sp:IncludeTimestamp />
+				<sp:ProtectTokens />
+				<sp:OnlySignEntireHeadersAndBody />
+			</wsp:Policy>
+		</sp:AsymmetricBinding>
+		<sp:Wss11>
+			<wsp:Policy>
+				<sp:MustSupportRefKeyIdentifier />
+				<sp:MustSupportRefIssuerSerial />
+				<sp:MustSupportRefThumbprint />
+				<sp:MustSupportRefEncryptedKey />
+				<sp:RequireSignatureConfirmation />
+			</wsp:Policy>
+		</sp:Wss11>
+		<sp:SignedParts>
+			<sp:Body />
+		</sp:SignedParts>
+	</wsp:Policy>
+
+	<wsp:Policy wsu:Id="samlPolicy-holder-of-key-signed-Smals" xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702">
+		<sp:AsymmetricBinding>
+			<wsp:Policy>
+				<sp:InitiatorToken>
+					<wsp:Policy>
+						<sp:SamlToken sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+							<wsp:Policy>
+								<sp:WssSamlV11Token10/>
+							</wsp:Policy>
+						</sp:SamlToken>
+					</wsp:Policy>
+				</sp:InitiatorToken>
+				<sp:RecipientToken>
+					<wsp:Policy>
+						<sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+							<wsp:Policy>
+								<sp:WssX509V3Token10/>
+							</wsp:Policy>
+						</sp:X509Token>
+					</wsp:Policy>
+				</sp:RecipientToken>
+				<sp:AlgorithmSuite>
+					<wsp:Policy>
+						<sp:Basic256/>
+					</wsp:Policy>
+				</sp:AlgorithmSuite>
+				<sp:Layout>
+					<wsp:Policy>
+						<sp:Lax/>
+					</wsp:Policy>
+				</sp:Layout>
+				<sp:IncludeTimestamp/>
+				<sp:ProtectTokens/>
+				<sp:OnlySignEntireHeadersAndBody/>
+			</wsp:Policy>
+		</sp:AsymmetricBinding>
+		<sp:Wss10>
+			<wsp:Policy>
+				<sp:MustSupportRefKeyIdentifier/>
+				<sp:MustSupportRefIssuerSerial/>
+			</wsp:Policy>
+		</sp:Wss10>
+		<sp:SignedParts>
+			<sp:Body/>
+		</sp:SignedParts>
+	</wsp:Policy>
+
+	<types>
+		<xsd:schema>
+			<xsd:import namespace="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2" schemaLocation="ehealth-ehBox-consultation-schema-protocol-2_1.xsd"/>
+			<xsd:import namespace="urn:be:fgov:ehealth:ehbox:monitoring:protocol:v2" schemaLocation="ehealth-ehBox-monitoring-schema-protocol-2_1.xsd"/>
+			<xsd:import namespace="urn:be:fgov:ehealth:errors:service:v1" schemaLocation="ehealth-errors-schema-service-1_0.xsd"/>
+		</xsd:schema>
+	</types>
+	<message name="GetBoxInfoRequestMessage">
+		<part name="body" element="ehboxp:GetBoxInfoRequest"/>
+	</message>
+	<message name="GetBoxInfoResponseMessage">
+		<part name="body" element="ehboxp:GetBoxInfoResponse"/>
+	</message>
+	<message name="GetMessagesListRequestMessage">
+		<part name="body" element="ehboxp:GetMessagesListRequest"/>
+	</message>
+	<message name="GetMessagesListResponseMessage">
+		<part name="body" element="ehboxp:GetMessagesListResponse"/>
+	</message>
+	<message name="GetAllEhboxesMessagesListRequestMessage">
+		<part name="body" element="ehboxp:GetAllEhboxesMessagesListRequest"/>
+	</message>
+	<message name="GetAllEhboxesMessagesListResponseMessage">
+		<part name="body" element="ehboxp:GetAllEhboxesMessagesListResponse"/>
+	</message>
+	<message name="GetFullMessageRequestMessage">
+		<part name="body" element="ehboxp:GetFullMessageRequest"/>
+	</message>
+	<message name="GetFullMessageResponseMessage">
+		<part name="body" element="ehboxp:GetFullMessageResponse"/>
+	</message>
+	<message name="MoveMessageRequestMessage">
+		<part name="body" element="ehboxp:MoveMessageRequest"/>
+	</message>
+	<message name="MoveMessageResponseMessage">
+		<part name="body" element="ehboxp:MoveMessageResponse"/>
+	</message>
+	<message name="GetMessageHistoryRequestMessage">
+		<part name="body" element="ehboxp:GetHistoryRequest"/>
+	</message>
+	<message name="GetMessageHistoryResponseMessage">
+		<part name="body" element="ehboxp:GetHistoryResponse"/>
+	</message>
+	<message name="GetMessageAcknowledgmentsStatusRequestMessage">
+		<part name="body" element="ehboxp:GetMessageAcknowledgmentsStatusRequest"/>
+	</message>
+	<message name="GetMessageAcknowledgmentsStatusResponseMessage">
+		<part name="body" element="ehboxp:GetMessageAcknowledgmentsStatusResponse"/>
+	</message>
+	<message name="SystemError">
+		<part name="fault" element="err:SystemError"/>
+	</message>
+	<message name="BusinessError">
+		<part name="fault" element="err:BusinessError"/>
+	</message>
+	<message name="PingRequest">
+		<part name="body" element="mon:PingRequest"/>
+	</message>
+	<message name="PingResponse">
+		<part name="body" element="mon:PingResponse"/>
+	</message>
+	<portType name="ehBoxConsultationPortType">
+		<operation name="getBoxInfo">
+			<input message="ehboxp:GetBoxInfoRequestMessage"/>
+			<output message="ehboxp:GetBoxInfoResponseMessage"/>
+			<fault name="BusinessError" message="ehboxp:BusinessError"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+		<operation name="getMessagesList">
+			<input message="ehboxp:GetMessagesListRequestMessage"/>
+			<output message="ehboxp:GetMessagesListResponseMessage"/>
+			<fault name="BusinessError" message="ehboxp:BusinessError"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+		<operation name="getAllEhboxesMessagesList">
+			<input message="ehboxp:GetAllEhboxesMessagesListRequestMessage"/>
+			<output message="ehboxp:GetAllEhboxesMessagesListResponseMessage"/>
+			<fault name="BusinessError" message="ehboxp:BusinessError"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+		<operation name="getFullMessage">
+			<input message="ehboxp:GetFullMessageRequestMessage"/>
+			<output message="ehboxp:GetFullMessageResponseMessage"/>
+			<fault name="BusinessError" message="ehboxp:BusinessError"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+		<operation name="moveMessage">
+			<input message="ehboxp:MoveMessageRequestMessage"/>
+			<output message="ehboxp:MoveMessageResponseMessage"/>
+			<fault name="BusinessError" message="ehboxp:BusinessError"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+		<operation name="getMessageHistory">
+			<input message="ehboxp:GetMessageHistoryRequestMessage"/>
+			<output message="ehboxp:GetMessageHistoryResponseMessage"/>
+			<fault name="BusinessError" message="ehboxp:BusinessError"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+		<operation name="getMessageAcknowledgmentsStatus">
+			<input message="ehboxp:GetMessageAcknowledgmentsStatusRequestMessage"/>
+			<output message="ehboxp:GetMessageAcknowledgmentsStatusResponseMessage"/>
+			<fault name="BusinessError" message="ehboxp:BusinessError"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+		<!-- technical monitoring methods -->
+		<operation name="ping">
+			<input message="ehboxp:PingRequest"/>
+			<output message="ehboxp:PingResponse"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+	</portType>
+	<binding name="ehBoxConsultationBinding" type="ehboxp:ehBoxConsultationPortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsp:Policy>
+			<wsp:PolicyReference URI="#Mtom.xml"/>
+		</wsp:Policy>
+		<operation name="getBoxInfo">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2:getBoxInfo"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="BusinessError">
+				<soap:fault name="BusinessError" use="literal"/>
+			</fault>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="getMessagesList">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2:getMessagesList"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="BusinessError">
+				<soap:fault name="BusinessError" use="literal"/>
+			</fault>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="getAllEhboxesMessagesList">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2:getAllEhboxesMessagesList"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="BusinessError">
+				<soap:fault name="BusinessError" use="literal"/>
+			</fault>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="getFullMessage">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2:getFullMessage"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="BusinessError">
+				<soap:fault name="BusinessError" use="literal"/>
+			</fault>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="moveMessage">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2:moveMessage"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="BusinessError">
+				<soap:fault name="BusinessError" use="literal"/>
+			</fault>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="getMessageHistory">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2:getMessageHistory"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="BusinessError">
+				<soap:fault name="BusinessError" use="literal"/>
+			</fault>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="getMessageAcknowledgmentsStatus">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2:getMessageAcknowledgmentsStatus"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="BusinessError">
+				<soap:fault name="BusinessError" use="literal"/>
+			</fault>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="ping">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2:Ping" style="document"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#X509IdentifyAndSignMessage"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+	</binding>
+	<service name="ehBox Consultation v2">
+		<documentation>The ehBox Consultation Web Service allows an authenticated user to consult information about the content of his associated ehBox.</documentation>
+		<port name="ehBoxConsultationPort" binding="ehboxp:ehBoxConsultationBinding">
+			<soap:address location="https://services.ehealth.fgov.be/ehBoxConsultation/v2"/>
+		</port>
+	</service>
+	<!-- technical monitoring methods -->
+</definitions>

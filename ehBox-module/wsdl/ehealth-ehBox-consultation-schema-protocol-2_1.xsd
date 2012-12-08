@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:core="urn:be:fgov:ehealth:commons:core:v1" xmlns:consultp="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2" xmlns:protocol="urn:be:fgov:ehealth:commons:protocol:v1" xmlns:ehboxc="urn:be:fgov:ehealth:ehbox:core:v2" targetNamespace="urn:be:fgov:ehealth:ehbox:consultation:protocol:v2" elementFormDefault="unqualified" attributeFormDefault="unqualified" version="2.1">
+    <xs:import namespace="urn:be:fgov:ehealth:commons:protocol:v1" schemaLocation="ehealth-commons-schema-protocol-1_4.xsd"/>
+    <xs:import namespace="urn:be:fgov:ehealth:commons:core:v1" schemaLocation="ehealth-commons-schema-core-1_4.xsd"/>
+    <xs:import namespace="urn:be:fgov:ehealth:ehbox:core:v2" schemaLocation="ehealth-ehBox-schema-core-2_1.xsd"/>
+    <!-- 
+     | Request Elements.
+     -->
+    <xs:element name="GetBoxInfoRequest" type="consultp:GetBoxInfoRequestType"/>
+    <xs:element name="GetMessagesListRequest" type="consultp:GetMessagesListRequestType"/>
+    <xs:element name="GetAllEhboxesMessagesListRequest" type="consultp:GetAllEhboxesMessagesListRequestType"/>
+    <xs:element name="GetFullMessageRequest" type="consultp:MessageRequestType"/>
+    <xs:element name="MoveMessageRequest" type="consultp:MoveMessageRequestType"/>
+    <xs:element name="GetHistoryRequest" type="consultp:MessageRequestType"/>
+    <xs:element name="GetMessageAcknowledgmentsStatusRequest" type="consultp:GetMessageAcknowledgmentsStatusRequestType"/>
+    <!-- 
+     | Response Elements.
+     -->
+    <xs:element name="GetBoxInfoResponse" type="consultp:GetBoxInfoResponseType"/>
+    <xs:element name="GetMessagesListResponse" type="consultp:GetMessageListResponseType"/>
+    <xs:element name="GetAllEhboxesMessagesListResponse" type="consultp:GetMessageListResponseType"/>
+    <xs:element name="GetFullMessageResponse" type="consultp:GetFullMessageResponseType"/>
+    <xs:element name="MoveMessageResponse" type="protocol:ResponseType"/>
+    <xs:element name="GetHistoryResponse" type="consultp:GetHistoryResponseType"/>
+    <xs:element name="GetMessageAcknowledgmentsStatusResponse" type="consultp:GetMessageAcknowledgmentsStatusResponseType"/>
+    <!-- 
+     | Request Types.
+     -->
+    <xs:complexType name="GetBoxInfoRequestType">
+        <xs:sequence>
+            <xs:element name="BoxId" type="ehboxc:BoxIdType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Use another of my ehBoxes</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Mandator" type="ehboxc:MandateType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>User provides ID of his mandator and the quality of the mandator in use.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="GetMessagesListRequestType">
+        <xs:sequence>
+            <xs:element name="BoxId" type="ehboxc:BoxIdType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Use another of my ehBoxes</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Source" default="INBOX">
+                <xs:annotation>
+                    <xs:documentation>The folder to consult</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="INBOX"/>
+						<xs:enumeration value="SENTBOX"/>
+						<xs:enumeration value="BININBOX"/>
+						<xs:enumeration value="BINSENTBOX"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="StartIndex" default="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Index of the first message</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="EndIndex" default="100" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Index of the last message</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Mandator" type="ehboxc:MandateType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>User provides ID of his mandator and the quality of the mandator in use.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="GetAllEhboxesMessagesListRequestType">
+        <xs:sequence>
+            <xs:element name="Source" default="INBOX">
+                <xs:annotation>
+                    <xs:documentation>The folder to consult</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="INBOX"/>
+						<xs:enumeration value="SENTBOX"/>
+						<xs:enumeration value="BININBOX"/>
+						<xs:enumeration value="BINSENTBOX"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="StartIndex" default="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Index of the first message</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="EndIndex" default="100" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Index of the last message</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:int">
+                        <xs:minInclusive value="1"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Mandator" type="ehboxc:MandateType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>User provides ID of his mandator and the quality of the mandator in use.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MessageRequestType">
+        <xs:sequence>
+            <xs:element name="BoxId" type="ehboxc:BoxIdType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Use another of my ehBoxes</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Source" default="INBOX">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="INBOX"/>
+                        <xs:enumeration value="SENTBOX"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="MessageId" type="ehboxc:MessageIdType"/>
+            <xs:element name="Mandator" type="ehboxc:MandateType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>User provides ID of his mandator and the quality of the mandator in use.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MoveMessageRequestType">
+        <xs:sequence>
+            <xs:element name="BoxId" type="ehboxc:BoxIdType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Use another of my ehBoxes</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Source">
+                <xs:annotation>
+                    <xs:documentation>User specifies where the message must be moved from</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="INBOX"/>
+						<xs:enumeration value="SENTBOX"/>
+						<xs:enumeration value="BININBOX"/>
+						<xs:enumeration value="BINSENTBOX"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Destination">
+                <xs:annotation>
+                    <xs:documentation>User specifies where the message must be placed</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="INBOX"/>
+						<xs:enumeration value="SENTBOX"/>
+						<xs:enumeration value="BININBOX"/>
+						<xs:enumeration value="BINSENTBOX"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="MessageId" type="ehboxc:MessageIdType" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>User can specify many messageId's</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Mandator" type="ehboxc:MandateType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>User provides ID of his mandator and the quality of the mandator in use.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="GetMessageAcknowledgmentsStatusRequestType">
+        <xs:sequence>
+            <xs:element name="BoxId" type="ehboxc:BoxIdType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="MessageId" type="ehboxc:MessageIdType"/>
+            <xs:element name="StartIndex" default="1" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Index of the first acknowledgment</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:int">
+						<xs:minInclusive value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="EndIndex" default="100" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Index of the last acknowledgment</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:int">
+						<xs:minInclusive value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="Mandator" type="ehboxc:MandateType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>User provides ID of his mandator and the quality of the mandator in use.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <!-- 
+     | Response Types.
+     -->
+    <xs:complexType name="GetBoxInfoResponseType">
+        <xs:complexContent>
+            <xs:extension base="protocol:ResponseType">
+                <xs:sequence minOccurs="0">
+                    <xs:element name="BoxId" type="ehboxc:BoxIdType"/>
+                    <xs:element name="NbrMessagesInStandBy" type="xs:int"/>
+                    <xs:element name="CurrentSize" type="xs:long"/>
+                    <xs:element name="MaxSize" type="xs:long"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetMessageListResponseType">
+        <xs:complexContent>
+            <xs:extension base="protocol:ResponseType">
+                <xs:sequence minOccurs="0">
+                    <xs:element name="Source">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="INBOX"/>
+          						<xs:enumeration value="SENTBOX"/>
+          						<xs:enumeration value="BININBOX"/>
+          						<xs:enumeration value="BINSENTBOX"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="Message" minOccurs="0" maxOccurs="unbounded">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="MessageId" type="ehboxc:MessageIdType"/>
+                                <xs:element name="Destination" type="ehboxc:EhboxIdentifierType">
+                                    <xs:annotation>
+                                        <xs:documentation>This indicates which of my ehboxes received the message. This doesn't display all the recipients, only me.</xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                                <xs:element name="Sender" type="ehboxc:SenderType">
+                                    <xs:annotation>
+                                        <xs:documentation>The official sender of the message</xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                                <xs:element name="Mandatee" type="ehboxc:SenderType" minOccurs="0">
+                                    <xs:annotation>
+                                        <xs:documentation>The mandatee who in reality sent the message (if a mandate was used)</xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                                <xs:element name="MessageInfo" type="ehboxc:MessageInfoType">
+                                    <xs:annotation>
+                                        <xs:documentation>Short message details</xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                                <xs:element name="ContentInfo" type="ehboxc:ContentInfoType" minOccurs="0">
+                                    <xs:annotation>
+                                        <xs:documentation>Info about the message content, without transmitting everything</xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                                <xs:element name="ContentSpecification" type="ehboxc:ConsultContentSpecificationType"/>
+                                <xs:element name="CustomMeta" type="ehboxc:CustomMetaType" minOccurs="0" maxOccurs="unbounded">
+                                    <xs:annotation>
+                                        <xs:documentation>Meta specified by the user</xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetFullMessageResponseType">
+        <xs:complexContent>
+            <xs:extension base="protocol:ResponseType">
+                <xs:sequence minOccurs="0">
+                    <xs:element name="Sender" type="ehboxc:SenderType">
+                        <xs:annotation>
+                            <xs:documentation>The official sender of the message</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Mandatee" type="ehboxc:SenderType" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The mandatee who in reality sent the message (if a mandate was used)</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Message" type="ehboxc:MessageType"/>
+                    <xs:element name="MessageInfo" type="ehboxc:MessageInfoType">
+                        <xs:annotation>
+                            <xs:documentation>Short message details</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetHistoryResponseType">
+        <xs:complexContent>
+            <xs:extension base="protocol:ResponseType">
+                <xs:sequence minOccurs="0">
+                    <xs:element name="MessageId" type="ehboxc:MessageIdType" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetMessageAcknowledgmentsStatusResponseType">
+        <xs:complexContent>
+            <xs:extension base="protocol:ResponseType">
+                <xs:sequence minOccurs="0">
+                    <xs:element name="AcknowledgmentsStatus">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="Row" maxOccurs="unbounded">
+                                    <xs:complexType>
+                                        <xs:sequence>
+                                            <xs:element name="Recipient" type="ehboxc:SenderType"/>
+                                            <xs:element name="Published" type="xs:dateTime" minOccurs="0"/>
+                                            <xs:element name="Received" type="xs:dateTime" minOccurs="0"/>
+                                            <xs:element name="Read" type="xs:dateTime" minOccurs="0"/>
+                                        </xs:sequence>
+                                    </xs:complexType>
+                                </xs:element>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

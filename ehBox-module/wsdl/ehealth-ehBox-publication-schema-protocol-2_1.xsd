@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:core="urn:be:fgov:ehealth:commons:core:v1" xmlns:ehboxp="urn:be:fgov:ehealth:ehbox:publication:protocol:v2" xmlns:protocol="urn:be:fgov:ehealth:commons:protocol:v1" xmlns:ehboxc="urn:be:fgov:ehealth:ehbox:core:v2" targetNamespace="urn:be:fgov:ehealth:ehbox:publication:protocol:v2" elementFormDefault="unqualified" attributeFormDefault="unqualified" version="2.1">
+	<xs:import namespace="urn:be:fgov:ehealth:commons:protocol:v1" schemaLocation="ehealth-commons-schema-protocol-1_4.xsd"/>
+	<xs:import namespace="urn:be:fgov:ehealth:commons:core:v1" schemaLocation="ehealth-commons-schema-core-1_4.xsd"/>
+	<xs:import namespace="urn:be:fgov:ehealth:ehbox:core:v2" schemaLocation="ehealth-ehBox-schema-core-2_1.xsd"/>
+	<xs:element name="SendMessageRequest" type="ehboxc:PublicationMessageType"/>
+	<xs:element name="SendMessageResponse">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="protocol:ResponseType">
+					<xs:attribute name="SentPublicationId" type="ehboxc:PublicationIdType"/>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

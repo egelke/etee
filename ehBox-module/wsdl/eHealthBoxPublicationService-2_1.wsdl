@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:ehboxp="urn:be:fgov:ehealth:ehbox:publication:protocol:v2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:err="urn:be:fgov:ehealth:errors:service:v1" xmlns:mon="urn:be:fgov:ehealth:ehbox:monitoring:protocol:v2" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"  xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" targetNamespace="urn:be:fgov:ehealth:ehbox:publication:protocol:v2">
+
+	<wsp:Policy wsu:Id="Mtom.xml">
+		<wsoma:OptimizedMimeSerialization xmlns:wsoma="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization"/>
+	</wsp:Policy>
+	
+	<wsp:Policy wsu:Id="X509IdentifyAndSignMessage" xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702">
+		<sp:AsymmetricBinding>
+			<wsp:Policy>
+				<sp:InitiatorToken>
+					<wsp:Policy>
+						<sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+							<wsp:Policy>
+								<sp:RequireThumbprintReference />
+								<sp:WssX509V3Token11 />
+							</wsp:Policy>
+						</sp:X509Token>
+					</wsp:Policy>
+				</sp:InitiatorToken>
+				<sp:RecipientToken>
+					<wsp:Policy>
+						<sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+							<wsp:Policy>
+								<sp:RequireThumbprintReference />
+								<sp:WssX509V3Token11 />
+							</wsp:Policy>
+						</sp:X509Token>
+					</wsp:Policy>
+				</sp:RecipientToken>
+				<sp:AlgorithmSuite>
+					<wsp:Policy>
+						<sp:Basic256 />
+					</wsp:Policy>
+				</sp:AlgorithmSuite>
+				<sp:Layout>
+					<wsp:Policy>
+						<sp:Lax />
+					</wsp:Policy>
+				</sp:Layout>
+				<sp:IncludeTimestamp />
+				<sp:ProtectTokens />
+				<sp:OnlySignEntireHeadersAndBody />
+			</wsp:Policy>
+		</sp:AsymmetricBinding>
+		<sp:Wss11>
+			<wsp:Policy>
+				<sp:MustSupportRefKeyIdentifier />
+				<sp:MustSupportRefIssuerSerial />
+				<sp:MustSupportRefThumbprint />
+				<sp:MustSupportRefEncryptedKey />
+				<sp:RequireSignatureConfirmation />
+			</wsp:Policy>
+		</sp:Wss11>
+		<sp:SignedParts>
+			<sp:Body />
+		</sp:SignedParts>
+	</wsp:Policy>
+
+	<wsp:Policy wsu:Id="samlPolicy-holder-of-key-signed-Smals" xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702">
+		<sp:AsymmetricBinding>
+			<wsp:Policy>
+				<sp:InitiatorToken>
+					<wsp:Policy>
+						<sp:SamlToken sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+							<wsp:Policy>
+								<sp:WssSamlV11Token10/>
+							</wsp:Policy>
+						</sp:SamlToken>
+					</wsp:Policy>
+				</sp:InitiatorToken>
+				<sp:RecipientToken>
+					<wsp:Policy>
+						<sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+							<wsp:Policy>
+								<sp:WssX509V3Token10/>
+							</wsp:Policy>
+						</sp:X509Token>
+					</wsp:Policy>
+				</sp:RecipientToken>
+				<sp:AlgorithmSuite>
+					<wsp:Policy>
+						<sp:Basic256/>
+					</wsp:Policy>
+				</sp:AlgorithmSuite>
+				<sp:Layout>
+					<wsp:Policy>
+						<sp:Lax/>
+					</wsp:Policy>
+				</sp:Layout>
+				<sp:IncludeTimestamp/>
+				<sp:ProtectTokens/>
+				<sp:OnlySignEntireHeadersAndBody/>
+			</wsp:Policy>
+		</sp:AsymmetricBinding>
+		<sp:Wss10>
+			<wsp:Policy>
+				<sp:MustSupportRefKeyIdentifier/>
+				<sp:MustSupportRefIssuerSerial/>
+			</wsp:Policy>
+		</sp:Wss10>
+		<sp:SignedParts>
+			<sp:Body/>
+		</sp:SignedParts>
+	</wsp:Policy>
+
+	<types>
+		<xsd:schema>
+			<xsd:import namespace="urn:be:fgov:ehealth:ehbox:publication:protocol:v2" schemaLocation="ehealth-ehBox-publication-schema-protocol-2_1.xsd"/>
+			<xsd:import namespace="urn:be:fgov:ehealth:ehbox:monitoring:protocol:v2" schemaLocation="ehealth-ehBox-monitoring-schema-protocol-2_1.xsd"/>
+			<xsd:import namespace="urn:be:fgov:ehealth:errors:service:v1" schemaLocation="ehealth-errors-schema-service-1_0.xsd"/>
+		</xsd:schema>
+	</types>
+	<message name="SendMessageRequestMessage">
+		<part name="body" element="ehboxp:SendMessageRequest"/>
+	</message>
+	<message name="SendMessageResponseMessage">
+		<part name="body" element="ehboxp:SendMessageResponse"/>
+	</message>
+	<message name="SystemError">
+		<part name="fault" element="err:SystemError"/>
+	</message>
+	<message name="BusinessError">
+		<part name="fault" element="err:BusinessError"/>
+	</message>
+	<message name="PingRequest">
+		<part name="body" element="mon:PingRequest"/>
+	</message>
+	<message name="PingResponse">
+		<part name="body" element="mon:PingResponse"/>
+	</message>
+	<portType name="ehBoxPublicationPortType">
+		<operation name="sendMessage">
+			<input message="ehboxp:SendMessageRequestMessage"/>
+			<output message="ehboxp:SendMessageResponseMessage"/>
+			<fault name="BusinessError" message="ehboxp:BusinessError"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+		<!-- technical monitoring methods -->
+		<operation name="ping">
+			<input message="ehboxp:PingRequest"/>
+			<output message="ehboxp:PingResponse"/>
+			<fault name="SystemError" message="ehboxp:SystemError"/>
+		</operation>
+	</portType>
+	<binding name="ehBoxPublicationBinding" type="ehboxp:ehBoxPublicationPortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsp:Policy>
+			<wsp:PolicyReference URI="#Mtom.xml"/>
+		</wsp:Policy>
+		<operation name="sendMessage">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:publication:protocol:v2:sendMessage"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#samlPolicy-holder-of-key-signed-Smals"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="BusinessError">
+				<soap:fault name="BusinessError" use="literal"/>
+			</fault>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="ping">
+			<soap:operation soapAction="urn:be:fgov:ehealth:ehbox:publication:protocol:v2:Ping" style="document"/>
+			<input>
+				<soap:body use="literal"/>
+				<wsp:Policy>
+					<wsp:PolicyReference URI="#X509IdentifyAndSignMessage"/>
+				</wsp:Policy>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="SystemError">
+				<soap:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+	</binding>
+	<service name="ehBox Publication v2">
+		<documentation>The ehBox Publication Web Service allows an authenticated user to publish an ehBox message (Document or News) for different addressees.</documentation>
+		<port name="ehBoxPublicationPort" binding="ehboxp:ehBoxPublicationBinding">
+			<soap:address location="https://services.ehealth.fgov.be/ehBoxPublication/v2"/>
+		</port>
+	</service>
+</definitions>
