@@ -10,39 +10,134 @@ namespace Egelke.EHealth.Client.EhBoxTest
     [TestClass]
     public class EhBoxExamples
     {
+        ehBoxPublicationPortTypeClient publish;
+
+        ehBoxConsultationPortTypeClient consult;
+
         [TestMethod]
         public void ConfigViaConfig()
         {
-            ehBoxPublicationPortTypeClient publish = new ehBoxPublicationPortTypeClient("Publish");
+            String msg = "The eH-I library now support publication and consultations of the ehBox";
+            publish = new ehBoxPublicationPortTypeClient("Publish");
+            consult = new ehBoxConsultationPortTypeClient("Consult");
+
+            var nurse = new PublicationMessageTypeDestinationContext();
+            nurse.Id = "83121034221";
+            nurse.Type = "INSS";
+            nurse.Quality = "NURSE";
+
+            var self = new PublicationMessageTypeDestinationContext();
+            self.Id = "0820563481";
+            self.Type = "CBE";
+            self.Quality = "INSTITUTION";
+
+            CleanupMsgBox();
+            String msgId = SendAndCheck(msg, ContentInfoTypeContentType.DOCUMENT, nurse, self);
+            String rspMsg = ReceiveMessage(msgId);
+
+            Assert.AreEqual(msg, rspMsg);
+        }
+
+        private void CleanupMsgBox()
+        {
+            GetMessagesListRequestType selectReq = new GetMessagesListRequestType();
+            selectReq.Source = GetMessagesListRequestTypeSource.INBOX;
+            GetMessageListResponseType listRsp = consult.getMessagesList(selectReq);
+
+            List<String> msgIds = new List<string>();
+            foreach (GetMessageListResponseTypeMessage msg in listRsp.Message)
+            {
+                msgIds.Add(msg.MessageId);
+            }
+
+            MoveMessageRequestType mvReq = new MoveMessageRequestType();
+            mvReq.MessageId = msgIds.ToArray();
+            mvReq.Source = MoveMessageRequestTypeSource.INBOX;
+            mvReq.Destination = MoveMessageRequestTypeDestination.BININBOX;
+            ResponseType mvRsp = consult.moveMessage(mvReq);
+
+            Assert.AreEqual("100", mvRsp.Status.Code);
+        }
+
+        private String ReceiveMessage(String msgId)
+        {
+            //check if it exits (not realy needed but demonstrates the usage of the get msg list and it gives us the msg type)
+            GetMessagesListRequestType selectReq = new GetMessagesListRequestType();
+            selectReq.Source = GetMessagesListRequestTypeSource.INBOX;
+            GetMessageListResponseType listRsp = consult.getMessagesList(selectReq);
+
+            Assert.AreEqual("100", listRsp.Status.Code);
+
+            ContentInfoTypeContentType? msgType = null;
+            foreach (GetMessageListResponseTypeMessage msg in listRsp.Message)
+            {
+                if (msg.MessageId == msgId) msgType = msg.ContentInfo.ContentType;
+            }
+
+            Assert.IsNotNull(msgType);
+
+            //Now that we know it exists and we know if it news or a document we can move on and get it.
+            MessageRequestType fetchReq = new MessageRequestType();
+            fetchReq.Source = MessageRequestTypeSource.INBOX;
+            fetchReq.MessageId = msgId;
+
+            GetFullMessageResponseType fetchRsp = consult.getFullMessage(fetchReq);
+
+            Assert.AreEqual("100", fetchRsp.Status.Code);
+
+            switch (msgType.Value)
+            {
+                case ContentInfoTypeContentType.NEWS:
+                    NewsType news = (NewsType)fetchRsp.Message.ContentContext.Content.Item;
+                    return Encoding.UTF8.GetString(news.Item);
+                case ContentInfoTypeContentType.DOCUMENT:
+                    DocumentType doc = (DocumentType)fetchRsp.Message.ContentContext.Content.Item;
+                    return Encoding.UTF8.GetString(doc.Item);
+                default:
+                    Assert.Fail();
+                    return null;
+            }
+        }
+
+        private String SendAndCheck(String msg, ContentInfoTypeContentType msgType, params PublicationMessageTypeDestinationContext[] destinations)
+        {
             PublicationMessageType publishMessage = new PublicationMessageType();
 
             //Unique ID to identify the request
             publishMessage.PublicationId = Guid.NewGuid().ToString("N").Substring(18, 13);
 
-            //Indicate your box
-            publishMessage.BoxId = new BoxIdType();
-            publishMessage.BoxId.Id = "0820563481";
-            publishMessage.BoxId.Type = "CBE";
-            publishMessage.BoxId.Quality = "INSTITUTION";
+            //Indicate your box (optional)
+            //publishMessage.BoxId = new BoxIdType();
+            //publishMessage.BoxId.Id = "0820563481";
+            //publishMessage.BoxId.Type = "CBE";
+            //publishMessage.BoxId.Quality = "INSTITUTION";
 
-            //Indicate the box of the destination (we test with ourselfs)
-            publishMessage.DestinationContext = new PublicationMessageTypeDestinationContext[1];
-            publishMessage.DestinationContext[0] = new PublicationMessageTypeDestinationContext();
-            publishMessage.DestinationContext[0].Id = "83121034221";
-            publishMessage.DestinationContext[0].Type = "INSS";
-            publishMessage.DestinationContext[0].Quality = "NURSE";
+            //Indicate the box of the destination
+            publishMessage.DestinationContext = destinations;
 
-            //We create a new item
-            NewsType news = new NewsType();
-            news.Title = "eH-I supports ehBox";
-            news.Item = Encoding.UTF8.GetBytes("The eH-I library now support publication and consultations of the ehBox");
-            news.ItemElementName = ItemChoiceType1.EncryptableTextContent;
-            news.MimeType = "test/plain";
-
-            //And the message we send (we use news since it is the most simple)
+            //And the message we send
             publishMessage.ContentContext = new PublicationMessageTypeContentContext();
             publishMessage.ContentContext.Content = new ContentType();
-            publishMessage.ContentContext.Content.Item = news;
+            switch (msgType)
+            {
+                case ContentInfoTypeContentType.NEWS:
+                    NewsType news = new NewsType();
+                    news.Title = "eH-I supports ehBox";
+                    news.Item = Encoding.UTF8.GetBytes(msg);
+                    news.ItemElementName = ItemChoiceType1.EncryptableTextContent;
+                    news.MimeType = "text/plain";
+                    publishMessage.ContentContext.Content.Item = news;
+                    break;
+                case ContentInfoTypeContentType.DOCUMENT:
+                    DocumentType doc = new DocumentType();
+                    doc.Title = "eH-I supports ehBox";
+                    doc.Item = Encoding.UTF8.GetBytes(msg);
+                    doc.ItemElementName = ItemChoiceType.EncryptableTextContent;
+                    doc.MimeType = "text/plain";
+                    doc.DownloadFileName = "msg.txt";
+                    publishMessage.ContentContext.Content.Item = doc;
+                    break;
+            }
             publishMessage.ContentContext.ContentSpecification = new ContentSpecificationType();
             publishMessage.ContentContext.ContentSpecification.IsImportant = false;
             publishMessage.ContentContext.ContentSpecification.IsEncrypted = false;
@@ -50,7 +145,7 @@ namespace Egelke.EHealth.Client.EhBoxTest
             publishMessage.ContentContext.ContentSpecification.ReceivedReceipt = true;
             publishMessage.ContentContext.ContentSpecification.ReadReceipt = true;
             publishMessage.ContentContext.ContentSpecification.ApplicationName = "eH-I";
-            
+
             //Publish the news.
             SendMessageResponse publishResp = publish.sendMessage(publishMessage);
 
@@ -58,8 +153,6 @@ namespace Egelke.EHealth.Client.EhBoxTest
             Assert.AreEqual("100", publishResp.Status.Code);
 
             //Check if the message is received.
-            ehBoxConsultationPortTypeClient consult = new ehBoxConsultationPortTypeClient("Consult");
-            
             GetMessageAcknowledgmentsStatusRequestType ackReq = new GetMessageAcknowledgmentsStatusRequestType();
             ackReq.MessageId = publishResp.Id;
             ackReq.StartIndex = 1;
@@ -67,19 +160,27 @@ namespace Egelke.EHealth.Client.EhBoxTest
 
             //Loop until the new is received.
             int loop = 0;
-            GetMessageAcknowledgmentsStatusResponseType ackResp = null;
-            while (loop < 8 && (ackResp == null || !ackResp.AcknowledgmentsStatus[0].ReceivedSpecified))
+            bool arrived = false;
+            while (loop < 8 && !arrived)
             {
-
                 //Give eHealth some time (each time a little more)
                 System.Threading.Thread.Sleep(new TimeSpan(0, 0, Fibonacci(loop++)));
 
                 //Get the status
-                ackResp = consult.getMessageAcknowledgmentsStatus(ackReq);
+                GetMessageAcknowledgmentsStatusResponseType ackResp = consult.getMessageAcknowledgmentsStatus(ackReq);
 
                 //check the publish response
                 Assert.AreEqual("100", ackResp.Status.Code);
+
+                arrived = true;
+                //check if all recipients to see if there is one missing
+                foreach (GetMessageAcknowledgmentsStatusResponseTypeRow ack in ackResp.AcknowledgmentsStatus)
+                {
+                    if (!ack.ReceivedSpecified) arrived = false;
+                }
             }
+
+            return publishResp.Id;
         }
 
         private int Fibonacci(int n)
