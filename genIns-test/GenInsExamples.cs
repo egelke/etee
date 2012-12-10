@@ -32,7 +32,7 @@ using Egelke.EHealth.Client.GenIns;
 namespace Siemens.EHealth.Client.CodageTest
 {
     [TestClass]
-    public class Examples
+    public class GenInsExamples
     {
 
         [TestMethod]
@@ -49,22 +49,23 @@ namespace Siemens.EHealth.Client.CodageTest
 
             //Create common input with info about the requestor, must match SAML
             request.CommonInput = new CommonInputType();
-            request.CommonInput.InputReference = "TRIG1234567890";
+            request.CommonInput.InputReference = "PRIG1234567890";
             request.CommonInput.Request = new RequestType1();
-            request.CommonInput.Request.IsTest = true;
+            request.CommonInput.Request.IsTest = false;
             request.CommonInput.Origin = new OriginType();
+            request.CommonInput.Origin.Package = new PackageType();
             request.CommonInput.Origin.Package.Name = new ValueRefString();
             request.CommonInput.Origin.Package.Name.Value = "eH-I Test";
             request.CommonInput.Origin.Package.License = new LicenseType();
-            request.CommonInput.Origin.Package.License.Username = "eHI";
-            request.CommonInput.Origin.Package.License.Password = "xxx";
+            request.CommonInput.Origin.Package.License.Username = "ehi";
+            request.CommonInput.Origin.Package.License.Password = "eHIpwd05";
             request.CommonInput.Origin.SiteID = new ValueRefString();
-            request.CommonInput.Origin.SiteID.Value = "1209";
+            request.CommonInput.Origin.SiteID.Value = "2790";
             request.CommonInput.Origin.CareProvider = new CareProviderType();
             request.CommonInput.Origin.CareProvider.Nihii = new NihiiType();
-            request.CommonInput.Origin.CareProvider.Nihii.Quality = "Hospital";
+            request.CommonInput.Origin.CareProvider.Nihii.Quality = "hospital";
             request.CommonInput.Origin.CareProvider.Nihii.Value = new ValueRefString();
-            request.CommonInput.Origin.CareProvider.Nihii.Value.Value = "11111111111";
+            request.CommonInput.Origin.CareProvider.Nihii.Value.Value = "71022212000";
             request.CommonInput.Origin.CareProvider.Organization = new IdType();
             request.CommonInput.Origin.CareProvider.Organization.Nihii = request.CommonInput.Origin.CareProvider.Nihii;
 
@@ -76,7 +77,7 @@ namespace Siemens.EHealth.Client.CodageTest
             //Create actual request (attributes should not be provided)
             request.Request = new SingleInsurabilityRequestType();
             request.Request.CareReceiverId = new CareReceiverIdType();
-            request.Request.CareReceiverId.Inss= "79021801245";
+            request.Request.CareReceiverId.Inss= "79021802145";
             request.Request.InsurabilityRequestDetail = new InsurabilityRequestDetailType();
             request.Request.InsurabilityRequestDetail.Period = new PeriodType();
             request.Request.InsurabilityRequestDetail.Period.PeriodStartSpecified = true;
