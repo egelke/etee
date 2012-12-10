@@ -129,6 +129,8 @@ namespace Egelke.EHealth.Client.GenAsyncTest
             xadesParam.Value = xadesSteam.ToArray();
 
             TAck nipAck = client.post(commonInput, blob, xadesParam);
+
+            Assert.AreEqual("urn:nip:tack:result:major:success", nipAck.ResultMajor);
         }
     }
 }
