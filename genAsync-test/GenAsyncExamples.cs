@@ -26,10 +26,10 @@ namespace Egelke.EHealth.Client.GenAsyncTest
         [ClassInitialize]
         public static void MyClassInitialize(TestContext testContext)
         {
-            //Select the signing certificate
+            //Select the signing certificate, the hosptial certificate
             X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadOnly);
-            sign = store.Certificates.Find(X509FindType.FindByThumbprint, "2819be79150fe6a5ea155125348ea00fc76b24ab", false)[0];
+            sign = store.Certificates.Find(X509FindType.FindByThumbprint, "415442ca384c853231e203fafa9a436f33b4043b", false)[0];
 
             //Create an instance to the eHealth TSA
             tsaViaConfig = new TimeStampAuthorityClient("TSA");
