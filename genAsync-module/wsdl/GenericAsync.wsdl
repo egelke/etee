@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions
+	name="GenericAsync"
+	targetNamespace="urn:be:cin:nip:async:generic"
+	xmlns:tns="urn:be:cin:nip:async:generic"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
+	xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy"
+	xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+	xmlns:wsoma="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization"
+	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+<!--	<wsp:Policy wsu:Id="DirectSSOWithAnonymousResp">
+		<wsp:ExactlyOne>
+			<wsp:All>
+				<wsaw:UsingAddressing />
+				<wsoma:OptimizedMimeSerialization />
+				<sp:TransportBinding>
+					<wsp:Policy>
+						<sp:TransportToken>
+							<wsp:Policy>
+								<sp:HttpsToken RequireClientCertificate="false" />
+							</wsp:Policy>
+						</sp:TransportToken>
+						<sp:AlgorithmSuite>
+							<wsp:Policy>
+								<sp:Basic128 />
+							</wsp:Policy>
+						</sp:AlgorithmSuite>
+						<sp:Layout>
+							<wsp:Policy>
+								<sp:Lax />
+							</wsp:Policy>
+						</sp:Layout>
+						<sp:IncludeTimestamp />
+					</wsp:Policy>
+				</sp:TransportBinding>
+				<sp:EndorsingSupportingTokens>
+					<wsp:Policy>
+						<sp:SamlToken sp:IncludeToken="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/AlwaysToRecipient">
+							<wsp:Policy>
+								<sp:WssSamlV11Token10 />
+							</wsp:Policy>
+						</sp:SamlToken>
+					</wsp:Policy>
+				</sp:EndorsingSupportingTokens>
+				<sp:Wss10>
+					<wsp:Policy>
+					</wsp:Policy>
+				</sp:Wss10>
+			</wsp:All>
+		</wsp:ExactlyOne>
+	</wsp:Policy>-->
+	<wsdl:types>
+		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			<xsd:import
+				schemaLocation="GenericAsync.xsd"
+				namespace="urn:be:cin:nip:async:generic" />
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="post">
+		<wsdl:part
+			element="tns:post"
+			name="parameters" />
+	</wsdl:message>
+	<wsdl:message name="postResponse">
+		<wsdl:part
+			element="tns:postResponse"
+			name="parameters" />
+	</wsdl:message>
+	<wsdl:message name="get">
+		<wsdl:part
+			name="parameters"
+			element="tns:get" />
+	</wsdl:message>
+	<wsdl:message name="getResponse">
+		<wsdl:part
+			name="parameters"
+			element="tns:getResponse" />
+	</wsdl:message>
+	<wsdl:message name="Fault">
+		<wsdl:part
+			name="parameters"
+			element="tns:fault" />
+	</wsdl:message>
+	<wsdl:message name="confirm">
+		<wsdl:part
+			name="parameters"
+			element="tns:confirm" />
+	</wsdl:message>
+	<wsdl:message name="confirmResponse">
+		<wsdl:part
+			name="parameters"
+			element="tns:confirmResponse" />
+	</wsdl:message>
+	<wsdl:portType name="GenericAsync">
+		<wsdl:operation name="post">
+			<wsdl:input
+				message="tns:post"
+				wsaw:Action="urn:be:cin:nip:async:generic:post:msg" />
+			<wsdl:output
+				message="tns:postResponse"
+				wsaw:Action="urn:be:cin:nip:async:generic:post:tack" />
+			<wsdl:fault
+				name="fault"
+				message="tns:Fault"
+				wsaw:Action="urn:be:cin:nip:async:generic:post:fault" />
+		</wsdl:operation>
+		<wsdl:operation name="get">
+			<wsdl:input
+				message="tns:get"
+				wsaw:Action="urn:be:cin:nip:async:generic:get:query" />
+			<wsdl:output
+				message="tns:getResponse"
+				wsaw:Action="urn:be:cin:nip:async:generic:get:msgs" />
+			<wsdl:fault
+				name="fault"
+				message="tns:Fault"
+				wsaw:Action="urn:be:cin:nip:async:generic:get:fault" />
+		</wsdl:operation>
+		<wsdl:operation name="confirm">
+			<wsdl:input
+				message="tns:confirm"
+				wsaw:Action="urn:be:cin:nip:async:generic:confirm:hash" />
+			<wsdl:output
+				message="tns:confirmResponse"
+				wsaw:Action="urn:be:cin:nip:async:generic:confirm:return" />
+			<wsdl:fault
+				name="fault"
+				message="tns:Fault"
+				wsaw:Action="urn:be:cin:nip:async:generic:confirm:fault" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding
+		name="GenericAsyncSOAP"
+		type="tns:GenericAsync">
+		<soap:binding
+			style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+<!--		<wsp:PolicyReference URI="#DirectSSOWithAnonymousResp" />-->
+		<wsdl:operation name="post">
+			<soap:operation soapAction="urn:be:cin:nip:async:generic:post" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+			<wsdl:fault name="fault">
+				<soap:fault
+					use="literal"
+					name="fault" />
+			</wsdl:fault>
+		</wsdl:operation>
+		<wsdl:operation name="get">
+			<soap:operation soapAction="urn:be:cin:nip:async:generic:get" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+			<wsdl:fault name="fault">
+				<soap:fault
+					use="literal"
+					name="fault" />
+			</wsdl:fault>
+		</wsdl:operation>
+		<wsdl:operation name="confirm">
+			<soap:operation soapAction="urn:be:cin:nip:async:generic:confirm" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+			<wsdl:fault name="fault">
+				<soap:fault
+					use="literal"
+					name="fault" />
+			</wsdl:fault>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="GenericAsyncService">
+		<wsdl:port
+			binding="tns:GenericAsyncSOAP"
+			name="GenericAsyncSOAP">
+			<soap:address location="http://www.example.org/" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

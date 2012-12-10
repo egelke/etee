@@ -1,0 +1,1 @@
+SvcUtil /noConfig /ser:XmlSerializer /namespace:*,Egelke.EHealth.Client.GenAsync wsdl\GenericAsync.wsdl wsdl\*.xsd
