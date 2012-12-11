@@ -22,9 +22,12 @@ namespace Siemens.EHealth.Client.Sso
         {
             if (config == null || config.GetElementsByTagName("path").Count == 0)
             {
-                throw new InvalidOperationException("FileSessionCache requires a <path>-element in the configuration");
+                path = Path.GetTempPath();
             }
-            path = config.GetElementsByTagName("path")[0].InnerText;
+            else
+            {
+                path = config.GetElementsByTagName("path")[0].InnerText;
+            }
         }
 
         public XmlElement Get(string id)
