@@ -86,11 +86,16 @@ namespace Siemens.EHealth.Client.Sso
             elements.Add(CreateMessageSecurity());
             if (this.MessageEncoding == WSMessageEncoding.Text)
             {
-                elements.Add(new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8));
+                var txt = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
+                this.ReaderQuotas.CopyTo(txt.ReaderQuotas);
+                elements.Add(txt);
             }
             else
             {
-                elements.Add(new MtomMessageEncodingBindingElement(MessageVersion.Soap11WSAddressing10, Encoding.UTF8));
+                var mtom = new MtomMessageEncodingBindingElement(MessageVersion.Soap11WSAddressing10, Encoding.UTF8);
+                mtom.MaxBufferSize = (int)this.MaxReceivedMessageSize;
+                this.ReaderQuotas.CopyTo(mtom.ReaderQuotas);
+                elements.Add(mtom);
             }
             elements.Add(GetTransport());
 
@@ -99,7 +104,10 @@ namespace Siemens.EHealth.Client.Sso
 
         protected override TransportBindingElement GetTransport()
         {
-            return new HttpsTransportBindingElement();
+            var https = new HttpsTransportBindingElement();
+            https.MaxReceivedMessageSize = this.MaxReceivedMessageSize;
+            https.MaxBufferPoolSize = this.MaxBufferPoolSize;
+            return https;
         }
         
     }
