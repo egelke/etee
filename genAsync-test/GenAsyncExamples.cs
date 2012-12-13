@@ -210,6 +210,41 @@ namespace Egelke.EHealth.Client.GenAsyncTest
             {
                 foreach (MsgResponse msgRsp in rsp.MsgResponse)
                 {
+                    //Parse the xades, and rework it to a doc that contains the detail & xades.
+                    XmlDocument verifyDoc;
+                    using (MemoryStream verifyDocStream = new MemoryStream())
+                    {
+                        //Create new doc with element root
+                        XmlWriter verifyDocWriter = XmlWriter.Create(verifyDocStream);
+                        verifyDocWriter.WriteStartElement("root");
+
+                        //Add blob (detail)
+                        XmlSerializer serializer = new XmlSerializer(typeof(Blob), new XmlRootAttribute("Detail"));
+                        serializer.Serialize(verifyDocWriter, msgRsp.Detail);
+
+                        //Add xades-T
+                        XmlDocument xadesDoc = new XmlDocument();
+                        xadesDoc.PreserveWhitespace = true;
+                        xadesDoc.Load(new MemoryStream(msgRsp.Xadest.Value));
+                        xadesDoc.WriteTo(verifyDocWriter);
+
+                        verifyDocWriter.WriteEndElement();
+                        verifyDocWriter.Flush();
+
+                        //Reload the result
+                        verifyDocStream.Seek(0, SeekOrigin.Begin);
+                        verifyDoc = new XmlDocument();
+                        verifyDoc.PreserveWhitespace = true;
+                        verifyDoc.Load(verifyDocStream);
+
+                        //Validate the doc
+                        XmlElement prop = (XmlElement) XadesTools.FindXadesProperties(verifyDoc.DocumentElement)[0];
+                        XadesVerifier verifier = new XadesVerifier();
+                        SignatureInfo info = verifier.Verify(verifyDoc, prop);
+
+                        //check info (time & certificate) to your own rules.
+                    }
+
                     if (msgHashValues.Length != 0) msgHashValues.Append(" ");
                     msgHashValues.Append(Convert.ToBase64String(msgRsp.Detail.HashValue));
                 }
@@ -219,6 +254,43 @@ namespace Egelke.EHealth.Client.GenAsyncTest
             {
                 foreach (TAckResponse tackRsp in rsp.TAckResponse)
                 {
+                    //Parse the xades, and rework it to a doc that contains the detail & xades.
+                    XmlDocument verifyDoc;
+                    using (MemoryStream verifyDocStream = new MemoryStream())
+                    {
+                        //Create new doc with element root
+                        XmlWriter verifyDocWriter = XmlWriter.Create(verifyDocStream);
+                        verifyDocWriter.WriteStartElement("root");
+
+                        //Add blob (detail)
+                        XmlSerializer serializer = new XmlSerializer(typeof(TAck), new XmlRootAttribute("TAck"));
+                        serializer.Serialize(verifyDocWriter, tackRsp.TAck);
+
+                        //Add xades-T
+                        XmlDocument xadesDoc = new XmlDocument();
+                        xadesDoc.PreserveWhitespace = true;
+                        xadesDoc.Load(new MemoryStream(tackRsp.Xadest.Value));
+                        xadesDoc.WriteTo(verifyDocWriter);
+
+                        verifyDocWriter.WriteEndElement();
+                        verifyDocWriter.Flush();
+
+                        //Reload the result
+                        verifyDocStream.Seek(0, SeekOrigin.Begin);
+                        verifyDoc = new XmlDocument();
+                        verifyDoc.PreserveWhitespace = true;
+                        verifyDoc.Load(verifyDocStream);
+
+                        //Validate the doc
+                        XmlElement prop = (XmlElement)XadesTools.FindXadesProperties(verifyDoc.DocumentElement)[0];
+                        XadesVerifier verifier = new XadesVerifier();
+                        SignatureInfo info = verifier.Verify(verifyDoc, prop);
+
+                        //check info (time & certificate) to your own rules.
+                    }
+
+                    Assert.Equals("urn:nip:tack:result:major:success", tackRsp.TAck.ResultMajor); //send failed, resend after correction.
+
                     if (tackContents.Length != 0) tackContents.Append(" ");
                     tackContents.Append(Convert.ToBase64String(tackRsp.TAck.Value)); //the content of the tAck is already a hash...
                 }
