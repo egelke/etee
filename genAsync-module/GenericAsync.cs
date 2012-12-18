@@ -490,7 +490,7 @@ namespace Egelke.EHealth.Client.GenAsync
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="NCName")]
+        [System.Xml.Serialization.XmlAttributeAttribute()]
         public string Id
         {
             get
@@ -759,7 +759,7 @@ namespace Egelke.EHealth.Client.GenAsync
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="NCName")]
+        [System.Xml.Serialization.XmlAttributeAttribute()]
         public string Id
         {
             get
