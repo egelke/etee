@@ -22,9 +22,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("eH-I RN Client")]
 [assembly: AssemblyDescription("eHealth RN Web Service Interoperability library")]
 [assembly: AssemblyConfiguration("Beta")]
-[assembly: AssemblyCompany("Siemens IT Solutions & Services")]
+[assembly: AssemblyCompany("Egelke BVBA")]
 [assembly: AssemblyProduct("eHealth-Interoperability")]
-[assembly: AssemblyCopyright("Copyright © Siemens IT Solutions & Services 2010-2011")]
+[assembly: AssemblyCopyright("Copyright © Egelke BVBA 2010-2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,8 +33,8 @@ using System.Runtime.InteropServices;
 [assembly: Guid("20575d71-f6d2-4ff9-957a-3a3fb4399200")]
 
 
-[assembly: AssemblyVersion("1.0.0.2")]
-[assembly: AssemblyFileVersion("1.0.0.2")]
+[assembly: AssemblyVersion("1.0.0.3")]
+[assembly: AssemblyFileVersion("1.0.0.3")]
 
 #if DEBUG
 [assembly: AssemblyKeyFile(@"../debug.snk")]

@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ehBox-module")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ehBox-module")]
-[assembly: AssemblyCopyright("Copyright ©  2012")]
+[assembly: AssemblyTitle("eH-I ehBox Client")]
+[assembly: AssemblyDescription("eHealth Message Box Web Service Interoperability library")]
+[assembly: AssemblyConfiguration("Beta")]
+[assembly: AssemblyCompany("Egelke BVBA")]
+[assembly: AssemblyProduct("eHealth-Interoperability")]
+[assembly: AssemblyCopyright("Copyright © Egelke BVBA 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

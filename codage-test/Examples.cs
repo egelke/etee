@@ -41,7 +41,7 @@ namespace Siemens.EHealth.Client.CodageTest
             CodageClient client = new CodageClient(new StsBinding(), new EndpointAddress("https://wwwacc.ehealth.fgov.be:443/codage_1_0/codage"));
             client.Endpoint.Behaviors.Remove<ClientCredentials>();
             client.Endpoint.Behaviors.Add(new OptClientCredentials());
-            client.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "f4432a43f6089c5c739465da9e574e441b4db730");
+            client.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "c6c3cba1000c955c2e6289c6eb40bbb7477476c0");
 
             DoTest(client);
         }

@@ -22,9 +22,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("eH-I Codage Client")]
 [assembly: AssemblyDescription("eHealth Codage Web Service Interoperability library")]
 [assembly: AssemblyConfiguration("Beta")]
-[assembly: AssemblyCompany("Siemens IT Solutions & Services")]
+[assembly: AssemblyCompany("Egelke BVBA")]
 [assembly: AssemblyProduct("eHealth-Interoperability")]
-[assembly: AssemblyCopyright("Copyright © Siemens IT Solutions & Services 2010-2011")]
+[assembly: AssemblyCopyright("Copyright © Egelke BVBA 2010-2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,8 +33,8 @@ using System.Runtime.InteropServices;
 [assembly: Guid("584bbbc4-99c2-4b38-8a59-563b21a88230")]
 
 
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.0.1")]
+[assembly: AssemblyFileVersion("1.0.0.1")]
 
 #if DEBUG
 [assembly: AssemblyKeyFile(@"../debug.snk")]
