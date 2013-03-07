@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Egelke.EHealth.Client.EhBox;
+using Siemens.EHealth.Etee.Crypto.Library;
+using System.Security.Cryptography.X509Certificates;
+using Siemens.EHealth.Etee.Crypto.Library.ServiceClient;
+using System.IO;
+using System.Collections.ObjectModel;
 
 namespace Egelke.EHealth.Client.EhBoxTest
 {
@@ -15,7 +20,7 @@ namespace Egelke.EHealth.Client.EhBoxTest
         ehBoxConsultationPortTypeClient consult;
 
         [TestMethod]
-        public void ConfigViaConfig()
+        public void ClearMessageWithConfigViaConfig()
         {
             String msg = "The eH-I library now support publication and consultations of the ehBox";
             publish = new ehBoxPublicationPortTypeClient("Publish");
@@ -38,6 +43,27 @@ namespace Egelke.EHealth.Client.EhBoxTest
             Assert.AreEqual(msg, rspMsg);
         }
 
+        [TestMethod]
+        public void EncryptedMsgWithConfigViaConfig()
+        {
+            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            my.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
+            X509Certificate2Collection found = my.Certificates.Find(X509FindType.FindByThumbprint, "9c4227f1b9c7a52823829837f1a2e80690da8010", false);
+
+            NewsPostMaster pm = new NewsPostMaster(
+                SecurityInfo.CreateSendOnly(found[0]), 
+                new ehBoxPublicationPortTypeClient("Publish"), 
+                new ehBoxConsultationPortTypeClient("Consult"),
+                new EtkDepotPortTypeClient("etk"));
+            pm.Lax = true;
+            
+            List<Recipient> recipients = new List<Recipient>();
+            recipients.Add(new EhBoxRecipient("CBE", "0820563481", "INSTITUTION", "MyCareNet"));
+
+            pm.Title = "eH-I supports ehBox";
+            pm.Send(new MemoryStream(Encoding.UTF8.GetBytes("The eH-I library now support publication of encrypted messages to the ehBox")), new ReadOnlyCollection<Recipient>(recipients));
+        }
+
         private void CleanupMsgBox()
         {
             GetMessagesListRequestType selectReq = new GetMessagesListRequestType();
@@ -54,7 +80,7 @@ namespace Egelke.EHealth.Client.EhBoxTest
             mvReq.MessageId = msgIds.ToArray();
             mvReq.Source = MoveMessageRequestTypeSource.INBOX;
             mvReq.Destination = MoveMessageRequestTypeDestination.BININBOX;
-            ResponseType mvRsp = consult.moveMessage(mvReq);
+            Egelke.EHealth.Client.EhBox.ResponseType mvRsp = consult.moveMessage(mvReq);
 
             Assert.AreEqual("100", mvRsp.Status.Code);
         }

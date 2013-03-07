@@ -51,7 +51,8 @@ namespace Egelke.EHealth.Client.GenAsyncTest
             tsa = store.Certificates.Find(X509FindType.FindByThumbprint, "9c4227f1b9c7a52823829837f1a2e80690da8010", false)[0];
             
             //Since the hospital certificates aren't from an actual CA, MCN does not allow them (you should use the hosptial cert in production)
-            session = store.Certificates.Find(X509FindType.FindByThumbprint, "c6c3cba1000c955c2e6289c6eb40bbb7477476c0", false)[0];
+            //session = store.Certificates.Find(X509FindType.FindByThumbprint, "c6c3cba1000c955c2e6289c6eb40bbb7477476c0", false)[0];
+            session = hospital;
 
             //We trust eHealth for TSA
             tsaTrust = new X509Certificate2("tsa.crt");

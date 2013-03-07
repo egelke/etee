@@ -38,9 +38,34 @@ namespace Siemens.EHealth.Client.CodageTest
         [TestMethod]
         public void ConfigViaConfig()
         {
-            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient("HosptialEP");
+            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient("HospitalEP");
 
             DoTest(client);
+        }
+
+        private static void setHospital(GetInsurabilityAsXmlOrFlatRequestType request)
+        {
+            request.CommonInput.Origin.SiteID = new ValueRefString();
+            request.CommonInput.Origin.SiteID.Value = "2790";
+            request.CommonInput.Origin.CareProvider = new CareProviderType();
+            request.CommonInput.Origin.CareProvider.Nihii = new NihiiType();
+            request.CommonInput.Origin.CareProvider.Nihii.Quality = "hospital";
+            request.CommonInput.Origin.CareProvider.Nihii.Value = new ValueRefString();
+            request.CommonInput.Origin.CareProvider.Nihii.Value.Value = "71022212000";
+            request.CommonInput.Origin.CareProvider.Organization = new IdType();
+            request.CommonInput.Origin.CareProvider.Organization.Nihii = request.CommonInput.Origin.CareProvider.Nihii;
+        }
+
+        private static void setDoctor(GetInsurabilityAsXmlOrFlatRequestType request)
+        {
+            request.CommonInput.Origin.CareProvider = new CareProviderType();
+            request.CommonInput.Origin.CareProvider.Nihii = new NihiiType();
+            request.CommonInput.Origin.CareProvider.Nihii.Quality = "doctor";
+            request.CommonInput.Origin.CareProvider.Nihii.Value = new ValueRefString();
+            request.CommonInput.Origin.CareProvider.Nihii.Value.Value = "10998414001";
+            request.CommonInput.Origin.CareProvider.PhysicalPerson = new IdType();
+            request.CommonInput.Origin.CareProvider.PhysicalPerson.Ssin = new ValueRefString();
+            request.CommonInput.Origin.CareProvider.PhysicalPerson.Ssin.Value = "75042628553";
         }
 
         private static void DoTest(GenericInsurabilityPortTypeClient client)
@@ -59,15 +84,10 @@ namespace Siemens.EHealth.Client.CodageTest
             request.CommonInput.Origin.Package.License = new LicenseType();
             request.CommonInput.Origin.Package.License.Username = "ehi";
             request.CommonInput.Origin.Package.License.Password = "eHIpwd05";
-            request.CommonInput.Origin.SiteID = new ValueRefString();
-            request.CommonInput.Origin.SiteID.Value = "2790";
-            request.CommonInput.Origin.CareProvider = new CareProviderType();
-            request.CommonInput.Origin.CareProvider.Nihii = new NihiiType();
-            request.CommonInput.Origin.CareProvider.Nihii.Quality = "hospital";
-            request.CommonInput.Origin.CareProvider.Nihii.Value = new ValueRefString();
-            request.CommonInput.Origin.CareProvider.Nihii.Value.Value = "71022212000";
-            request.CommonInput.Origin.CareProvider.Organization = new IdType();
-            request.CommonInput.Origin.CareProvider.Organization.Nihii = request.CommonInput.Origin.CareProvider.Nihii;
+            //request.CommonInput.Origin.Package.License.Username = "siemens";
+            //request.CommonInput.Origin.Package.License.Password = "n7z6Y(S8+X";
+            //setDoctor(request);
+            setHospital(request);
 
             //Create record common input, contains additional tracking info
             request.RecordCommonInput = new RecordCommonInputType();
@@ -77,13 +97,13 @@ namespace Siemens.EHealth.Client.CodageTest
             //Create actual request (attributes should not be provided)
             request.Request = new SingleInsurabilityRequestType();
             request.Request.CareReceiverId = new CareReceiverIdType();
-            request.Request.CareReceiverId.Inss= "79021802145";
+            request.Request.CareReceiverId.Inss = "20121010797"; //"75042628553";
             request.Request.InsurabilityRequestDetail = new InsurabilityRequestDetailType();
             request.Request.InsurabilityRequestDetail.Period = new PeriodType();
             request.Request.InsurabilityRequestDetail.Period.PeriodStartSpecified = true;
             request.Request.InsurabilityRequestDetail.Period.PeriodStart = DateTime.UtcNow;
             request.Request.InsurabilityRequestDetail.Period.PeriodEndSpecified = true;
-            request.Request.InsurabilityRequestDetail.Period.PeriodEnd = DateTime.UtcNow.AddDays(30);
+            request.Request.InsurabilityRequestDetail.Period.PeriodEnd = DateTime.UtcNow.AddDays(1);
             request.Request.InsurabilityRequestDetail.InsurabilityContactType = InsurabilityContactTypeType.ambulatory_care;
             request.Request.InsurabilityRequestDetail.InsurabilityRequestType = InsurabilityRequestTypeType.information;
 

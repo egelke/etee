@@ -35,6 +35,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.6.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Siemens.EHealth.Etee.Crypto, Version=1.0.0.3, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Siemens.EHealth.Etee.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Siemens.EHealth.Etee.Crypto.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Siemens.EHealth.Etee.Crypto.Library.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
@@ -47,6 +59,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ehBox Consultation v2.cs" />
+    <Compile Include="EhBoxRecipient.cs" />
+    <Compile Include="NewsPostMaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -56,7 +70,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BouncyCastle.Crypto.dll" />
     <Content Include="COPYING" />
+    <Content Include="Siemens.EHealth.Etee.Crypto.dll" />
+    <Content Include="Siemens.EHealth.Etee.Crypto.Library.dll" />
     <None Include="gen.bat" />
     <None Include="wsdl\ehealth-commons-schema-core-1_4.xsd">
       <SubType>Designer</SubType>
