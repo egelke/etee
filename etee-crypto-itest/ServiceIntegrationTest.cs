@@ -162,13 +162,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(out sender);
+            msg = pmForBob_R_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(out sender);
+            msg = pmForBob_SR_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(out sender);
+            msg = pmForBob_SR_SR.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -206,13 +206,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(out sender);
+            msg = pmForBob_R_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(out sender);
+            msg = pmForBob_SR_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(out sender);
+            msg = pmForBob_SR_SR.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -250,13 +250,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(out sender);
+            msg = pmForBob_R_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(out sender);
+            msg = pmForBob_SR_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(out sender);
+            msg = pmForBob_SR_SR.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -294,13 +294,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(out sender);
+            msg = pmForBob_R_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(out sender);
+            msg = pmForBob_SR_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(out sender);
+            msg = pmForBob_SR_SR.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -335,7 +335,7 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_SR_SR.Receive(out sender);
+            msg = pmForBob_SR_SR.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -370,7 +370,7 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_SR_SR.Receive(out sender);
+            msg = pmForBob_SR_SR.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -411,13 +411,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(out sender);
+            msg = pmForBob_R_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(out sender);
+            msg = pmForBob_SR_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(out sender);
+            msg = pmForBob_SR_SR.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -457,16 +457,16 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(out sender);
+            msg = pmForBob_R_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(out sender);
+            msg = pmForBob_SR_0.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(out sender);
+            msg = pmForBob_SR_SR.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForAlice_SR_SR.Receive(out sender);
+            msg = pmForAlice_SR_SR.Receive(null, out sender);
             VerifyReceive(msg, sender, orgMsgText);
         }
     }

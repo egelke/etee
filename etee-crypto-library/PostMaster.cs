@@ -136,7 +136,13 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             }
         }
 
-        public void Send(Stream clear, ReadOnlyCollection<Recipient> recipients)
+        /// <summary>
+        /// Send the clear message in encrypted form to the specified recipients.
+        /// </summary>
+        /// <param name="clear"></param>
+        /// <param name="recipients"></param>
+        /// <returns>The ACK or NACK or null</returns>
+        public Object Send(Stream clear, ReadOnlyCollection<Recipient> recipients)
         {
             if (clear == null) throw new ArgumentNullException("clear");
             if (recipients == null) throw new ArgumentNullException("recipients");
@@ -146,17 +152,17 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             Stream cyphered = OnCrypt(clear, recipients, out keyId);
             if (keyId != null)
             {
-                OnTransferTo(cyphered, keyId, recipients);
+                return OnTransferTo(cyphered, keyId, recipients);
             }
             else
             {
-                OnTransferTo(cyphered, recipients);
+                return OnTransferTo(cyphered, recipients);
             }
         }
 
-        public void Receive(Stream outStream, out X509Certificate2 sender)
+        public void Receive(Stream outStream, Object parameters, out X509Certificate2 sender)
         {
-            Stream tmp = Receive(out sender);
+            Stream tmp = Receive(parameters, out sender);
             using (tmp)
             {
                 int read;
@@ -168,21 +174,38 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             }
         }
 
-        public Stream Receive(out X509Certificate2 sender)
+        public Stream Receive(Object parameters, out X509Certificate2 sender)
         {
             byte[] keyId;
-            Stream cryphered = OnTransferFrom(out keyId);
+            Stream cryphered = OnTransferFrom(parameters, out keyId);
             using (cryphered)
             {
                 return OnDecrypt(cryphered, keyId, out sender);
             }
         }
 
-        protected abstract Stream OnTransferFrom(out byte[] keyId);
+        /// <summary>
+        /// Override with the domain specific way to get the next available message in cyphered form.
+        /// </summary>
+        /// <param name="keyId">Returns the id of the unaddressed key, if applicable</param>
+        /// <returns>The cyphered message recieved</returns>
+        protected abstract Stream OnTransferFrom(Object parameters, out byte[] keyId);
 
-        protected abstract void OnTransferTo(Stream cyphered, ReadOnlyCollection<Recipient> recipients);
+        /// <summary>
+        /// Override with the domain specific way to send the domain specific the message in cyphered form.
+        /// </summary>
+        /// <param name="cyphered">The cyphered message</param>
+        /// <param name="recipients">The list of recipients, will only contain known recipients </param>
+        /// <returns>Business ACK or NACK, empty if not (N)ACK provided</returns>
+        protected abstract Object OnTransferTo(Stream cyphered, ReadOnlyCollection<Recipient> recipients);
 
-        protected abstract void OnTransferTo(Stream cyphered, byte[] keyId, ReadOnlyCollection<Recipient> recipients);
+        /// <summary>
+        /// Override with the domain specific way to send the domain specific the message in cyphered form.
+        /// </summary>
+        /// <param name="cyphered">The cyphered message</param>
+        /// <param name="recipients">The list of recipients, will also contain unknown recipients</param>
+        /// <returns>Business ACK or NACK, empty if not (N)ACK provided</returns>
+        protected abstract Object OnTransferTo(Stream cyphered, byte[] keyId, ReadOnlyCollection<Recipient> recipients);
 
         protected virtual Stream OnDecrypt(Stream cryphered, byte[] keyId, out X509Certificate2 sender)
         {

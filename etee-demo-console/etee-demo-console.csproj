@@ -59,10 +59,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>F39F4B0625035934B6412FD5FA24D6337616AB19</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>9900CF9EB1DEF5EA83EF6DC95EB65136D3F0390E</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>key.pfx</ManifestKeyFile>
+    <ManifestKeyFile>
+    </ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
