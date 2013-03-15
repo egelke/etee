@@ -55,7 +55,7 @@ namespace Egelke.EHealth.Client.EhBoxTest
                 new ehBoxPublicationPortTypeClient("Publish"), 
                 new ehBoxConsultationPortTypeClient("Consult"),
                 new EtkDepotPortTypeClient("etk"));
-            pm.Lax = true;
+            pm.VerifyEtk = false; //better to use it only for testing
             
             List<Recipient> recipients = new List<Recipient>();
             recipients.Add(new EhBoxRecipient("CBE", "0820563481", "INSTITUTION", "MyCareNet"));
