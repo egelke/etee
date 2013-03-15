@@ -150,7 +150,7 @@ namespace Siemens.EHealth.Etee.ITest
                 Stream msgIn;
                 X509Certificate2 from;
 
-                msgIn = incommingSisByItself.Receive(out from);
+                msgIn = incommingSisByItself.Receive(null, out from);
                 VerifyReceive(msgIn, from, msg, "78042003561");
             }
         }
@@ -165,7 +165,7 @@ namespace Siemens.EHealth.Etee.ITest
                 Stream msgIn;
                 X509Certificate2 from;
 
-                msgIn = incommingSis.Receive(out from);
+                msgIn = incommingSis.Receive(null, out from);
                 VerifyReceive(msgIn, from, msg, "78042003561");
             }
         }

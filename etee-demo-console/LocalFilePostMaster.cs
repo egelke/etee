@@ -56,7 +56,7 @@ namespace Siemens.EHealth.Etee.Demo.Console
 
         }
 
-        protected override System.IO.Stream OnTransferFrom(out byte[] keyId)
+        protected override System.IO.Stream OnTransferFrom(Object parameters, out byte[] keyId)
         {
             if (keyName != null)
             {
@@ -75,12 +75,12 @@ namespace Siemens.EHealth.Etee.Demo.Console
             return new FileStream(msgName, FileMode.Open);
         }
 
-        protected override void OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        protected override Object OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
-            OnTransferTo(cyphered, null, recipients);
+            return OnTransferTo(cyphered, null, recipients);
         }
 
-        protected override void OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        protected override Object OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
             if (keyId != null)
             {
@@ -100,6 +100,7 @@ namespace Siemens.EHealth.Etee.Demo.Console
                     msg.Write(buffer, 0, read);
                 }
             }
+            return null;
         }
     }
 }

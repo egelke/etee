@@ -117,13 +117,13 @@ namespace Siemens.EHealth.Etee.ITest
         }
 
 
-        protected override System.IO.Stream OnTransferFrom(out byte[] keyId)
+        protected override System.IO.Stream OnTransferFrom(Object paramters, out byte[] keyId)
         {
             keyId = this.keyId;
             return this.msg;
         }
 
-        protected override void OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        protected override Object OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
             if (!String.IsNullOrWhiteSpace(file))
             {
@@ -139,9 +139,10 @@ namespace Siemens.EHealth.Etee.ITest
                 Utils.Copy(cyphered, pm.msg);
                 pm.keyId = null;
             }
+            return null;
         }
 
-        protected override void OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        protected override Object OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
             if (!String.IsNullOrWhiteSpace(file))
             {
@@ -162,6 +163,7 @@ namespace Siemens.EHealth.Etee.ITest
                 Utils.Copy(cyphered, pm.msg);
                 pm.keyId = keyId;
             }
+            return null;
         }
 
         protected override Crypto.SecretKey GetKek(byte[] keyId)
