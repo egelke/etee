@@ -1,0 +1,221 @@
+<kmehrmessage xsi:schemaLocation='http://www.health.fgov.be/telematics/kmehr/schema kmehr2009.xsd' xmlns='http://www.health.fgov.be/telematics/kmehr/schema' xmlns:n2='http://www.altova.com/samplexml/other-namespace' xmlns:sig='http://www.w3.org/2000/09/xmldsig#' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+	<header>
+		<standard>
+			<cd SV='1.0' S='CD-STANDARD'>20090101</cd>
+		</standard>
+		<id SV='1.0' S='ID-KMEHR'>71071801.256897</id>
+		<date>2009-01-15</date>
+		<time>12:30:00</time>
+		<sender>
+			<hcparty>
+				<id SV='1.0' S='ID-HCPARTY'>71071801</id>
+				<cd SV='1.0' S='CD-HCPARTY'>orghospital</cd>
+				<name>Hopital civil de Charleroi</name>
+			</hcparty>
+			<hcparty>
+				<cd SV='1.0' S='CD-HCPARTY'>application</cd>
+				<name>ebirth</name>
+			</hcparty>
+		</sender>
+		<recipient>
+			<hcparty>
+				<cd SV='1.0' S='CD-HCPARTY'>application</cd>
+				<name>ebirth</name>
+			</hcparty>
+		</recipient>
+	</header>
+	<folder>
+		<id SV='1.0' S='ID-KMEHR'>1</id>
+		<patient>
+			<id SV='1.0' S='ID-PATIENT'>65011532812</id>
+			<firstname>Jeanne</firstname>
+			<familyname>Dupont</familyname>
+			<birthlocation>
+				<city>Waregem</city>
+			</birthlocation>
+			<sex>
+				<cd SV='1.0' S='CD-SEX'>female</cd>
+			</sex>
+			<nationality>
+				<cd SV='1.0' S='CD-FED-COUNTRY'>be</cd>
+			</nationality>
+			<address>
+				<cd SV='1.0' S='CD-ADDRESS'>home</cd>
+				<country>
+					<cd SV='1.0' S='CD-FED-COUNTRY'>be</cd>
+				</country>
+				<zip>5000</zip>
+				<city>City of living</city>
+				<street>Name of street</street>
+				<housenumber>237bis</housenumber>
+			</address>
+		</patient>
+		<transaction>
+			<id SV='1.0' S='ID-KMEHR'>1</id>
+			<cd SV='1.0' S='CD-TRANSACTION'>ebirth-mother-notification</cd>
+			<date>2009-04-15</date>
+			<time>10:00:00</time>
+			<author>
+				<hcparty>
+					<id SV='1.0' S='ID-HCPARTY'>71071801</id>
+					<cd SV='1.0' S='CD-HCPARTY'>orghospital</cd>
+					<name>Hopital civil de Charleroi</name>
+				</hcparty>
+				<hcparty>
+					<cd SV='1.0' S='CD-HCPARTY'>deptgynecology</cd>
+				</hcparty>
+				<hcparty>
+					<id SV='1.0' S='ID-HCPARTY'>86041036109</id>
+					<id SV='1.0' S='LOCAL' SL='ID-PATIENT'>86041036109</id>
+					<cd SV='1.0' S='CD-HCPARTY'>persphysician</cd>
+					<firstname>Jan</firstname>
+					<familyname>Modaal</familyname>
+				</hcparty>
+			</author>
+			<redactor>
+				<hcparty>
+					<id SV='1.0' S='LOCAL' SL='ID-PATIENT'>86041036109</id>
+					<cd SV='1.0' S='CD-HCPARTY'>persadministrative</cd>
+					<firstname>redactorfirstname</firstname>
+					<familyname>redactorname</familyname>
+				</hcparty>
+			</redactor>
+			<iscomplete>true</iscomplete>
+			<isvalidated>true</isvalidated>
+			<item>
+				<id SV='1.0' S='ID-KMEHR'>1</id>
+				<cd SV='1.0' S='CD-ITEM-EBIRTH'>multiparity</cd>
+				<content>
+					<unsignedInt>2</unsignedInt>
+				</content>
+			</item>
+			<item>
+				<id SV='1.0' S='ID-KMEHR'>2</id>
+				<cd SV='1.0' S='CD-ITEM-EBIRTH'>samesex</cd>
+				<content>
+					<boolean>true</boolean>
+				</content>
+			</item>
+			<item>
+				<id SV='1.0' S='ID-KMEHR'>3</id>
+				<cd SV='1.0' S='CD-ITEM-EBIRTH'>stillborn</cd>
+				<content>
+					<unsignedInt>1</unsignedInt>
+				</content>
+			</item>
+		</transaction>
+		<text L='EN'>General comment about the notification</text>
+	</folder>
+	<folder>
+		<id SV='1.0' S='ID-KMEHR'>2</id>
+		<patient>
+			<id SV='1.0' S='ID-PATIENT'/>
+			<id SV='1.0' S='LOCAL' SL='ISPPC-PATIENT-CPO'>1345689</id>
+			<id SV='1.0' S='LOCAL' SL='ISPPC-PATIENT-ID'>987654</id>
+			<firstname>BabyFirstame</firstname>
+			<familyname>BabyFamilyname</familyname>
+			<birthdate>
+				<date>2012-02-01</date>
+				<time>10:00:00</time>
+			</birthdate>
+			<sex>
+				<cd SV='1.0' S='CD-SEX'>female</cd>
+			</sex>
+		</patient>
+		<transaction>
+			<id SV='1.0' S='ID-KMEHR'>1</id>
+			<cd SV='1.0' S='CD-TRANSACTION'>ebirth-baby-notification</cd>
+			<date>2009-04-15</date>
+			<time>12:00:00</time>
+			<author>
+				<hcparty>
+					<id SV='1.0' S='ID-HCPARTY'>71071801</id>
+					<cd SV='1.0' S='CD-HCPARTY'>orghospital</cd>
+					<name>Hopital civil de Charleroi</name>
+				</hcparty>
+				<hcparty>
+					<cd SV='1.0' S='CD-HCPARTY'>deptgynecology</cd>
+				</hcparty>
+				<hcparty>
+					<id SV='1.0' S='ID-HCPARTY'>NIHII number</id>
+					<id SV='1.0' S='LOCAL' SL='ID-PATIENT'>INSS number</id>
+					<cd SV='1.0' S='CD-HCPARTY'>persphysician</cd>
+					<firstname>Jan</firstname>
+					<familyname>Modaal</familyname>
+				</hcparty>
+			</author>
+			<redactor>
+				<hcparty>
+					<id SV='1.0' S='LOCAL' SL='ID-PATIENT'>inss</id>
+					<cd SV='1.0' S='CD-HCPARTY'>persadministrative</cd>
+					<firstname>redactorfirstname</firstname>
+					<familyname>redactorname</familyname>
+				</hcparty>
+			</redactor>
+			<iscomplete>true</iscomplete>
+			<isvalidated>true</isvalidated>
+			<item>
+				<id SV='1.0' S='ID-KMEHR'>1</id>
+				<cd SV='1.0' S='CD-ITEM'>contactperson</cd>
+				<cd SV='1.0' S='CD-CONTACT-PERSON'>father</cd>
+				<content>
+					<person>
+						<id SV='1.0' S='ID-PATIENT'>81081717109</id>
+						<firstname>FatherFirstname</firstname>
+						<familyname>FatherFamilyname</familyname>
+						<birthdate>
+							<date>1981-01-25</date>
+						</birthdate>
+						<birthlocation>
+							<city>Waregem</city>
+						</birthlocation>
+						<sex>
+							<cd SV='1.0' S='CD-SEX'>male</cd>
+						</sex>
+						<nationality>
+							<cd SV='1.0' S='CD-FED-COUNTRY'>be</cd>
+						</nationality>
+						<address>
+							<cd SV='1.0' S='CD-ADDRESS'>home</cd>
+							<country>
+								<cd SV='1.0' S='CD-FED-COUNTRY'>be</cd>
+							</country>
+							<zip>5000</zip>
+							<city>City of living</city>
+							<street>Name of street</street>
+							<housenumber>237bis</housenumber>
+						</address>
+					</person>
+				</content>
+			</item>
+			<item>
+				<id SV='1.0' S='ID-KMEHR'>2</id>
+				<cd SV='1.0' S='CD-ITEM-EBIRTH'>birthplace</cd>
+				<content>
+					<location>
+						<cd SV='1.0' S='CD-EBIRTH-PLACE'>hospital</cd>
+						<address>
+							<cd SV='1.0' S='CD-ADDRESS'>other</cd>
+							<country>
+								<cd SV='1.0' S='CD-FED-COUNTRY'>be</cd>
+							</country>
+							<zip>2345</zip>
+							<nis>44021</nis>
+							<city>CityName</city>
+							<street>Name of street</street>
+							<housenumber>234</housenumber>
+						</address>
+					</location>
+				</content>
+			</item>
+			<item>
+				<id SV='1.0' S='ID-KMEHR'>3</id>
+				<cd SV='1.0' S='CD-ITEM-EBIRTH'>birthrank</cd>
+				<content>
+					<unsignedInt>1</unsignedInt>
+				</content>
+			</item>
+		</transaction>
+		<lnk TYPE='isachildof' URL='//folder[position()=1]'/>
+	</folder>
+</kmehrmessage>

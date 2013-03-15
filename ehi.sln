@@ -36,9 +36,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ehBox-module", "ehBox-modul
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ehBox-test", "ehBox-test\ehBox-test.csproj", "{1E090E7E-8CCC-4496-991F-A1294103DED8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eBirth-module", "eBirth-module\eBirth-module.csproj", "{A6EE025B-0C06-46C5-A031-F1FF1D91A766}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eBirth-test", "eBirth-test\eBirth-test.csproj", "{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 15
+		SccNumberOfProjects = 17
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccLocalPath0 = .
@@ -84,6 +88,12 @@ Global
 		SccProjectUniqueName14 = ehBox-test\\ehBox-test.csproj
 		SccProjectName14 = ehBox-test
 		SccLocalPath14 = ehBox-test
+		SccProjectUniqueName15 = eBirth-module\\eBirth-module.csproj
+		SccProjectName15 = eBirth-module
+		SccLocalPath15 = eBirth-module
+		SccProjectUniqueName16 = eBirth-test\\eBirth-test.csproj
+		SccProjectName16 = eBirth-test
+		SccLocalPath16 = eBirth-test
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ehi.vsmdi
@@ -232,6 +242,26 @@ Global
 		{1E090E7E-8CCC-4496-991F-A1294103DED8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{1E090E7E-8CCC-4496-991F-A1294103DED8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{1E090E7E-8CCC-4496-991F-A1294103DED8}.Release|x86.ActiveCfg = Release|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{A6EE025B-0C06-46C5-A031-F1FF1D91A766}.Release|x86.ActiveCfg = Release|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
