@@ -120,7 +120,10 @@ namespace Siemens.EHealth.Etee.Crypto
             {
                 if (content == null)
                 {
-                    content = StreamUtils.ReadFully(raw.SignedContent.Read());
+                    MemoryStream memStream = new MemoryStream();
+                    raw.SignedContent.Write(memStream);
+                    content = memStream.ToArray();
+                    //content = StreamUtils.ReadFully(raw.SignedContent.Read());
                 }
                 return content;
             }
