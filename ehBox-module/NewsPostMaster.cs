@@ -53,18 +53,18 @@ namespace Egelke.EHealth.Client.EhBox
             this.consult = consult;
         }
 
-        protected override System.IO.Stream OnTransferFrom(out byte[] keyId)
+        protected override System.IO.Stream OnTransferFrom(Object parameters, out byte[] keyId)
         {
             keyId = null;
             throw new NotImplementedException();
         }
 
-        protected override void OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        protected override Object OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
             throw new NotImplementedException();
         }
 
-        protected override void OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        protected override Object OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
             PublicationMessageType publishMessage = new PublicationMessageType();
 
@@ -168,6 +168,9 @@ namespace Egelke.EHealth.Client.EhBox
                     }
                 }
             }
+
+            //TODO: also also Receipts info.
+            return publishResp.Id;
         }
 
         private static int Fibonacci(int n)

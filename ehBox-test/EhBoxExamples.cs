@@ -61,7 +61,9 @@ namespace Egelke.EHealth.Client.EhBoxTest
             recipients.Add(new EhBoxRecipient("CBE", "0820563481", "INSTITUTION", "MyCareNet"));
 
             pm.Title = "eH-I supports ehBox";
-            pm.Send(new MemoryStream(Encoding.UTF8.GetBytes("The eH-I library now support publication of encrypted messages to the ehBox")), new ReadOnlyCollection<Recipient>(recipients));
+            String responseId = (String) pm.Send(new MemoryStream(Encoding.UTF8.GetBytes("The eH-I library now support publication of encrypted messages to the ehBox")), new ReadOnlyCollection<Recipient>(recipients));
+
+            Assert.IsFalse(String.IsNullOrWhiteSpace(responseId));
         }
 
         private void CleanupMsgBox()
