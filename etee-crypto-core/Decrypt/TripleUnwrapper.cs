@@ -391,7 +391,8 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 else
                 {
                     CmsSignedData signedParsed = (CmsSignedData) signedData;
-                    StreamUtils.Copy(signedParsed.SignedContent.Read(), verifiedContent);
+                    signedParsed.SignedContent.Write(verifiedContent);
+                    //StreamUtils.Copy(signedParsed.SignedContent.Read(), verifiedContent);
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Calculated the message digest");
                     return Verifier.Verify(signedParsed, overrideOrigine);
                 }
