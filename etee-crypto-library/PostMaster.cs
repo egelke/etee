@@ -39,6 +39,14 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             set { lax = value; }
         }
 
+        private bool verifyEtk = true;
+
+        public bool VerifyEtk
+        {
+            get { return verifyEtk; }
+            set { verifyEtk = value; }
+        }
+
         private IDataSealer sealer;
 
         private IAnonymousDataUnsealer anonUnsealer = DataUnsealerFactory.Create();
@@ -468,7 +476,7 @@ namespace Siemens.EHealth.Etee.Crypto.Library
                     }
                 }
                 knownRecipient.Token = new EncryptionToken(etkRaw);
-                Verify(knownRecipient.Token);
+                if (verifyEtk) Verify(knownRecipient.Token);
             }
             return knownRecipient.Token;
         }

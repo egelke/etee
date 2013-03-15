@@ -18,16 +18,18 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System;
+using System.Security;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("etee-crypto-library")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("etee-crypto-library")]
-[assembly: AssemblyCopyright("Copyright ©  2010")]
+[assembly: AssemblyTitle(".Net ETEE Solution for eHealth")]
+[assembly: AssemblyDescription(".Net End-To-End Encryption Solution for eHealth")]
+[assembly: AssemblyConfiguration("Beta")]
+[assembly: AssemblyCompany("Egelke BVBA")]
+[assembly: AssemblyProduct(".Net ETEE")]
+[assembly: AssemblyCopyright("Copyright © Egelke 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -51,3 +53,13 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+
+[assembly: CLSCompliant(true)]
+[assembly: AllowPartiallyTrustedCallers()]
+
+#if DEBUG
+[assembly: AssemblyKeyFile(@"../debug.snk")]
+[assembly: InternalsVisibleTo("Siemens.eHealth.ETEE.Crypto.Test, PublicKey=002400000480000094000000060200000024000052534131000400000100010071FF766D9CC98A2D523E9948089C38B5E2FEFB2DDF4E7EC72D3487518CEA88E7CC295CEEB6999629A18B3773E0C10FE4ECEED22903FC71168C5F18AA0C837839F1AE9D21F80C19E704667159D56A008268FE6E694958B7CEB36EBA1917C0E6A0E1026BEB1DB63DCCDDBE7D9FACB80E475250AF0EEBF3C3CF073A0CACC5C0EECF")]
+#else
+[assembly: AssemblyKeyFile(@"../release.snk")]
+#endif
