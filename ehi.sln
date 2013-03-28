@@ -40,9 +40,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eBirth-module", "eBirth-mod
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eBirth-test", "eBirth-test\eBirth-test.csproj", "{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chapterIV-module", "chapterIV-module\chapterIV-module.csproj", "{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chapterIV-test", "chapterIV-test\chapterIV-test.csproj", "{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 17
+		SccNumberOfProjects = 19
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccLocalPath0 = .
@@ -94,6 +98,12 @@ Global
 		SccProjectUniqueName16 = eBirth-test\\eBirth-test.csproj
 		SccProjectName16 = eBirth-test
 		SccLocalPath16 = eBirth-test
+		SccProjectUniqueName17 = chapterIV-module\\chapterIV-module.csproj
+		SccProjectName17 = chapterIV-module
+		SccLocalPath17 = chapterIV-module
+		SccProjectUniqueName18 = chapterIV-test\\chapterIV-test.csproj
+		SccProjectName18 = chapterIV-test
+		SccLocalPath18 = chapterIV-test
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ehi.vsmdi
@@ -262,6 +272,26 @@ Global
 		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{B5FD7ADD-03DD-40B0-8AF0-A1543F42A57A}.Release|x86.ActiveCfg = Release|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{ED33DECF-93AB-4B2A-ACD9-0C3A1C89D267}.Release|x86.ActiveCfg = Release|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2010 rel. 3 sp1 (http://www.altova.com) by SMALS-MVM ASBL/VZW (SMALS-MVM ASBL/VZW) --><xs:schema targetNamespace="urn:be:fgov:ehealth:samcivics:schemas:v1" elementFormDefault="unqualified" attributeFormDefault="unqualified" version="1.0" xmlns="urn:be:fgov:ehealth:samcivics:schemas:v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:core="urn:be:fgov:ehealth:samcivics:type:v1">
+	<xs:import namespace="urn:be:fgov:ehealth:samcivics:type:v1" schemaLocation="civics.xsd"/>
+	<xs:element name="FindParagraphTextRequest" type="core:ParagraphAndVersesRequestType">
+		<xs:annotation>
+			<xs:documentation>Request structure to find informations on a paragraph</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="FindParagraphTextResponse" type="core:FindParagraphTextResponseType">
+		<xs:annotation>
+			<xs:documentation>Response structure to a paragraph text request </xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="GetParagraphExclusionsRequest" type="core:ParagraphRequestType"/>
+	<xs:element name="GetParagraphExclusionsResponse" type="core:GetParagraphExclusionsResponseType"/>
+	<xs:element name="GetParagraphIncludedSpecialitiesRequest" type="core:ParagraphRequestType"/>
+	<xs:element name="GetParagraphIncludedSpecialitiesResponse" type="core:GetParagraphIncludedSpecialitiesResponseType"/>
+	<xs:element name="GetProfessionalAuthorisationsRequest" type="core:GetProfessionalAuthorisationsRequestType"/>
+	<xs:element name="GetProfessionalAuthorisationsResponse" type="core:GetProfessionalAuthorisationsResponseType"/>
+	<xs:element name="GetAddedDocumentsRequest" type="core:ParagraphAndVersesRequestType"/>
+	<xs:element name="GetAddedDocumentsResponse" type="core:GetAddedDocumentsResponseType"/>
+	<xs:element name="FindReimbursementConditionsRequest" type="core:FindReimbursementConditionsRequestType">
+		<xs:annotation>
+			<xs:documentation>Request structure to find informations on reimbursement conditions</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="FindReimbursementConditionsResponse" type="core:FindReimbursementConditionsResponseType">
+		<xs:annotation>
+			<xs:documentation>Response structure to a reimbursement conditions request </xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="FindCNKRequest" type="core:FindCNKRequestType">
+		<xs:annotation>
+			<xs:documentation>Request structure to find information on AMPP based on (part of) a medicinal prodct name</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="FindCNKResponse" type="core:FindCNKResponseType">
+		<xs:annotation>
+			<xs:documentation>Response structure returning information on AMPP</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+</xs:schema>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WL5G3N0:definitions name="Samcivics" targetNamespace="urn:be:fgov:ehealth:samcivics:service:v1" xmlns:WL5G3N0="http://schemas.xmlsoap.org/wsdl/" xmlns:WL5G3N1="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:WL5G3N2="urn:be:fgov:ehealth:samcivics:schemas:v1" xmlns:WL5G3N3="urn:be:fgov:ehealth:errors:soa:v1" xmlns:WL5G3N4="urn:be:fgov:ehealth:samcivics:service:v1" xmlns:WL5G3N5="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy">
+  <WL5G3N0:documentation>Version 1.0: initial version</WL5G3N0:documentation>
+
+  <WL5G3N0:types>
+    <xsd:schema  xmlns:WL5G3N4="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:err="urn:be:fgov:ehealth:errors:service:v1" xmlns:samcivics="urn:be:fgov:ehealth:samcivics:schemas:v1" xmlns:soap11="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="urn:be:fgov:ehealth:samcivics:schemas:v1" schemaLocation="civics-protocol.xsd"/>
+      <xsd:import namespace="urn:be:fgov:ehealth:errors:soa:v1" schemaLocation="ehealth-errors-soa-1_0.xsd"/>
+    </xsd:schema>
+  </WL5G3N0:types>
+  <WL5G3N0:message name="FindParagraphTextRequest">
+    <WL5G3N0:part element="WL5G3N2:FindParagraphTextRequest" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="FindParagraphTextResponse">
+    <WL5G3N0:part element="WL5G3N2:FindParagraphTextResponse" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="GetParagraphExclusionsRequest">
+    <WL5G3N0:part element="WL5G3N2:GetParagraphExclusionsRequest" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="GetParagraphExclusionsResponse">
+    <WL5G3N0:part element="WL5G3N2:GetParagraphExclusionsResponse" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="GetParagraphIncludedSpecialitiesRequest">
+    <WL5G3N0:part element="WL5G3N2:GetParagraphIncludedSpecialitiesRequest" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="GetParagraphIncludedSpecialitiesResponse">
+    <WL5G3N0:part element="WL5G3N2:GetParagraphIncludedSpecialitiesResponse" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="GetProfessionalAuthorisationsRequest">
+    <WL5G3N0:part element="WL5G3N2:GetProfessionalAuthorisationsRequest" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="GetProfessionalAuthorisationsResponse">
+    <WL5G3N0:part element="WL5G3N2:GetProfessionalAuthorisationsResponse" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="GetAddedDocumentsRequest">
+    <WL5G3N0:part element="WL5G3N2:GetAddedDocumentsRequest" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="GetAddedDocumentsResponse">
+    <WL5G3N0:part element="WL5G3N2:GetAddedDocumentsResponse" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="FindReimbursementConditionsRequest">
+    <WL5G3N0:part element="WL5G3N2:FindReimbursementConditionsRequest" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="FindReimbursementConditionsResponse">
+    <WL5G3N0:part element="WL5G3N2:FindReimbursementConditionsResponse" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="FindCNKRequest">
+    <WL5G3N0:part element="WL5G3N2:FindCNKRequest" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="FindCNKResponse">
+    <WL5G3N0:part element="WL5G3N2:FindCNKResponse" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="SystemError">
+    <WL5G3N0:part element="WL5G3N3:SystemError" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:message name="BusinessError">
+    <WL5G3N0:part element="WL5G3N3:BusinessError" name="body"/>
+  </WL5G3N0:message>
+  <WL5G3N0:portType name="SamcivicsPortType">
+    <WL5G3N0:operation name="findParagraphText">
+      <WL5G3N0:input message="WL5G3N4:FindParagraphTextRequest"/>
+      <WL5G3N0:output message="WL5G3N4:FindParagraphTextResponse"/>
+      <WL5G3N0:fault message="WL5G3N4:SystemError" name="SystemError"/>
+      <WL5G3N0:fault message="WL5G3N4:BusinessError" name="BusinessError"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getParagraphExclusions">
+      <WL5G3N0:input message="WL5G3N4:GetParagraphExclusionsRequest"/>
+      <WL5G3N0:output message="WL5G3N4:GetParagraphExclusionsResponse"/>
+      <WL5G3N0:fault message="WL5G3N4:SystemError" name="SystemError"/>
+      <WL5G3N0:fault message="WL5G3N4:BusinessError" name="BusinessError"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getParagraphIncludedSpecialities">
+      <WL5G3N0:input message="WL5G3N4:GetParagraphIncludedSpecialitiesRequest"/>
+      <WL5G3N0:output message="WL5G3N4:GetParagraphIncludedSpecialitiesResponse"/>
+      <WL5G3N0:fault message="WL5G3N4:SystemError" name="SystemError"/>
+      <WL5G3N0:fault message="WL5G3N4:BusinessError" name="BusinessError"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getProfessionalAuthorisations">
+      <WL5G3N0:input message="WL5G3N4:GetProfessionalAuthorisationsRequest"/>
+      <WL5G3N0:output message="WL5G3N4:GetProfessionalAuthorisationsResponse"/>
+      <WL5G3N0:fault message="WL5G3N4:SystemError" name="SystemError"/>
+      <WL5G3N0:fault message="WL5G3N4:BusinessError" name="BusinessError"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getAddedDocuments">
+      <WL5G3N0:input message="WL5G3N4:GetAddedDocumentsRequest"/>
+      <WL5G3N0:output message="WL5G3N4:GetAddedDocumentsResponse"/>
+      <WL5G3N0:fault message="WL5G3N4:SystemError" name="SystemError"/>
+      <WL5G3N0:fault message="WL5G3N4:BusinessError" name="BusinessError"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="findReimbursementConditions">
+      <WL5G3N0:input message="WL5G3N4:FindReimbursementConditionsRequest"/>
+      <WL5G3N0:output message="WL5G3N4:FindReimbursementConditionsResponse"/>
+      <WL5G3N0:fault message="WL5G3N4:SystemError" name="SystemError"/>
+      <WL5G3N0:fault message="WL5G3N4:BusinessError" name="BusinessError"/>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="findCNK">
+      <WL5G3N0:input message="WL5G3N4:FindCNKRequest"/>
+      <WL5G3N0:output message="WL5G3N4:FindCNKResponse"/>
+      <WL5G3N0:fault message="WL5G3N4:SystemError" name="SystemError"/>
+      <WL5G3N0:fault message="WL5G3N4:BusinessError" name="BusinessError"/>
+    </WL5G3N0:operation>
+  </WL5G3N0:portType>
+  <WL5G3N0:binding name="SamcivicsSOAPBinding" type="WL5G3N4:SamcivicsPortType">
+    <WL5G3N5:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <WL5G3N0:operation name="findParagraphText">
+      <WL5G3N5:operation style="document"/>
+      <WL5G3N0:input>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="SystemError">
+        <WL5G3N5:fault name="SystemError" use="literal"/>
+      </WL5G3N0:fault>
+      <WL5G3N0:fault name="BusinessError">
+        <WL5G3N5:fault name="BusinessError" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getParagraphExclusions">
+      <WL5G3N5:operation style="document"/>
+      <WL5G3N0:input>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="SystemError">
+        <WL5G3N5:fault name="SystemError" use="literal"/>
+      </WL5G3N0:fault>
+      <WL5G3N0:fault name="BusinessError">
+        <WL5G3N5:fault name="BusinessError" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getProfessionalAuthorisations">
+      <WL5G3N5:operation style="document"/>
+      <WL5G3N0:input>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="SystemError">
+        <WL5G3N5:fault name="SystemError" use="literal"/>
+      </WL5G3N0:fault>
+      <WL5G3N0:fault name="BusinessError">
+        <WL5G3N5:fault name="BusinessError" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getParagraphIncludedSpecialities">
+      <WL5G3N5:operation style="document"/>
+      <WL5G3N0:input>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="SystemError">
+        <WL5G3N5:fault name="SystemError" use="literal"/>
+      </WL5G3N0:fault>
+      <WL5G3N0:fault name="BusinessError">
+        <WL5G3N5:fault name="BusinessError" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="getAddedDocuments">
+      <WL5G3N5:operation style="document"/>
+      <WL5G3N0:input>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="SystemError">
+        <WL5G3N5:fault name="SystemError" use="literal"/>
+      </WL5G3N0:fault>
+      <WL5G3N0:fault name="BusinessError">
+        <WL5G3N5:fault name="BusinessError" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="findReimbursementConditions">
+      <WL5G3N5:operation style="document"/>
+      <WL5G3N0:input>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="SystemError">
+        <WL5G3N5:fault name="SystemError" use="literal"/>
+      </WL5G3N0:fault>
+      <WL5G3N0:fault name="BusinessError">
+        <WL5G3N5:fault name="BusinessError" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+    <WL5G3N0:operation name="findCNK">
+      <WL5G3N5:operation style="document"/>
+      <WL5G3N0:input>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:input>
+      <WL5G3N0:output>
+        <WL5G3N5:body use="literal"/>
+      </WL5G3N0:output>
+      <WL5G3N0:fault name="SystemError">
+        <WL5G3N5:fault name="SystemError" use="literal"/>
+      </WL5G3N0:fault>
+      <WL5G3N0:fault name="BusinessError">
+        <WL5G3N5:fault name="BusinessError" use="literal"/>
+      </WL5G3N0:fault>
+    </WL5G3N0:operation>
+  </WL5G3N0:binding>
+  <WL5G3N0:service name="SamcivicsService">
+    <WL5G3N0:port binding="WL5G3N4:SamcivicsSOAPBinding" name="SamcivicsServiceSOAP11">
+      <WL5G3N5:address location="https://lrehtapp901b.ehealth.fgov.be:11001/ChapIVInformation/Consultation/v1"/>
+    </WL5G3N0:port>
+  </WL5G3N0:service>
+</WL5G3N0:definitions>
