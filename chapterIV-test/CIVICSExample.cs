@@ -20,12 +20,15 @@ namespace Egelke.EHealth.Client.ChapterIVTest
             ParagraphRequestType request = new ParagraphRequestType();
             request.language = LanguageType.nl;
             request.chapterName = "IV";
-            request.paragraphName = "30200";
+            request.paragraphName = "440100";
 
 
             try
             {
                 GetParagraphIncludedSpecialitiesResponseType response = client.getParagraphIncludedSpecialities(request);
+
+                AtmAndChildrenType[] atmList = response.atmList;
+                //do something with the list...
             }
             catch (FaultException<BusinessError> e)
             {
