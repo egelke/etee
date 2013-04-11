@@ -54,7 +54,7 @@ namespace Siemens.EHealth.Client.Sso.Sts.Service
 
         public void Validate(String package, String requestId)
         {
-            if (package != response.Attributes["Recipient"].Value) throw new SamlException(String.Format("The recipient and the package do not correspond. Expected {0}, Actual {1}", package, response.Attributes["Recipient"].Value));
+            if (response.Attributes["Recipient"] != null && package != response.Attributes["Recipient"].Value) throw new SamlException(String.Format("The recipient and the package do not correspond. Expected {0}, Actual {1}", package, response.Attributes["Recipient"].Value));
             if (requestId != response.Attributes["InResponseTo"].Value) throw new SamlException(String.Format("The reponse isn't for this request. Expected {0}, Actual {1}",requestId, response.Attributes["InResponseTo"].Value));
         }
 
