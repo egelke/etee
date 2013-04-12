@@ -149,7 +149,7 @@ namespace Siemens.EHealth.Etee.ITest
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
             KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
-            pmForAlice_S_0.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
+            pmForAlice_S_0.TransferAndEncryptOnly(msg, null, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
 
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
@@ -162,13 +162,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(null, out sender);
+            msg = pmForBob_R_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(null, out sender);
+            msg = pmForBob_SR_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(null, out sender);
+            msg = pmForBob_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -193,7 +193,7 @@ namespace Siemens.EHealth.Etee.ITest
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
             KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
-            pmForAlice_SR_0.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
+            pmForAlice_SR_0.TransferAndEncryptOnly(msg, null, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
 
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
@@ -206,13 +206,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(null, out sender);
+            msg = pmForBob_R_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(null, out sender);
+            msg = pmForBob_SR_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(null, out sender);
+            msg = pmForBob_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -237,7 +237,7 @@ namespace Siemens.EHealth.Etee.ITest
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
             KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
-            pmForAlice_SR_S.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
+            pmForAlice_SR_S.TransferAndEncryptOnly(msg, null, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
 
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
@@ -250,13 +250,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(null, out sender);
+            msg = pmForBob_R_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(null, out sender);
+            msg = pmForBob_SR_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(null, out sender);
+            msg = pmForBob_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -281,7 +281,7 @@ namespace Siemens.EHealth.Etee.ITest
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
             KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
-            pmForAlice_SR_SR.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
+            pmForAlice_SR_SR.TransferAndEncryptOnly(msg, null, new ReadOnlyCollection<Recipient>(recipients)); //send message to Bob (via memory, see BasicPostMaster class)
 
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
@@ -294,13 +294,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(null, out sender);
+            msg = pmForBob_R_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(null, out sender);
+            msg = pmForBob_SR_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(null, out sender);
+            msg = pmForBob_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -322,7 +322,7 @@ namespace Siemens.EHealth.Etee.ITest
             //Send (using library)
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
             recipients.Add(new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:person:ssin", null)); //Any physical person
-            pmForAlice_SR_S.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)
+            pmForAlice_SR_S.TransferAndEncryptOnly(msg, null, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)
 
             //Post treat
             
@@ -335,7 +335,7 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_SR_SR.Receive(null, out sender);
+            msg = pmForBob_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -357,7 +357,7 @@ namespace Siemens.EHealth.Etee.ITest
             //Send (using library)
             List<Recipient> recipients = new List<Recipient>(); //Define a list of recipients
             recipients.Add(new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:person:ssin", null)); //Any physical person
-            pmForAlice_SR_SR.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)
+            pmForAlice_SR_SR.TransferAndEncryptOnly(msg, null, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)
 
             //Post treat
 
@@ -370,7 +370,7 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_SR_SR.Receive(null, out sender);
+            msg = pmForBob_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -397,7 +397,7 @@ namespace Siemens.EHealth.Etee.ITest
             recipients.Add(bob); //Add bob as recipient
             KnownRecipient alice = new KnownRecipient("NIHII", "00000196101"); //Create alice, we don't have an ETK.
             recipients.Add(alice); //Add alice as recipient
-            pmForAlice_SR_S.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)
+            pmForAlice_SR_S.TransferAndEncryptOnly(msg, null, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)
 
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
@@ -411,13 +411,13 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(null, out sender);
+            msg = pmForBob_R_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(null, out sender);
+            msg = pmForBob_SR_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(null, out sender);
+            msg = pmForBob_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
         }
 
@@ -444,7 +444,7 @@ namespace Siemens.EHealth.Etee.ITest
             KnownRecipient bob = new KnownRecipient("NIHII", "00000295202"); //Create bob, we don't have an ETK.
             recipients.Add(bob); //Add bob as recipient
             recipients.Add(new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:person:ssin", null));
-            pmForAlice_SR_S.Send(msg, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)
+            pmForAlice_SR_S.TransferAndEncryptOnly(msg, null, new ReadOnlyCollection<Recipient>(recipients)); //send message to Me (via memory, see BasicPostMaster class)
 
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
@@ -457,16 +457,16 @@ namespace Siemens.EHealth.Etee.ITest
             X509Certificate2 sender;
 
             //Receive (using library)
-            msg = pmForBob_R_0.Receive(null, out sender);
+            msg = pmForBob_R_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_0.Receive(null, out sender);
+            msg = pmForBob_SR_0.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForBob_SR_SR.Receive(null, out sender);
+            msg = pmForBob_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
 
-            msg = pmForAlice_SR_SR.Receive(null, out sender);
+            msg = pmForAlice_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
         }
     }
