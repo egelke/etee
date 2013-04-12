@@ -171,7 +171,7 @@ namespace Siemens.EHealth.Etee.Crypto
                 IEnumerator iterator = authCertMatch.GetEnumerator();
                 if (!iterator.MoveNext())
                 {
-                    trace.TraceEvent(TraceEventType.Error, 0, "Certificarte present but could not be retrieved");
+                    trace.TraceEvent(TraceEventType.Error, 0, "Certificate present but could not be retrieved");
                     throw new InvalidOperationException("Could not retrieve certificate, please report issue");
                 }
                 authCert = (BC::X509Certificate)iterator.Current;
