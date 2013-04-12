@@ -39,7 +39,7 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             set { lax = value; }
         }
 
-        private bool verifyEtk = true;
+        private bool verifyEtk = false;
 
         public bool VerifyEtk
         {
@@ -174,7 +174,7 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             Stream cypheredRequest = null;
             if (toEncrypt != null) 
             {
-                if (recipients == null) throw new ArgumentNullException("recipients", "recipients is required when toEncrypte is provided");
+                if (recipients == null) throw new ArgumentNullException("recipients is required when toEncrypte is provided", "recipients");
                 cypheredRequest = OnCrypt(toEncrypt, recipients, out keyId);
             }
             Tuple<Stream, Object> cypheredResponse = OnTransferEncrypted(cypheredRequest, parameters, ref keyId, recipients);
@@ -507,14 +507,14 @@ namespace Siemens.EHealth.Etee.Crypto.Library
                     }
                 }
                 knownRecipient.Token = new EncryptionToken(etkRaw);
-                if (verifyEtk) Verify(knownRecipient.Token);
+                Verify(knownRecipient.Token);
             }
             return knownRecipient.Token;
         }
 
         private void Verify(EncryptionToken token)
         {
-            CheckResult(token.Verify());
+            if (verifyEtk) CheckResult(token.Verify());
         }
 
         private void CheckResult<Violation>(SecurityResult<Violation> info)
