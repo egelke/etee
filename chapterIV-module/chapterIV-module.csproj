@@ -47,20 +47,34 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Samcivics.cs" />
+    <Compile Include="proxy.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="gen.bat" />
+    <None Include="wsdl\chap4services_core-1_0.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="wsdl\chap4services_protocol-1_0.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="wsdl\ChapterIVAgreementAdmission.wsdl" />
+    <None Include="wsdl\ChapterIVAgreementConsultation.wsdl" />
     <None Include="wsdl\civics-protocol.xsd">
       <SubType>Designer</SubType>
     </None>
     <None Include="wsdl\civics.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="wsdl\ehealth-commons-schema-core-1_4.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="wsdl\ehealth-commons-schema-protocol-1_4.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="wsdl\ehealth-errors-core-1.0.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="wsdl\ehealth-errors-soa-1_0.xsd">
+    <None Include="wsdl\ehealth-errors-schema-soa-1_0.xsd">
       <SubType>Designer</SubType>
     </None>
     <None Include="wsdl\ehealth-errors-service-1.0.xsd">

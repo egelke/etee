@@ -5,7 +5,7 @@
   <WL5G3N0:types>
     <xsd:schema  xmlns:WL5G3N4="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:err="urn:be:fgov:ehealth:errors:service:v1" xmlns:samcivics="urn:be:fgov:ehealth:samcivics:schemas:v1" xmlns:soap11="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
       <xsd:import namespace="urn:be:fgov:ehealth:samcivics:schemas:v1" schemaLocation="civics-protocol.xsd"/>
-      <xsd:import namespace="urn:be:fgov:ehealth:errors:soa:v1" schemaLocation="ehealth-errors-soa-1_0.xsd"/>
+      <xsd:import namespace="urn:be:fgov:ehealth:errors:soa:v1" schemaLocation="ehealth-errors-schema-soa-1_0.xsd"/>
     </xsd:schema>
   </WL5G3N0:types>
   <WL5G3N0:message name="FindParagraphTextRequest">
