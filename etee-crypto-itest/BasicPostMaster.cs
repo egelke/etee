@@ -117,13 +117,29 @@ namespace Siemens.EHealth.Etee.ITest
         }
 
 
-        protected override System.IO.Stream OnTransferFrom(Object paramters, out byte[] keyId)
+        protected System.IO.Stream OnTransferFrom(Object paramters, out byte[] keyId)
         {
             keyId = this.keyId;
             return this.msg;
         }
 
-        protected override Object OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        protected override Tuple<Stream, object> OnTransferEncrypted(Stream encrypted, object parameters, ref byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        {
+            if (encrypted != null)
+            {
+                if (keyId == null)
+                    OnTransferTo(encrypted, recipients);
+                else
+                    OnTransferTo(encrypted, keyId, recipients);
+                return new Tuple<Stream,object>(null, null);
+            }
+            else
+            {
+                return new Tuple<Stream,object>(OnTransferFrom(parameters, out keyId), null);
+            }
+        }
+
+        protected void OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
             if (!String.IsNullOrWhiteSpace(file))
             {
@@ -139,10 +155,9 @@ namespace Siemens.EHealth.Etee.ITest
                 Utils.Copy(cyphered, pm.msg);
                 pm.keyId = null;
             }
-            return null;
         }
 
-        protected override Object OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        protected void OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
             if (!String.IsNullOrWhiteSpace(file))
             {
@@ -163,7 +178,6 @@ namespace Siemens.EHealth.Etee.ITest
                 Utils.Copy(cyphered, pm.msg);
                 pm.keyId = keyId;
             }
-            return null;
         }
 
         protected override Crypto.SecretKey GetKek(byte[] keyId)

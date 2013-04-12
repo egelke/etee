@@ -137,75 +137,83 @@ namespace Siemens.EHealth.Etee.Crypto.Library
         }
 
         /// <summary>
-        /// Send the clear message in encrypted form to the specified recipients.
+        /// Encryptes the request, send it, receives the unencrypted response and return its.
         /// </summary>
-        /// <param name="clear"></param>
-        /// <param name="recipients"></param>
-        /// <returns>The ACK or NACK or null</returns>
-        public Object Send(Stream clear, ReadOnlyCollection<Recipient> recipients)
+        /// <param name="toEncrypt">The clear text message to encrypt</param>
+        /// <param name="parameters">Additional information that is required to send the message but that will not be encrypted</param>
+        /// <param name="recipients">Special paremeter: used by the postmaster for the encrypted, but may also be used to send the message</param>
+        /// <returns>The unencrypted response, which can be null</returns>
+        public Object TransferAndEncryptOnly(Stream toEncrypt, Object parameters, ReadOnlyCollection<Recipient> recipients)
         {
-            if (clear == null) throw new ArgumentNullException("clear");
-            if (recipients == null) throw new ArgumentNullException("recipients");
-            if (recipients.Count == 0) throw new ArgumentException("There should be at least one recipient", "recipients");
+            X509Certificate2 sender;
+            return TransferAndDoCrypto(toEncrypt, parameters, recipients, out sender).Item2;
+        }
 
-            byte[] keyId;
-            Stream cyphered = OnCrypt(clear, recipients, out keyId);
-            if (keyId != null)
+        /// <summary>
+        /// Send the unencrypted request, receives the encrypted response, decryptes the response and returns it.
+        /// </summary>
+        /// <param name="parameters">Information that is required to send the message</param>
+        /// <param name="sender">Contains the certificate of the sender of the response</param>
+        /// <returns>Returns the decrypted stream and the non encrypted information returned (null if no uncrypted information is provided)</returns>
+        public Tuple<Stream, Object> TransferAndDecryptOnly(Object parameters, out X509Certificate2 sender)
+        {
+            return TransferAndDoCrypto(null, parameters, null, out sender);
+        }
+
+        /// <summary>
+        /// Encryptes the request, send it, receives the encrypted response, decryptes the response and return its.
+        /// </summary>
+        /// <param name="toEncrypt">The clear text message to encrypt, can be null if the request does not contain an encrypted part</param>
+        /// <param name="parameters">Additional information that is required to send the message but that will not be encrypted</param>
+        /// <param name="recipients">Special paremeter: used by the postmaster for the encrypted, but may also be used to send the message</param>
+        /// <param name="sender">Contains the certificate of the sender of the response, is null when the response wasn't encrypted</param>
+        /// <returns>Returns the decrypted stream (or null the response does not contain an encrypted part) and the non encrypted information returned (null if no uncrypted information is provided)</returns>
+        public Tuple<Stream, Object> TransferAndDoCrypto(Stream toEncrypt, Object parameters, ReadOnlyCollection<Recipient> recipients, out X509Certificate2 sender)
+        {
+            byte[] keyId = null;
+            Stream cypheredRequest = null;
+            if (toEncrypt != null) 
             {
-                return OnTransferTo(cyphered, keyId, recipients);
+                if (recipients == null) throw new ArgumentNullException("recipients", "recipients is required when toEncrypte is provided");
+                cypheredRequest = OnCrypt(toEncrypt, recipients, out keyId);
+            }
+            Tuple<Stream, Object> cypheredResponse = OnTransferEncrypted(cypheredRequest, parameters, ref keyId, recipients);
+
+            Tuple<Stream, Object> clearResponse;
+            if (cypheredResponse.Item1 != null)
+            {
+                clearResponse = new Tuple<Stream,object>(OnDecrypt(cypheredResponse.Item1, keyId, out sender), cypheredResponse.Item2);
             }
             else
             {
-                return OnTransferTo(cyphered, recipients);
+                sender = null;
+                clearResponse = cypheredResponse;
             }
-        }
-
-        public void Receive(Stream outStream, Object parameters, out X509Certificate2 sender)
-        {
-            Stream tmp = Receive(parameters, out sender);
-            using (tmp)
-            {
-                int read;
-                byte[] buffer = new byte[1024];
-                while ((read = tmp.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    outStream.Write(buffer, 0, read);
-                }
-            }
-        }
-
-        public Stream Receive(Object parameters, out X509Certificate2 sender)
-        {
-            byte[] keyId;
-            Stream cryphered = OnTransferFrom(parameters, out keyId);
-            using (cryphered)
-            {
-                return OnDecrypt(cryphered, keyId, out sender);
-            }
+            return clearResponse;
         }
 
         /// <summary>
-        /// Override with the domain specific way to get the next available message in cyphered form.
+        /// Override with the required protocol to send the provide encrypted request and receive the encrypted response.
         /// </summary>
-        /// <param name="keyId">Returns the id of the unaddressed key, if applicable</param>
-        /// <returns>The cyphered message recieved</returns>
-        protected abstract Stream OnTransferFrom(Object parameters, out byte[] keyId);
-
-        /// <summary>
-        /// Override with the domain specific way to send the domain specific the message in cyphered form.
-        /// </summary>
-        /// <param name="cyphered">The cyphered message</param>
-        /// <param name="recipients">The list of recipients, will only contain known recipients </param>
-        /// <returns>Business ACK or NACK, empty if not (N)ACK provided</returns>
-        protected abstract Object OnTransferTo(Stream cyphered, ReadOnlyCollection<Recipient> recipients);
-
-        /// <summary>
-        /// Override with the domain specific way to send the domain specific the message in cyphered form.
-        /// </summary>
-        /// <param name="cyphered">The cyphered message</param>
-        /// <param name="recipients">The list of recipients, will also contain unknown recipients</param>
-        /// <returns>Business ACK or NACK, empty if not (N)ACK provided</returns>
-        protected abstract Object OnTransferTo(Stream cyphered, byte[] keyId, ReadOnlyCollection<Recipient> recipients);
+        /// <remarks>
+        /// <para>
+        /// As input this method gets the encrypted request (part) and some additional parameters.  The first parameter is business specific and
+        /// can be anything.  It is provided by the user of the library via the call to one of the transfer methods.  The second paramter, keyId,
+        /// is generated by the postmaster, but can be required to be transfered.  The last paramter, recipients, is already used by the postmaster
+        /// but can used again to for the transfer.
+        /// </para>
+        /// <para>
+        /// The response consists of 2 parts, the encrypted stream and additional return information that isn't encrypted.  In case the response does
+        /// not contain an encrypted part, this pert item will be null.
+        /// </para>
+        /// </remarks>
+        /// <param name="encrypted">The encrypted message to send (null if request is not encrypted)</param>
+        /// <param name="parameters">Any additional, non encrypted, information required to send the message (null if no uncrypted information is required)</param>
+        /// <param name="keyId">Special parameter: The key id for anonymous encryption (null if no anonymous adressing or is request is not encrypted).
+        /// Should be updated when the response also has a key-id present</param>
+        /// <param name="recipients">Special parameter: The list of recipients to send the message too (null if receive only)</param>
+        /// <returns>Returns the encrypted stream (or null if response is clear text) and non encrypted information returned (null if no uncrypted information is provided)</returns>
+        protected abstract Tuple<Stream, Object> OnTransferEncrypted(Stream encrypted, Object parameters, ref byte[] keyId, ReadOnlyCollection<Recipient> recipients);
 
         protected virtual Stream OnDecrypt(Stream cryphered, byte[] keyId, out X509Certificate2 sender)
         {

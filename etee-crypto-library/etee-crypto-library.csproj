@@ -57,6 +57,10 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.7.4114.6375, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
@@ -111,6 +115,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BouncyCastle.Crypto.dll" />
     <Content Include="COPYING" />
     <None Include="Wsdl\V1\commons-core.xsd" />
     <None Include="Wsdl\V1\commons-protocol.xsd" />

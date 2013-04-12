@@ -117,7 +117,7 @@ namespace Siemens.EHealth.Etee.ITest
 
             MemoryStream msgOut = new MemoryStream(Encoding.UTF8.GetBytes(msg));
             outgoing.File = "message_from_sis";
-            outgoing.Send(msgOut, new ReadOnlyCollection<Recipient>(recipients));
+            outgoing.TransferAndEncryptOnly(msgOut, null, new ReadOnlyCollection<Recipient>(recipients));
         }
 
         [TestMethod]
@@ -150,7 +150,7 @@ namespace Siemens.EHealth.Etee.ITest
                 Stream msgIn;
                 X509Certificate2 from;
 
-                msgIn = incommingSisByItself.Receive(null, out from);
+                msgIn = incommingSisByItself.TransferAndDecryptOnly(null, out from).Item1;
                 VerifyReceive(msgIn, from, msg, "78042003561");
             }
         }
@@ -165,7 +165,7 @@ namespace Siemens.EHealth.Etee.ITest
                 Stream msgIn;
                 X509Certificate2 from;
 
-                msgIn = incommingSis.Receive(null, out from);
+                msgIn = incommingSis.TransferAndDecryptOnly(null, out from).Item1;
                 VerifyReceive(msgIn, from, msg, "78042003561");
             }
         }
