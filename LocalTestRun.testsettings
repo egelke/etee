@@ -3,6 +3,7 @@
   <Description>These are default test settings for a local test run.</Description>
   <Deployment>
     <DeploymentItem filename="eBirth-test\data\" />
+    <DeploymentItem filename="chapterIV-test\data\" />
     <DeploymentItem filename="genAsync-test\data\" />
     <DeploymentItem filename="unit-tests\EHealthP12\" />
     <DeploymentItem filename="sts-test\xsd\" />

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<schema xmlns:tns="urn:be:cin:types:v1" elementFormDefault="qualified" targetNamespace="urn:be:cin:types:v1" xmlns="http://www.w3.org/2001/XMLSchema">
+    <simpleType name="SsinType">
+        <restriction base="string">
+            <length value="11" />
+        </restriction>
+    </simpleType>
+    <simpleType name="MutualityType">
+        <restriction base="string">
+            <length value="3" />
+        </restriction>
+    </simpleType>
+    <simpleType name="RegNrWithMutType">
+        <restriction base="string">
+            <maxLength value="13" />
+        </restriction>
+    </simpleType>
+    
+    <complexType name="CareReceiverIdType">
+        <sequence>
+            <element name="Ssin" type="tns:SsinType" minOccurs="0" />
+            <element name="RegNrWithMut" type="tns:RegNrWithMutType" minOccurs="0" />
+            <element name="Mutuality" type="tns:MutualityType" minOccurs="0" />
+        </sequence>
+    </complexType>
+</schema>

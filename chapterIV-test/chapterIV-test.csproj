@@ -38,10 +38,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Siemens.EHealth.Etee.Crypto, Version=1.0.0.3, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Siemens.EHealth.Etee.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Siemens.EHealth.Etee.Crypto.Library, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Siemens.EHealth.Etee.Crypto.Library.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.IdentityModel" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.XML" />
@@ -53,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CIVICSExample.cs" />
+    <Compile Include="ConsultExample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -69,6 +79,12 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="data\request_consult_physician.xml" />
+    <Content Include="Siemens.EHealth.Etee.Crypto.dll" />
+    <Content Include="Siemens.EHealth.Etee.Crypto.Library.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

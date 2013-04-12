@@ -35,6 +35,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Siemens.EHealth.Etee.Crypto, Version=1.0.0.3, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Siemens.EHealth.Etee.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Siemens.EHealth.Etee.Crypto.Library, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Siemens.EHealth.Etee.Crypto.Library.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
@@ -46,11 +54,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AgreementException.cs" />
+    <Compile Include="Consult.cs" />
+    <Compile Include="ConsultPostMaster.cs" />
+    <Compile Include="InputParameterData.cs" />
+    <Compile Include="OutputParameterData.cs" />
+    <Compile Include="SecondPassConsultPostMaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="proxy.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="gen.bat" />
+    <None Include="askXsd\Ask.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="askXsd\commonTypes-v1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="consultXsd\Consult.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="genConsultXsd.bat" />
+    <None Include="genWsdl.bat" />
     <None Include="wsdl\chap4services_core-1_0.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -84,6 +108,31 @@
     <None Include="wsdl\xml.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="consultXsd\commonTypes-v1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="askXsd\IO-BE-AskUnaddressed.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="consultXsd\IO-BE-ConsultUnaddressed.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="askXsd\IO-IM-AskAddressed.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="consultXsd\IO-IM-ConsultAddressed.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="askXsd\MCN_ask_encrypted_response.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="consultXsd\MCN_consult_encrypted_response.xsd">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Siemens.EHealth.Etee.Crypto.dll" />
+    <Content Include="Siemens.EHealth.Etee.Crypto.Library.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

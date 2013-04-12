@@ -1,0 +1,1 @@
+xsd consultXsd/commonTypes-v1.xsd consultXsd/IO-BE-ConsultUnaddressed.xsd consultXsd/IO-IM-ConsultAddressed.xsd consultXsd/MCN_consult_encrypted_response.xsd consultXsd/Consult.xsd  /c /n:Egelke.EHealth.Client.ChapterIV.Consult
