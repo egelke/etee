@@ -84,6 +84,7 @@ namespace Siemens.EHealth.Client.Sso
             BindingElementCollection elements = new BindingElementCollection();
 
             elements.Add(CreateMessageSecurity());
+            //elements.Add(new Wrong.WrongBindingElement());
             if (this.MessageEncoding == WSMessageEncoding.Text)
             {
                 var txt = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
@@ -107,6 +108,7 @@ namespace Siemens.EHealth.Client.Sso
             var https = new HttpsTransportBindingElement();
             https.MaxReceivedMessageSize = this.MaxReceivedMessageSize;
             https.MaxBufferPoolSize = this.MaxBufferPoolSize;
+            if (this.MessageEncoding == WSMessageEncoding.Mtom) https.TransferMode = TransferMode.Streamed;
             return https;
         }
         
