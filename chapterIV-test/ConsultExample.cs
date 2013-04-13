@@ -32,10 +32,8 @@ namespace Egelke.EHealth.Client.ChapterIVTest
             store.Open(OpenFlags.ReadOnly);
 
             //Select the care provider certificate issued by eHealth
-            X509Certificate2 eh = store.Certificates.Find(X509FindType.FindByThumbprint, "9c4227f1b9c7a52823829837f1a2e80690da8010", false)[0];
+            X509Certificate2 eh = store.Certificates.Find(X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2", false)[0];
             X509Certificate2 eid = store.Certificates.Find(X509FindType.FindByThumbprint, "c6c3cba1000c955c2e6289c6eb40bbb7477476c0", false)[0];
-            //X509Certificate2 eid = store.Certificates.Find(X509FindType.FindByThumbprint, "9e87b0b07d14878f5f5a94d7f83544759a5dc347", false)[0];
-            //X509Certificate2 eid = store.Certificates.Find(X509FindType.FindByThumbprint, "c8d39ea0460d6f3aaeeb6a7f3c2b940fe3a1dc66", false)[0];
             
 
             //For the signature (and encrypt) we use eHealth certificates
@@ -44,8 +42,8 @@ namespace Egelke.EHealth.Client.ChapterIVTest
             //For the session we use eHealth certificate
             session = eh;
 
-            //For authentication we use eid certificate
-            auth = eid;
+            //For authentication we use eid certificate (but since that does notwork, ticket 2-3RKM9C, we use the eHealth certificfate.
+            auth = eh;
         }
 
         [TestMethod]

@@ -36,7 +36,7 @@ namespace Egelke.EHealth.Client.ChapterIV
         }
 
         public AgreementException(StatusType status, FaultType fault, CommonOutputType commonOutput, RecordCommonOutputType recordCommonOutput)
-            : base(status.Code == "200" ? fault.Message.Value : status.Message.Where(x => x.LangSpecified && x.Lang == LangageType.EN).Single().Value)
+            : base(status.Code == "200" || status.Code == "400" ? fault.Message.Value : status.Message.Single().Value)
         {
             this.status = status;
             this.fault = fault;
