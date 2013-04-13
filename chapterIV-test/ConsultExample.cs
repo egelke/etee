@@ -109,6 +109,8 @@ namespace Egelke.EHealth.Client.ChapterIVTest
             parameters.CommonInput.Origin.Package.License = new LicenseType();
             parameters.CommonInput.Origin.Package.License.Username = "ehi"; //provide you own license
             parameters.CommonInput.Origin.Package.License.Password = "eHIpwd05"; //provide your own password
+
+
             parameters.CommonInput.Origin.CareProvider = new CareProviderType();
             parameters.CommonInput.Origin.CareProvider.Nihii = new NihiiType();
             parameters.CommonInput.Origin.CareProvider.Nihii.Quality = "doctor";
@@ -120,13 +122,56 @@ namespace Egelke.EHealth.Client.ChapterIVTest
             parameters.RecordCommonInput = new RecordCommonInputType();
             parameters.RecordCommonInput.InputReferenceSpecified = true;
             parameters.RecordCommonInput.InputReference = 20101112100503;
-            parameters.AgreementStartDate = new DateTime(2010, 08, 06, 0, 0, 0, DateTimeKind.Utc);
+            parameters.AgreementStartDate = new DateTime(2013, 04, 01, 0, 0, 0, DateTimeKind.Utc);
             parameters.CareReceiverId = new CareReceiverIdType();
-            parameters.CareReceiverId.Ssin = "79021802145";
+            parameters.CareReceiverId.Ssin = "47040537505";
 
             //send the request
             X509Certificate2 sender;
             Tuple<Stream, OutputParameterData> response = postmaster.Transfer(new FileStream("request_consult_physician.xml", FileMode.Open), parameters, out sender);
+
+            WriteFormattedXml(response.Item1);
+
+            //Chech for business responses
+            XmlDocument responseDoc = new XmlDocument();
+            XmlNamespaceManager nsmgr =  new XmlNamespaceManager(responseDoc.NameTable);
+            nsmgr.AddNamespace("ns", "http://www.ehealth.fgov.be/medicalagreement/core/v1");
+            nsmgr.AddNamespace("kmehr", "http://www.ehealth.fgov.be/standards/kmehr/schema/v1");
+            responseDoc.Load(response.Item1);
+            XmlNodeList errorList = responseDoc.SelectNodes("/ns:kmehrresponse/ns:acknowledge/ns:error", nsmgr);
+            if (errorList.Count > 0)
+            {
+                StringBuilder errorMsg = new StringBuilder();
+                foreach (XmlNode error in errorList)
+                {
+                    errorMsg.Append(error.SelectSingleNode("./kmehr:cd", nsmgr).InnerText)
+                        .Append(": ")
+                        .Append(error.SelectSingleNode("./kmehr:description", nsmgr).InnerText)
+                        .Append(" (")
+                        .Append(error.SelectSingleNode("./kmehr:url", nsmgr).InnerText)
+                        .AppendLine(")");
+                }
+                Assert.Inconclusive(errorMsg.ToString());
+            }
+        }
+
+        private static void WriteFormattedXml(Stream input)
+        {
+            XmlDocument document = new XmlDocument();
+            document.Load(input);
+
+            using (StringWriter mStream = new StringWriter())
+            {
+                var settings = new XmlWriterSettings();
+                settings.Indent = true;
+
+                XmlWriter writer = XmlWriter.Create(mStream, settings);
+                document.WriteContentTo(writer);
+                writer.Flush();
+                mStream.Flush();
+                System.Console.WriteLine(mStream.ToString());
+            }
+            input.Seek(0, SeekOrigin.Begin);
         }
     }
 }

@@ -10,7 +10,7 @@
       <km:sender>
         <km:hcparty>
           <km:id S="ID-HCPARTY" SV="1.0">19997341001</km:id>
-          <km:id SV="1.0" S="INSS">75042628553</km:id>
+          <km:id SV="1.0" S="INSS">79021802145</km:id>
           <km:cd S="CD-HCPARTY" SV="1.0">persphysician</km:cd>
           <km:firstname>Bryan</km:firstname>
           <km:familyname>Brouckaert</km:familyname>
@@ -26,8 +26,8 @@
     <km:folder>
       <km:id S="ID-KMEHR" SV="1.0">1</km:id>
       <km:patient>
-        <km:id S="ID-PATIENT" SV="1.0">79021802145</km:id>
-        <km:firstname>Bryan</km:firstname>
+        <km:id S="ID-PATIENT" SV="1.0">47040537505</km:id>
+        <km:firstname>Luc</km:firstname>
         <km:familyname>Brouckaert</km:familyname>
         <km:sex>
           <km:cd S="CD-SEX" SV="1.0">male</km:cd>
@@ -61,7 +61,7 @@
           <km:id S="ID-KMEHR" SV="1.0">2</km:id>
           <km:cd S="CD-ITEM-MAA" SV="1.0">consultationstartdate</km:cd>
           <km:content>
-            <km:date>2010-08-06</km:date>
+            <km:date>2013-04-01</km:date>
           </km:content>
         </km:item>
         <km:item>
