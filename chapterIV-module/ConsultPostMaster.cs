@@ -66,7 +66,7 @@ namespace Egelke.EHealth.Client.ChapterIV
         public Tuple<Stream, OutputParameterData> Transfer(Stream kmehr, InputParameterData parameters, out X509Certificate2 sender)
         {
             //Create the request with the KMEHR
-            Consult.UnaddressedRequestType request = new Consult.UnaddressedRequestType();
+            Consult.RequestType request = new Consult.RequestType();
             request.EtkHcp = Self.Token.GetEncoded();
             request.KmehrRequest = ReadFully(kmehr);
 
@@ -97,8 +97,11 @@ namespace Egelke.EHealth.Client.ChapterIV
             InputParameterData inputParameters = (InputParameterData) parameters;
 
             //Create a new request, containing the unaddressed encrypted content.
-            Consult.AdressedRequestType request = new Consult.AdressedRequestType();
-            request.CareReceiver = inputParameters.CareReceiverId;
+            Consult.RequestType1 request = new Consult.RequestType1();
+            request.CareReceiver = new Consult.CareReceiverIdType();
+            request.CareReceiver.Ssin = inputParameters.CareReceiverId.Ssin;
+            request.CareReceiver.Mutuality = inputParameters.CareReceiverId.Mutuality;
+            request.CareReceiver.RegNrWithMut = inputParameters.CareReceiverId.RegNrWithMut;
             request.AgreementStartDate = inputParameters.AgreementStartDate;
             request.SealedContent = ReadFully(encrypted);
             request.UnsealKeyId = Convert.ToBase64String(keyId);
