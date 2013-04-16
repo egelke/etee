@@ -266,11 +266,25 @@ namespace Siemens.EHealth.Client.Tool
             Org.BouncyCastle.Pkcs.X509CertificateEntry certificateEntry = store.GetCertificate(entryAlias);
             if (store.IsKeyEntry(entryAlias))
             {
-                AsymmetricKeyEntry keyEntry = store.GetKey(entryAlias);
+                //Get the org key entry
+                AsymmetricKeyEntry orgKeyEntry = store.GetKey(entryAlias);
+
+                //Copy it into a new key attribute with the windows CSP defined
+                IDictionary newKeyEntryAttributes = new Hashtable();
+                foreach (String attribute in orgKeyEntry.BagAttributeKeys) 
+                {
+                    newKeyEntryAttributes.Add(attribute, orgKeyEntry[attribute]);
+                }
+                newKeyEntryAttributes.Add("1.3.6.1.4.1.311.17.1", new DerBmpString("Microsoft Enhanced RSA and AES Cryptographic Provider"));
+                AsymmetricKeyEntry newKeyEntry = new AsymmetricKeyEntry(orgKeyEntry.Key, newKeyEntryAttributes);
+
+                //Make a new P12 in memory
                 Pkcs12Store newP12 = new Pkcs12Store();
-                newP12.SetKeyEntry(entryAlias, keyEntry, store.GetCertificateChain(entryAlias));
+                newP12.SetKeyEntry(entryAlias, newKeyEntry, store.GetCertificateChain(entryAlias));
                 MemoryStream buffer = new MemoryStream();
                 newP12.Save(buffer, password.ToCharArray(), new SecureRandom());
+
+                //Read this P12 as X509Certificate with private key
                 return new X509Certificate2(buffer.ToArray(), password, flags);
             }
             else

@@ -52,6 +52,7 @@ namespace Siemens.EHealth.Client.UnitTest
             byte[] data = Encoding.UTF8.GetBytes("My Test");
 
             RSACryptoServiceProvider privateKey = cert.PrivateKey as RSACryptoServiceProvider;
+            Assert.AreEqual("Microsoft Enhanced RSA and AES Cryptographic Provider", privateKey.CspKeyContainerInfo.ProviderName);
             byte[] signature = privateKey.SignData(data, new SHA1Managed());
             Assert.IsNotNull(signature);
             Assert.AreEqual(2048/8, signature.Length);
@@ -75,6 +76,7 @@ namespace Siemens.EHealth.Client.UnitTest
             Assert.IsNotNull(enc);
 
             RSACryptoServiceProvider privateKey = cert.PrivateKey as RSACryptoServiceProvider;
+            Assert.AreEqual("Microsoft Enhanced RSA and AES Cryptographic Provider", privateKey.CspKeyContainerInfo.ProviderName);
             byte[] data_copy = privateKey.Decrypt(enc, false);
             Assert.AreEqual(data.Length,data_copy.Length);
             for (int i=0; i<data.Length; i++)
