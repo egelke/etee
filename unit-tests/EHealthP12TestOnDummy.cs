@@ -43,22 +43,22 @@ namespace Siemens.EHealth.Client.UnitTest
         public void ConstuctorWithByteArray()
         {
             p12 = new EHealthP12(Utils.ReadFully("dummy.p12"), "test001");
-            Assert.AreEqual(2, p12.Keys.Count);
+            Assert.AreEqual(5, p12.Keys.Count);
         }
 
         [TestMethod]
         public void Keys()
         {
-            Assert.AreEqual(2, p12.Keys.Count);
+            Assert.AreEqual(5, p12.Keys.Count);
             Assert.IsTrue(p12.Keys.Contains("authenication"));
             Assert.IsTrue(p12.Keys.Contains("encryption"));
             Assert.IsFalse(p12.Keys.Contains("security"));
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Values()
         {
-            Assert.AreEqual(2, p12.Values.Count);
+            Assert.AreEqual(5, p12.Values.Count);
             foreach (X509Certificate2 cert in p12.Values)
             {
                 switch (cert.Subject)
@@ -68,7 +68,7 @@ namespace Siemens.EHealth.Client.UnitTest
                         Assert.IsTrue(cert.HasPrivateKey);
                         break;
                     default:
-                        Assert.Fail(cert.Subject);
+                        Assert.IsFalse(cert.HasPrivateKey);
                         break;
                 }
             }
@@ -150,7 +150,7 @@ namespace Siemens.EHealth.Client.UnitTest
         [TestMethod]
         public void Count()
         {
-            Assert.AreEqual(2, p12.Count);
+            Assert.AreEqual(5, p12.Count);
         }
 
         [TestMethod]
@@ -186,12 +186,15 @@ namespace Siemens.EHealth.Client.UnitTest
         public void CopyTo()
         {
             KeyValuePair<String, X509Certificate2> def = new KeyValuePair<String, X509Certificate2>();
-            KeyValuePair<String, X509Certificate2>[] array =new KeyValuePair<string, X509Certificate2>[4];
+            KeyValuePair<String, X509Certificate2>[] array =new KeyValuePair<string, X509Certificate2>[7];
             p12.CopyTo(array, 1);
             Assert.AreEqual(def, array[0]);
             Assert.AreNotEqual(def, array[1]);
             Assert.AreNotEqual(def, array[2]);
-            Assert.AreEqual(def, array[3]);
+            Assert.AreNotEqual(def, array[3]);
+            Assert.AreNotEqual(def, array[4]);
+            Assert.AreNotEqual(def, array[5]);
+            Assert.AreEqual(def, array[6]);
         }
 
         [TestMethod]
@@ -206,7 +209,7 @@ namespace Siemens.EHealth.Client.UnitTest
                         Assert.IsTrue(entry.Value.HasPrivateKey);
                         break;
                     default:
-                        Assert.Fail(entry.Key);
+                        Assert.IsFalse(entry.Value.HasPrivateKey);
                         break;
                 }
             }
@@ -225,7 +228,7 @@ namespace Siemens.EHealth.Client.UnitTest
                         Assert.IsTrue(entry.Value.HasPrivateKey);
                         break;
                     default:
-                        Assert.Fail(entry.Key);
+                        Assert.IsFalse(entry.Value.HasPrivateKey);
                         break;
                 }
             }

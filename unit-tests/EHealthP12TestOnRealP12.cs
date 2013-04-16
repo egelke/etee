@@ -36,22 +36,10 @@ namespace Siemens.EHealth.Client.UnitTest
         [ClassInitialize]
         public static void setup(TestContext context)
         {
-            X509Certificate2 cert;
-            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            my.Open(OpenFlags.ReadOnly);
-            try
-            {
-                cert = my.Certificates.Find(X509FindType.FindByThumbprint, "cf692e24bac7c1d990496573e64ef999468be67e", false)[0];
-            }
-            finally
-            {
-                my.Close();
-            }
+            String pwd = Microsoft.VisualBasic.Interaction.InputBox("Enther the P12 pwd");
 
-            RSACryptoServiceProvider key = (RSACryptoServiceProvider)cert.PrivateKey;
-            String pwd = Encoding.UTF8.GetString(key.Decrypt(Convert.FromBase64String(Properties.Settings.Default.RealP12Pwd), true));
-
-            p12 = new EHealthP12("SSIN=79021802145.p12", pwd);
+            p12 = new EHealthP12("test.p12", pwd);
+            //p12 = new EHealthP12("prod.p12", pwd);
         }
 
         [TestMethod]
@@ -75,7 +63,7 @@ namespace Siemens.EHealth.Client.UnitTest
         [TestMethod]
         public void EncValue()
         {
-            X509Certificate2 cert = p12["111128311597491254660610152441480790885"];
+            X509Certificate2 cert = p12["148459475702464467506498982825636760342"];
             Assert.IsNotNull(cert);
             Assert.IsTrue(cert.HasPrivateKey);
 
@@ -93,6 +81,30 @@ namespace Siemens.EHealth.Client.UnitTest
             {
                 Assert.AreEqual(data[i], data_copy[i]);
             }
+        }
+
+        [TestMethod]
+        public void ReinstallInCurrentUser()
+        {
+            //Prepare
+            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            my.Open(OpenFlags.ReadWrite);
+            X509Store cas = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser);
+            cas.Open(OpenFlags.ReadWrite);
+            X509Store root = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
+            root.Open(OpenFlags.ReadWrite);
+            foreach (X509Certificate2 cert in p12.Values)
+            {
+                if (my.Certificates.Contains(cert)) 
+                    my.Remove(cert);
+                if (cas.Certificates.Contains(cert)) 
+                    cas.Remove(cert);
+                if (root.Certificates.Contains(cert)) 
+                    root.Remove(cert);
+            }
+            
+            //Test install
+            p12.Install(StoreLocation.CurrentUser);
         }
        
     }

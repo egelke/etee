@@ -32,6 +32,7 @@ namespace Siemens.EHealth.Client.Tool
 {
     public class EHealthP12 : IDictionary<String, X509Certificate2>
     {
+
         private String password;
         private Pkcs12Store store;
 
@@ -59,17 +60,7 @@ namespace Siemens.EHealth.Client.Tool
         {
             get
             {
-                List<String> aliasList = new List<string>();
-                IEnumerator aliasEnum = store.Aliases.GetEnumerator();
-                while (aliasEnum.MoveNext())
-                {
-                    String alias = (String)aliasEnum.Current;
-                    if (store.IsKeyEntry(alias))
-                    {
-                        aliasList.Add(alias);
-                    }
-                }
-                return aliasList;
+                return store.Aliases.Cast<String>().ToList<String>();
             }
         }
 
@@ -78,14 +69,9 @@ namespace Siemens.EHealth.Client.Tool
             get
             {
                 List<X509Certificate2> aliasList = new List<X509Certificate2>();
-                IEnumerator aliasEnum = store.Aliases.GetEnumerator();
-                while (aliasEnum.MoveNext())
+                foreach (String key in Keys)
                 {
-                    String alias = (String)aliasEnum.Current;
-                    if (store.IsKeyEntry(alias))
-                    {
-                        aliasList.Add(ConvertToDotNet(alias));
-                    }
+                    aliasList.Add(this[key]);
                 }
                 return aliasList;
             }
@@ -122,7 +108,7 @@ namespace Siemens.EHealth.Client.Tool
         {
             if (key == null) throw new ArgumentNullException("key");
 
-            return store.IsKeyEntry(key);
+            return store.ContainsAlias(key);
         }
 
         public bool Remove(string key)
@@ -134,9 +120,9 @@ namespace Siemens.EHealth.Client.Tool
         {
             if (key == null) new ArgumentNullException("key");
 
-            if (store.IsKeyEntry(key))
+            if (store.ContainsAlias(key))
             {
-                value = ConvertToDotNet(key);
+                value = GetAsDotNet(key);
                 return true;
             }
             else
@@ -192,17 +178,7 @@ namespace Siemens.EHealth.Client.Tool
         public int Count
         {
             get {
-                int count = 0;
-                IEnumerator aliasEnum = store.Aliases.GetEnumerator();
-                while (aliasEnum.MoveNext())
-                {
-                    String alias = (String)aliasEnum.Current;
-                    if (store.IsKeyEntry(alias))
-                    {
-                        count++;
-                    }
-                }
-                return count;
+                return store.Count;
             }
         }
 
@@ -220,15 +196,11 @@ namespace Siemens.EHealth.Client.Tool
 
         public IEnumerator<KeyValuePair<string, X509Certificate2>> GetEnumerator()
         {
+            //TODO:make a real enumerator
             List<KeyValuePair<string, X509Certificate2>> aliasList = new List<KeyValuePair<string, X509Certificate2>>();
-            IEnumerator aliasEnum = store.Aliases.GetEnumerator();
-            while (aliasEnum.MoveNext())
+            foreach (String key in Keys)
             {
-                String alias = (String)aliasEnum.Current;
-                if (store.IsKeyEntry(alias))
-                {
-                    aliasList.Add(new KeyValuePair<string, X509Certificate2>(alias, ConvertToDotNet(alias)));
-                }
+                aliasList.Add(new KeyValuePair<string, X509Certificate2>(key, this[key]));
             }
             return new SynchronizedReadOnlyCollection<KeyValuePair<string, X509Certificate2>>(aliasList).GetEnumerator();
         }
@@ -238,15 +210,74 @@ namespace Siemens.EHealth.Client.Tool
             return GetEnumerator();
         }
 
-        private X509Certificate2 ConvertToDotNet(string entryAlias)
+        /// <summary>
+        /// Install all the certificates in the correct store.
+        /// </summary>
+        /// <remarks>
+        /// Installs the certificates with private keys in the "My" store.
+        /// Installs the root certificates in the "Root" store, if not already present.
+        /// Installs the intermediate certificates in the "
+        /// </remarks>
+        public void Install(StoreLocation location)
         {
-            AsymmetricKeyEntry keyEntry = store.GetKey(entryAlias);
+            X509KeyStorageFlags flags = X509KeyStorageFlags.PersistKeySet
+                | X509KeyStorageFlags.Exportable
+                | (location == StoreLocation.CurrentUser ? X509KeyStorageFlags.UserKeySet : X509KeyStorageFlags.MachineKeySet);
 
-            Pkcs12Store newP12 = new Pkcs12Store();
-            newP12.SetKeyEntry(entryAlias, keyEntry, store.GetCertificateChain(entryAlias));
-            MemoryStream buffer = new MemoryStream();
-            newP12.Save(buffer, password.ToCharArray(), new SecureRandom());
-            return new X509Certificate2(buffer.ToArray(), password, X509KeyStorageFlags.Exportable);
+            X509Store my = new X509Store(StoreName.My, location);
+            my.Open(OpenFlags.ReadWrite);
+            X509Store cas = new X509Store(StoreName.CertificateAuthority, location);
+            cas.Open(OpenFlags.ReadWrite);
+            X509Store root = new X509Store(StoreName.Root, location);
+            root.Open(OpenFlags.ReadWrite);
+            foreach (String key in Keys)
+            {
+                X509Certificate2 cert = GetAsDotNet(key, flags);
+                if (cert.HasPrivateKey)
+                {
+                    my.Add(cert);
+                }
+                else
+                {
+                    X509BasicConstraintsExtension bcs = cert.Extensions.OfType<X509BasicConstraintsExtension>().Single();
+                    if (!bcs.CertificateAuthority) continue; //we skip unneeded certificates;
+                    if (cert.Issuer != cert.Subject)
+                    {
+                        if (!cas.Certificates.Contains(cert)) cas.Add(cert);
+                    }
+                    else
+                    {
+                        if (!root.Certificates.Contains(cert)) root.Add(cert);
+                    }
+                }
+            }
+            my.Close();
+            cas.Close();
+            root.Close();
         }
+
+        private X509Certificate2 GetAsDotNet(string entryAlias)
+        {
+            return GetAsDotNet(entryAlias, X509KeyStorageFlags.Exportable);
+        }
+
+        private X509Certificate2 GetAsDotNet(string entryAlias, X509KeyStorageFlags flags)
+        {
+            Org.BouncyCastle.Pkcs.X509CertificateEntry certificateEntry = store.GetCertificate(entryAlias);
+            if (store.IsKeyEntry(entryAlias))
+            {
+                AsymmetricKeyEntry keyEntry = store.GetKey(entryAlias);
+                Pkcs12Store newP12 = new Pkcs12Store();
+                newP12.SetKeyEntry(entryAlias, keyEntry, store.GetCertificateChain(entryAlias));
+                MemoryStream buffer = new MemoryStream();
+                newP12.Save(buffer, password.ToCharArray(), new SecureRandom());
+                return new X509Certificate2(buffer.ToArray(), password, flags);
+            }
+            else
+            {
+                return new X509Certificate2(certificateEntry.Certificate.GetEncoded());
+            }
+        }
+
     }
 }
