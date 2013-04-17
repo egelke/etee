@@ -3,14 +3,14 @@
 		<standard>
 			<cd SV='1.0' S='CD-STANDARD'>20090101</cd>
 		</standard>
-		<id SV='1.0' S='ID-KMEHR'>71071801.256897</id>
+		<id SV='1.0' S='ID-KMEHR'>71022212.256897</id>
 		<date>2009-01-15</date>
 		<time>12:30:00</time>
 		<sender>
 			<hcparty>
-				<id SV='1.0' S='ID-HCPARTY'>71071801</id>
+				<id SV='1.0' S='ID-HCPARTY'>71022212</id>
 				<cd SV='1.0' S='CD-HCPARTY'>orghospital</cd>
-				<name>Hopital civil de Charleroi</name>
+				<name>AZ ALMA</name>
 			</hcparty>
 			<hcparty>
 				<cd SV='1.0' S='CD-HCPARTY'>application</cd>
@@ -57,17 +57,17 @@
 			<time>10:00:00</time>
 			<author>
 				<hcparty>
-					<id SV='1.0' S='ID-HCPARTY'>71071801</id>
+					<id SV='1.0' S='ID-HCPARTY'>71022212</id>
 					<cd SV='1.0' S='CD-HCPARTY'>orghospital</cd>
-					<name>Hopital civil de Charleroi</name>
+					<name>AZ ALMA</name>
 				</hcparty>
 				<hcparty>
 					<cd SV='1.0' S='CD-HCPARTY'>deptgynecology</cd>
 				</hcparty>
 				<hcparty>
-					<id SV='1.0' S='ID-HCPARTY'>86041036109</id>
-					<id SV='1.0' S='LOCAL' SL='ID-PATIENT'>86041036109</id>
-					<cd SV='1.0' S='CD-HCPARTY'>persphysician</cd>
+					<id SV='1.0' S='ID-HCPARTY'>83121034221</id>
+					<id SV='1.0' S='LOCAL' SL='ID-PATIENT'>83121034221</id>
+					<cd SV='1.0' S='CD-HCPARTY'>persnurse</cd>
 					<firstname>Jan</firstname>
 					<familyname>Modaal</familyname>
 				</hcparty>
@@ -129,17 +129,17 @@
 			<time>12:00:00</time>
 			<author>
 				<hcparty>
-					<id SV='1.0' S='ID-HCPARTY'>71071801</id>
+					<id SV='1.0' S='ID-HCPARTY'>71022212</id>
 					<cd SV='1.0' S='CD-HCPARTY'>orghospital</cd>
-					<name>Hopital civil de Charleroi</name>
+					<name>AZ ALMA</name>
 				</hcparty>
 				<hcparty>
 					<cd SV='1.0' S='CD-HCPARTY'>deptgynecology</cd>
 				</hcparty>
 				<hcparty>
-					<id SV='1.0' S='ID-HCPARTY'>NIHII number</id>
-					<id SV='1.0' S='LOCAL' SL='ID-PATIENT'>INSS number</id>
-					<cd SV='1.0' S='CD-HCPARTY'>persphysician</cd>
+					<id SV='1.0' S='ID-HCPARTY'>83121034221</id>
+					<id SV='1.0' S='LOCAL' SL='ID-PATIENT'>83121034221</id>
+					<cd SV='1.0' S='CD-HCPARTY'>persnurse</cd>
 					<firstname>Jan</firstname>
 					<familyname>Modaal</familyname>
 				</hcparty>
@@ -199,8 +199,8 @@
 							<country>
 								<cd SV='1.0' S='CD-FED-COUNTRY'>be</cd>
 							</country>
-							<zip>2345</zip>
-							<nis>44021</nis>
+							<zip>9900</zip>
+							<nis>43005</nis>
 							<city>CityName</city>
 							<street>Name of street</street>
 							<housenumber>234</housenumber>

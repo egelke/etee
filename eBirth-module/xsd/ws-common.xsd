@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://fsb.belgium.be/ebirth/ws-common/1/"
+	targetNamespace="http://fsb.belgium.be/ebirth/ws-common/1/" elementFormDefault="qualified"
+	attributeFormDefault="qualified">
+	<xs:annotation>
+		<xs:documentation>
+			XML schema for the eBirth project containing generic XML elements used by the web service request and
+			response messages defined in specific XML schemas. Version: 1 Last modification date: 18/01/2010
+		</xs:documentation>
+	</xs:annotation>
+	<xs:complexType name="RequestInfoType">
+		<xs:annotation>
+			<xs:documentation>
+				XML element containing all generic information required in all web service request messages.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:annotation>
+				<xs:documentation>Language of the request message.</xs:documentation>
+			</xs:annotation>
+			<xs:element name="RequestLanguage" type="RequestLanguageType" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ValidationErrors">
+		<xs:annotation>
+			<xs:documentation>List of errors.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Field" type="FieldType" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="FieldType">
+		<xs:annotation>
+			<xs:documentation>Field that generated one or more validation errors.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="FieldName" type="xs:string" />
+			<xs:element name="ValidationErrs" type="ValidationError" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ValidationError">
+		<xs:annotation>
+			<xs:documentation>Validation error message.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="ValidationErrorMessage" type="xs:string" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="RequestLanguageType">
+		<xs:annotation>
+			<xs:documentation>Language of the web service request.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="NL" />
+			<xs:enumeration value="FR" />
+			<xs:enumeration value="DE" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SubmissionId">
+		<xs:annotation>
+			<xs:documentation>Unique identifier created for each birth notification.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string" />
+	</xs:simpleType>
+	<xs:simpleType name="SubmissionTimestamp">
+		<xs:restriction base="xs:string" />
+	</xs:simpleType>
+	<xs:simpleType name="SequenceId">
+		<xs:annotation>
+			<xs:documentation>
+				Sequence number generated for each birth notification. Unique for each birth / notifier (hospital or
+				independant medical practitioner) / year
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string" />
+	</xs:simpleType>
+	<xs:complexType name="ResponseStatusType">
+		<xs:annotation>
+			<xs:documentation>Status of the response message.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Code">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1" />
+						<xs:maxLength value="3" />
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="Description">
+				<xs:simpleType>
+					<xs:restriction base="xs:string" />
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="Level">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="1">
+							<xs:annotation>
+								<xs:documentation>Info</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="2">
+							<xs:annotation>
+								<xs:documentation>Warning</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+						<xs:enumeration value="3">
+							<xs:annotation>
+								<xs:documentation>Error</xs:documentation>
+							</xs:annotation>
+						</xs:enumeration>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ResponseInfoType">
+		<xs:annotation>
+			<xs:documentation>
+				XML element containing all generic information required in all web service response messages.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="ResponseStatus" type="ResponseStatusType" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="SourceType">
+		<xs:annotation>
+			<xs:documentation>
+				For the internal webservices of the ebirth application we only expect two sources of where we can get
+				request from.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="WEBAPP">
+				<xs:annotation>
+					<xs:documentation>WEBAPP</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="WEBSERVICE">
+				<xs:annotation>
+					<xs:documentation>WEBSERVICE</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="SubmitterType">
+		<xs:annotation>
+			<xs:documentation>XML element with information about the submitter</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Firstname" type="xs:string" />
+			<xs:element name="Name" type="xs:string" />
+			<xs:element name="NRN" type="xs:integer" />
+			<xs:element name="Riziv" type="xs:integer" />
+			<xs:element name="HospitalCode" type="xs:integer" />
+			<xs:element name="CampusCode" type="xs:string" />
+			<xs:element name="Profession" type="ProfessionType" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="ProfessionType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="1">
+				<xs:annotation>
+					<xs:documentation>DOCTOR</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="2">
+				<xs:annotation>
+					<xs:documentation>MIDWIFE</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="3">
+				<xs:annotation>
+					<xs:documentation>NURSE</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="BirthNotificationSummary">
+		<xs:sequence>
+			<xs:element name="Rank" type="RankType" />
+			<xs:element name="BirthDate" type="xs:string" />
+			<xs:element name="BirthLocationMunicipalityCode" type="MunicipalityCodeType" />
+			<xs:element name="MultiBirth" type="xs:boolean" />
+			<xs:element name="gender" type="GenderType" />
+			<xs:element name="Mother_BirthDate" type="xs:string" />
+			<xs:element name="postalcode" type="PostalCodeType" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="RankType">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="1" />
+			<xs:totalDigits value="1" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="GenderType">
+		<xs:annotation>
+			<xs:documentation>
+				There are 3 types of gender possible: Male (1), Female(2), Undetermined (3)
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:enumeration value="1">
+				<xs:annotation>
+					<xs:documentation>Male</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="2">
+				<xs:annotation>
+					<xs:documentation>Female</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="3">
+				<xs:annotation>
+					<xs:documentation>Undetermined</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PostalCodeType">
+		<xs:annotation>
+			<xs:documentation>Generic postal code. Can be a foreign.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="10" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="CompleteMunicipalityCodeType">
+		<xs:annotation>
+			<xs:documentation>
+				Each municipality in Belgium has a specific code which is determined by the SPF Economy (DG Statistics).
+				For municipalities organized in districts (Antwerp and Tournai), an additional district code is added.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="MunicipalityCode" type="MunicipalityCodeType" />
+			<xs:element name="DistrictCode" type="DistrictCodeType" nillable="true" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="MFBasicInfoType">
+		<xs:annotation>
+			<xs:documentation>Basic information about the medical form</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="submissionID" type="xs:string"/>
+			<xs:element name="statusMF" type="xs:string"/>
+			<xs:element name="submissionTimestamp" type="xs:dateTime"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ExtendedMFInfoType">
+		<xs:annotation>
+			<xs:documentation>Extended information about the medical form</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="submissionID" type="xs:string"/>
+			<xs:element name="statusMF" type="xs:string" nillable="true" minOccurs="0"/>
+			<xs:element name="source" type="xs:string" nillable="true" minOccurs="0" />
+			<xs:element name="version" type="xs:string" nillable="true" minOccurs="0" />
+			<xs:element name="medicalValidation" type="xs:string" nillable="true" minOccurs="0"/>
+			<xs:element name="submissionTimestamp" type="xs:dateTime" nillable="true" minOccurs="0"/>
+			<xs:element name="creationTimestamp" type="xs:dateTime" nillable="true" minOccurs="0"/>
+			<xs:element name="updateTimestamp" type="xs:dateTime" nillable="true" minOccurs="0"/>
+			<xs:element name="riziv" type="xs:string" nillable="true" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="MunicipalityCodeType">
+		<xs:annotation>
+			<xs:documentation>Code of the municipality, attributed by SPF Economy (DG Statistics).</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="10000" />
+			<xs:totalDigits value="5" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="DistrictCodeType">
+		<xs:annotation>
+			<xs:documentation>
+				Code of the district of the municipality (only applicable for Antwerpen and Tournai).
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="1" />
+			<xs:pattern value="[ABCDEFHMW01234]" />
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

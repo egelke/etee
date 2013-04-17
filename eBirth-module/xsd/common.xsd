@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://fsb.belgium.be/ebirth/"
+	xmlns:common="http://fsb.belgium.be/ebirth/common/1/" targetNamespace="http://fsb.belgium.be/ebirth/common/1/"
+	elementFormDefault="qualified" attributeFormDefault="qualified">
+	<xs:annotation>
+		<xs:documentation>
+			XML schema for the eBirth project containing generic XML elements used by multiple XML schemas. Version: 1
+			Last modification date: 31/08/2009
+		</xs:documentation>
+	</xs:annotation>
+	<xs:simpleType name="CustomBooleanType">
+		<xs:annotation>
+			<xs:documentation>Custom type with 3 values: Yes, No and Unknown.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:enumeration value="1">
+				<xs:annotation>
+					<xs:documentation>Yes</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="2">
+				<xs:annotation>
+					<xs:documentation>No</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="9">
+				<xs:annotation>
+					<xs:documentation>Unkown</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="GenderType">
+		<xs:annotation>
+			<xs:documentation>Gender</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:enumeration value="1">
+				<xs:annotation>
+					<xs:documentation>Male</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="2">
+				<xs:annotation>
+					<xs:documentation>Female</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="3">
+				<xs:annotation>
+					<xs:documentation>Undetermined</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="MedicalPractitionerType">
+		<xs:annotation>
+			<xs:documentation>
+				Type describing a medical practitioner. In the context of the eBirth project, a medical practitioner can
+				be a doctor, midwife or nurse.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="PersonNumber" type="common:PersonNumberType" />
+			<xs:element name="RizivNumber" type="common:RizivPersonType" nillable="true" minOccurs="0" />
+			<xs:element name="LastName" type="common:LastNameType" />
+			<xs:element name="FirstName" type="common:FirstNameType" />
+			<xs:element name="MedicalProfessionType" type="common:MedicalProfessionType" />
+			<xs:element name="Hospital" type="common:Hospital" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="SubmitterType">
+		<xs:annotation>
+			<xs:documentation>
+				The submitter is the professional taking responsibility for submitting the birth notification to the
+				Burgerlijke Stand/Etat Civil. This can be a medical practitioner (doctor, midwife or nurse) or an
+				administrative professional working for a hospital.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="PersonNumber" type="common:PersonNumberType" />
+			<xs:element name="RizivNumber" type="common:RizivPersonType" nillable="true" minOccurs="0" />
+			<xs:element name="LastName" type="common:LastNameType" />
+			<xs:element name="FirstName" type="common:FirstNameType" />
+			<xs:element name="MedicalProfessionType" type="common:MedicalProfessionType" nillable="true" minOccurs="0" />
+			<xs:element name="Hospital" type="common:Hospital" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Hospital">
+		<xs:sequence>
+			<xs:element name="HospitalName" type="xs:string" nillable="true" minOccurs="0" />
+			<xs:element name="HospitalCode" type="common:RizivHopsitalType" nillable="true" minOccurs="0" />
+			<xs:element name="HospitalCampusCode" type="xs:string" nillable="true" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="MedicalProfessionType">
+		<xs:annotation>
+			<xs:documentation>Type of medical profession</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:enumeration value="1">
+				<xs:annotation>
+					<xs:documentation>Doctor</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="2">
+				<xs:annotation>
+					<xs:documentation>Midwife</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="3">
+				<xs:annotation>
+					<xs:documentation>Nurse</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ParentsAddressType">
+		<xs:sequence>
+			<xs:element name="Street" type="common:StreetType" nillable="true" minOccurs="0" />
+			<xs:element name="PostalCode" type="common:PostalCodeType" nillable="true" minOccurs="0" />
+			<xs:element name="Municipality" type="common:MunicipalityType" nillable="true" minOccurs="0" />
+			<xs:element name="CountryCode" type="common:CountryCodeType" nillable="true" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="BirthLocationAddressType">
+		<xs:annotation>
+			<xs:documentation>Address where the baby is born. It is required to be a Belgian address.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Street" type="common:StreetType" />
+			<xs:element name="PostalCode" type="common:BelgianPostalCodeType" />
+			<xs:element name="Municipality" type="common:MunicipalityType" />
+			<xs:element name="CompleteMunicipalityCode" type="common:CompleteMunicipalityCodeType" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="BirthLocationType">
+		<xs:annotation>
+			<xs:documentation>Type of birth location</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:enumeration value="1">
+				<xs:annotation>
+					<xs:documentation>Hospital</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="2">
+				<xs:annotation>
+					<xs:documentation>Other</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="3">
+				<xs:annotation>
+					<xs:documentation>Home</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="FirstNameType">
+		<xs:annotation>
+			<xs:documentation>First name of a person</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="95" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="LastNameType">
+		<xs:annotation>
+			<xs:documentation>Last name of a person</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="90" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StreetType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="100" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="HouseNumberType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="10" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PostBoxType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="10" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PostalCodeType">
+		<xs:annotation>
+			<xs:documentation>Generic postal code. Can be a foreign.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="10" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="BelgianPostalCodeType">
+		<xs:annotation>
+			<xs:documentation>Postal code with Belgian structur (4 digits).</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="1000" />
+			<xs:totalDigits value="4" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="MunicipalityType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="50" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="CompleteMunicipalityCodeType">
+		<xs:annotation>
+			<xs:documentation>
+				Each municipality in Belgium has a specific code which is determined by the SPF Economy (DG Statistics).
+				For municipalities organized in districts (Antwerp and Tournai), an additional district code is added.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="MunicipalityCode" type="common:MunicipalityCodeType" />
+			<xs:element name="DistrictCode" type="common:DistrictCodeType" nillable="true" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="MunicipalityCodeType">
+		<xs:annotation>
+			<xs:documentation>Code of the municipality, attributed by SPF Economy (DG Statistics).</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="10000" />
+			<xs:totalDigits value="5" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="DistrictCodeType">
+		<xs:annotation>
+			<xs:documentation>
+				Code of the district of the municipality (only applicable for Antwerpen and Tournai).
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="1" />
+			<xs:pattern value="[ABCDEFHMW01234]" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CountryCodeType">
+		<xs:annotation>
+			<xs:documentation>Geobel code of the country</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="100" />
+			<xs:totalDigits value="3" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="IncompleteDateType">
+		<xs:annotation>
+			<xs:documentation>Incomplete date (YYYYMMDD). An unknown date is indicated as 99999999.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="8" />
+			<xs:pattern value="[0-9]{4}[01239]{1}[0-9]{1}[01239]{1}[0-9]{1}" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PersonNumberType">
+		<xs:annotation>
+			<xs:documentation>National Registry Number or BIS-register number of a person</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[0-9]{11}" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="RizivHopsitalType">
+		<xs:annotation>
+			<xs:documentation>RIZIV / INAMI code attributed to Belgian hospitals.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:totalDigits value="8" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="RizivPersonType">
+		<xs:annotation>
+			<xs:documentation>RIZIV / INAMI code attributed to Belgian medical practitioners.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:totalDigits value="11" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="HospitalName">
+		<xs:annotation>
+			<xs:documentation>Name of a hopsital.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="200" />
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

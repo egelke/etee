@@ -1,0 +1,38 @@
+<!-- edited with XMLSpy v2009 (http://www.altova.com) by Smals-MVM ASBL/VZW (Smals-MVM ASBL/VZW) -->
+<xs:schema xmlns="urn:be:fgov:ehealth:ttp:core:v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:core="urn:be:fgov:ehealth:commons:core:v1" targetNamespace="urn:be:fgov:ehealth:ttp:core:v1" elementFormDefault="unqualified" attributeFormDefault="unqualified" version="1.0">
+	<xs:import namespace="urn:be:fgov:ehealth:commons:core:v1" schemaLocation="../../../commons/core/v1/ehealth-commons-schema-core-1_3.xsd"/>
+	<xs:complexType name="PersonType">
+		<xs:sequence>
+			<xs:element name="Firstname" type="xs:string"/>
+			<xs:element name="Name" type="xs:string"/>
+			<xs:element name="Identifier" type="core:IdentifierType" maxOccurs="unbounded"/>
+			<xs:element name="Attribute" type="AttributeType" maxOccurs="unbounded"/>
+			<xs:element name="Extension" type="xs:anyType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="AttributeType">
+		<xs:sequence>
+			<xs:element name="Namespace" type="xs:string"/>
+			<xs:element name="Name" type="xs:string"/>
+			<xs:element name="Value" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="OrganisationType">
+		<xs:sequence>
+			<xs:element name="Identifier" type="core:IdentifierType"/>
+			<xs:element name="Attribute" type="AttributeType" maxOccurs="unbounded"/>
+			<xs:element name="Name" type="core:LocalisedString" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Address" type="core:AddressType" minOccurs="0"/>
+			<xs:element name="Extension" type="xs:anyType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="EhealthSubjectType">
+		<xs:sequence>
+			<xs:element name="Person" type="PersonType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Organisation" type="OrganisationType" minOccurs="0"/>
+			<xs:element name="CertificateHolder" type="OrganisationType"/>
+			<xs:element name="Extension" type="xs:anyType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="Id" type="xs:string"/>
+	</xs:complexType>
+</xs:schema>

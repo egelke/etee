@@ -1,0 +1,26 @@
+<!-- edited with XMLSpy v2009 (http://www.altova.com) by Smals-MVM ASBL/VZW (Smals-MVM ASBL/VZW) -->
+<xs:schema xmlns="urn:be:fgov:ehealth:ttp:protocol:v1" xmlns:tc="urn:be:fgov:ehealth:ttp:core:v1" xmlns:protocol="urn:be:fgov:ehealth:commons:protocol:v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:be:fgov:ehealth:ttp:protocol:v1" elementFormDefault="unqualified" attributeFormDefault="unqualified" version="1.1">
+	<xs:import namespace="urn:be:fgov:ehealth:commons:protocol:v1" schemaLocation="ehealth-commons-schema-protocol-1_3.xsd"/>
+	<xs:import namespace="urn:be:fgov:ehealth:ttp:core:v1" schemaLocation="ehealth-ttp-schema-core-1_0.xsd"/>
+	<xs:element name="SendEHealthMessageRequest" type="SendEHealthMessageRequestType"/>
+	<xs:element name="AnyResponse" type="AnyResponseType"/>
+	<xs:complexType name="SendEHealthMessageRequestType">
+		<xs:complexContent>
+			<xs:extension base="protocol:RequestType">
+				<xs:sequence>
+					<xs:element name="EhealthSubject" type="tc:EhealthSubjectType"/>
+					<xs:element name="PayLoad" type="xs:anyType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="AnyResponseType">
+		<xs:complexContent>
+			<xs:extension base="protocol:ResponseType">
+				<xs:sequence>
+					<xs:element name="PayLoad" type="xs:anyType" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

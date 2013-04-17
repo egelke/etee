@@ -25,24 +25,13 @@ namespace Egelke.EHealth.Client.EBirth
             this.proxy = proxy;
         }
 
-        protected override System.IO.Stream OnTransferFrom(Object parameter, out byte[] keyId)
+        protected override Tuple<Stream, object> OnTransferEncrypted(Stream encrypted, object parameters, ref byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
-            keyId = null;
-            throw new NotImplementedException();
-        }
-
-        protected override Object OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Object OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
-        {
-            byte[] cmsMessage = ReadFully(cyphered);
+            byte[] cmsMessage = ReadFully(encrypted);
             Object response = proxy.SendCMSMessage(cmsMessage);
             //TODO: check response...
 
-            return response;
+            return new Tuple<Stream, Object>(null, response);
         }
 
         private static byte[] ReadFully(Stream input)

@@ -31,7 +31,7 @@ namespace Egelke.EHealth.Client.EBirthTest
             List<Recipient> recipients = new List<Recipient>();
             recipients.Add(new KnownRecipient("CBE", "0367302178", "EBIRTHTEST"));
 
-            pm.Send(new FileStream("notification_kmehr.xml", FileMode.Open, FileAccess.Read), new ReadOnlyCollection<Recipient>(recipients));
+            Object response = pm.TransferAndEncryptOnly(new FileStream("notification_kmehr.xml", FileMode.Open, FileAccess.Read), null, new ReadOnlyCollection<Recipient>(recipients));
         }
     }
 }

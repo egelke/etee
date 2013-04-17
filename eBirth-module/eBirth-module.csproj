@@ -74,6 +74,51 @@
     </None>
     <None Include="wsdl\ttp-proxy-medicalform-1_3.wsdl" />
     <None Include="wsdl\ttp-proxy-notification-1_3.wsdl" />
+    <None Include="xsd\cd.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\common.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\dt.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\eBirthHospitalServiceMessages.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\ehealth-commons-schema-core-1_3.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\ehealth-commons-schema-protocol-1_3.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\ehealth-ttp-schema-core-1_0.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\ehealth-ttp-schema-protocol-1_1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\fsb.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\id.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\kmehr2009.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\kmehrresponse.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\ws-common.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\xenc-schema.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="xsd\xmldsig-core-schema.xsd">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="BouncyCastle.Crypto.dll" />

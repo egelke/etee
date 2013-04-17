@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- edited with XMLSpy v2009 (http://www.altova.com) by Smals-MVM ASBL/VZW (Smals-MVM ASBL/VZW) -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:kmehr="http://www.health.fgov.be/telematics/kmehr/schema" xmlns:DT="http://www.health.fgov.be/telematics/kmehr/DT" xmlns:CD="http://www.health.fgov.be/telematics/kmehr/CD" xmlns:ID="http://www.health.fgov.be/telematics/kmehr/ID" xmlns:s3="http://www.w3.org/2000/09/xmldsig#" xmlns:s2="http://www.w3.org/2001/04/xmlenc#" xmlns:ws="http://tempuri.org" targetNamespace="http://tempuri.org" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xsd:import namespace="http://www.health.fgov.be/telematics/kmehr/schema" schemaLocation="kmehr2009.xsd"/>
+	<xsd:import namespace="http://www.health.fgov.be/telematics/kmehr/CD" schemaLocation="cd.xsd"/>
+	<xsd:import namespace="http://www.health.fgov.be/telematics/kmehr/ID" schemaLocation="id.xsd"/>
+	<xsd:import namespace="http://www.health.fgov.be/telematics/kmehr/DT" schemaLocation="dt.xsd"/>
+	<xsd:import namespace="http://www.w3.org/2000/09/xmldsig#" schemaLocation="xmldsig-core-schema.xsd"/>
+	<xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="xenc-schema.xsd"/>
+	<xsd:element name="puttransactionresponse" type="ws:kmehrresponse"/>
+	<xsd:complexType name="kmehrresponse">
+		<xsd:sequence>
+			<xsd:element name="response" type="ws:responseType" minOccurs="0"/>
+			<xsd:element name="acknowledge" type="ws:kmehrrequestacknowledge" minOccurs="0"/>
+			<xsd:element name="patient" type="kmehr:personType" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="hcparty" type="kmehr:hcpartyType" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="kmehrheader" type="ws:kmehrheader" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element ref="kmehr:kmehrmessage" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="kmehrrequestacknowledge">
+		<xsd:sequence>
+			<xsd:element name="iscomplete" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element ref="kmehr:error" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="kmehrheader">
+		<xsd:sequence>
+			<xsd:element ref="kmehr:confidentiality" minOccurs="0"/>
+			<xsd:element ref="kmehr:header" minOccurs="0"/>
+			<xsd:element ref="kmehr:folder" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="lnk" type="CD:lnkType" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="signature" type="s3:SignatureType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="responseType">
+		<xsd:sequence>
+			<xsd:element name="id" type="ID:ID-KMEHR" minOccurs="0"/>
+			<xsd:element name="author" type="kmehr:authorType" minOccurs="0"/>
+			<xsd:element name="date" type="xsd:date" minOccurs="0"/>
+			<xsd:element name="time" type="xsd:time" minOccurs="0"/>
+			<xsd:element name="request" type="ws:request" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="request">
+		<xsd:sequence>
+			<xsd:element name="id" type="ID:ID-KMEHR" minOccurs="0"/>
+			<xsd:element name="author" type="kmehr:authorType" minOccurs="0"/>
+			<xsd:element name="patient" type="kmehr:personType" minOccurs="0"/>
+			<xsd:element name="date" type="xsd:date" minOccurs="0"/>
+			<xsd:element name="time" type="xsd:time" minOccurs="0"/>
+			<xsd:element name="maxrows" type="xsd:decimal" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>
