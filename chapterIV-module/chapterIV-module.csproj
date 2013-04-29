@@ -55,8 +55,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AgreementException.cs" />
+    <Compile Include="Ask.cs" />
     <Compile Include="Consult.cs" />
     <Compile Include="ConsultPostMaster.cs" />
+    <Compile Include="CommonPostMaster.cs" />
+    <Compile Include="SecondPassAskPostMaster.cs" />
     <Compile Include="InputParameterData.cs" />
     <Compile Include="OutputParameterData.cs" />
     <Compile Include="SecondPassConsultPostMaster.cs" />
@@ -73,6 +76,7 @@
     <None Include="consultXsd\Consult.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="genAskXsd.bat" />
     <None Include="genConsultXsd.bat" />
     <None Include="genWsdl.bat" />
     <None Include="wsdl\chap4services_core-1_0.xsd">
