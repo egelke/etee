@@ -43,16 +43,14 @@ namespace Egelke.EHealth.Client.GenAsyncTest
             //Select the hospital certificate, should be used for all 4 certs (but we can't, see below)
             X509Certificate2 hospital = store.Certificates.Find(X509FindType.FindByThumbprint, "415442ca384c853231e203fafa9a436f33b4043b", false)[0];
 
-            //For the signature and authentication we can use the hosptial certificate
+            //For the signature, authentication and session we can use the hosptial certificate
             sign = hospital;
             auth = hospital;
+            session = hospital;
 
             //Since our hospital can't use TSA, we use a different (you should use the hosptial cert)
             tsa = store.Certificates.Find(X509FindType.FindByThumbprint, "9c4227f1b9c7a52823829837f1a2e80690da8010", false)[0];
             
-            //Since the hospital certificates aren't from an actual CA, MCN does not allow them (you should use the hosptial cert in production)
-            //session = store.Certificates.Find(X509FindType.FindByThumbprint, "c6c3cba1000c955c2e6289c6eb40bbb7477476c0", false)[0];
-            session = hospital;
 
             //We trust eHealth for TSA
             tsaTrust = new X509Certificate2("tsa.crt");
@@ -95,7 +93,7 @@ namespace Egelke.EHealth.Client.GenAsyncTest
             ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:hospital:nihii-number"));
             ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:hospital:nihii-number"));
             ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:ehealth:1.0:certificateholder:hospital:nihii-number:recognisedhospital:boolean"));
-
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:ehealth:1.0:hospital:nihii-number:recognisedhospital:nihii11"));
             ssoBinding.ReaderQuotas.MaxStringContentLength = 100 * 1024 * 1024; //100MB
 
             GenericAsyncClient client = new GenericAsyncClient(ssoBinding, new EndpointAddress("urn:nip:destination:io:100")); //indicates the destination IO
@@ -138,7 +136,7 @@ namespace Egelke.EHealth.Client.GenAsyncTest
             commonInput.Origin.CareProvider.Organization.Nihii = commonInput.Origin.CareProvider.Nihii;
 
             //create blob value
-            Stream raw = new MemoryStream(Encoding.ASCII.GetBytes("This is not a business message and I don't mean it in Magritte way")); //you might use a file instead
+            Stream raw = new MemoryStream(Encoding.ASCII.GetBytes(RandomString(1024*1024))); //you might use a file instead
             MemoryStream deflated = new MemoryStream();
             DeflateStream deflater = new DeflateStream(deflated, CompressionMode.Compress, true);
             raw.CopyTo(deflater);
@@ -316,6 +314,20 @@ namespace Egelke.EHealth.Client.GenAsyncTest
 
             //We should not have anything to resend
             Assert.AreEqual(0, resend.Count);
+        }
+
+        private readonly Random _rng = new Random();
+        private const string _chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ";
+
+        private char[] RandomString(int size)
+        {
+            char[] buffer = new char[size];
+
+            for (int i = 0; i < size; i++)
+            {
+                buffer[i] = _chars[_rng.Next(_chars.Length)];
+            }
+            return buffer;
         }
     }
 }

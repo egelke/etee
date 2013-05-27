@@ -86,17 +86,20 @@ namespace Siemens.EHealth.Client.StsTest
             IList<ClaimTypeRequirement> claimReq;
             claimReq = new List<ClaimTypeRequirement>();
             claimReq.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin"));
+            claimReq.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin"));
+            claimReq.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean"));
             requestedDefault = new Collection<ClaimTypeRequirement>(claimReq);
         }
 
         [TestMethod]
         public void ConfigViaCode()
         {
-            StsClient target = new StsClient(new StsBinding(), new EndpointAddress("https://wwwacc.ehealth.fgov.be/sts_1_1/SecureTokenService"));
+            StsClient target = new StsClient(new StsBinding(), new EndpointAddress("https://www.ehealth.fgov.be/sts_1_1/SecureTokenService"));
             target.Endpoint.Behaviors.Remove<ClientCredentials>();
             target.Endpoint.Behaviors.Add(new OptClientCredentials());
-            target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindBySubjectName, "CBE=0254014195, ISP_PROD");
-            XmlElement assertion = target.RequestTicket("Egelke", session, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
+            target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "1ac02600f2f2b68f99f1e8eeab2e780470e0ea4c");
+            //target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
+            XmlElement assertion = target.RequestTicket("Anonymous", session, TimeSpan.FromHours(1), assertedDefault, requestedDefault);
 
             Assert.AreEqual("Assertion", assertion.LocalName);
             Assert.AreEqual("urn:oasis:names:tc:SAML:1.0:assertion", assertion.NamespaceURI);

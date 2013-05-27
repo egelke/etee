@@ -55,13 +55,13 @@ namespace Egelke.EHealth.Client.EhBoxTest
                 new ehBoxPublicationPortTypeClient("Publish"), 
                 new ehBoxConsultationPortTypeClient("Consult"),
                 new EtkDepotPortTypeClient("etk"));
-            pm.VerifyEtk = false; //better to use it only for testing
+            //pm.VerifyEtk = false; //better to use it only for testing
             
             List<Recipient> recipients = new List<Recipient>();
             recipients.Add(new EhBoxRecipient("CBE", "0820563481", "INSTITUTION", "MyCareNet"));
 
             pm.Title = "eH-I supports ehBox";
-            String responseId = (String) pm.Send(new MemoryStream(Encoding.UTF8.GetBytes("The eH-I library now support publication of encrypted messages to the ehBox")), new ReadOnlyCollection<Recipient>(recipients));
+            String responseId = (String) pm.TransferAndEncryptOnly(new MemoryStream(Encoding.UTF8.GetBytes("The eH-I library now support publication of encrypted messages to the ehBox")), null, new ReadOnlyCollection<Recipient>(recipients));
 
             Assert.IsFalse(String.IsNullOrWhiteSpace(responseId));
         }

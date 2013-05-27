@@ -1,18 +1,15 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
+﻿using Egelke.EHealth.Client.ChapterIV;
+using NUnit.Framework;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Egelke.EHealth.Client.ChapterIV;
 using System.ServiceModel;
 using System.Xml;
 
 namespace Egelke.EHealth.Client.ChapterIVTest
 {
-    [TestClass]
+    [TestFixture]
     public class CIVICSExample
     {
-        [TestMethod]
+        [Test]
         public void ConfigViaFile()
         {
             SamcivicsPortTypeClient client = new SamcivicsPortTypeClient("CivicsForDoctor");

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Security.Cryptography.X509Certificates;
 using Siemens.EHealth.Client.Sso;
 using System.ServiceModel;
@@ -15,25 +12,27 @@ using Egelke.EHealth.Client.ChapterIV;
 using Siemens.EHealth.Etee.Crypto.Library;
 using Siemens.EHealth.Etee.Crypto.Library.ServiceClient;
 using System.IO;
+using NUnit.Framework;
 
 namespace Egelke.EHealth.Client.ChapterIVTest
 {
-    [TestClass]
+
+    [TestFixture]
     public class ConsultExample
     {
-        private static X509Certificate2 sign;
-        private static X509Certificate2 auth;
-        private static X509Certificate2 session;
+        private X509Certificate2 sign;
+        private X509Certificate2 auth;
+        private X509Certificate2 session;
 
-        [ClassInitialize]
-        public static void MyClassInitialize(TestContext testContext)
+        [TestFixtureSetUp]
+        public void MyClassInitialize(TestContext testContext)
         {
             X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadOnly);
 
             //Select the care provider certificate issued by eHealth
             X509Certificate2 eh = store.Certificates.Find(X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2", false)[0];
-            X509Certificate2 eid = store.Certificates.Find(X509FindType.FindByThumbprint, "c6c3cba1000c955c2e6289c6eb40bbb7477476c0", false)[0];
+            X509Certificate2 eid = store.Certificates.Find(X509FindType.FindByThumbprint, "1ac02600f2f2b68f99f1e8eeab2e780470e0ea4c", false)[0];
             
 
             //For the signature (and encrypt) we use eHealth certificates
@@ -42,11 +41,13 @@ namespace Egelke.EHealth.Client.ChapterIVTest
             //For the session we use eHealth certificate
             session = eh;
 
-            //For authentication we use eid certificate (but since that does notwork, ticket 2-3RKM9C, we use the eHealth certificfate.
-            auth = eh;
+            //For authentication we use eid certificate
+            auth = eid;
         }
 
-        [TestMethod]
+        
+
+        [Test]
         public void ConfigDoctorViaCode()
         {
             //Create SSOBinding
@@ -107,9 +108,10 @@ namespace Egelke.EHealth.Client.ChapterIVTest
             parameters.CommonInput.Origin = new OriginType();
             parameters.CommonInput.Origin.Package = new PackageType();
             parameters.CommonInput.Origin.Package.License = new LicenseType();
-            parameters.CommonInput.Origin.Package.License.Username = "ehi"; //provide you own license
-            parameters.CommonInput.Origin.Package.License.Password = "eHIpwd05"; //provide your own password
-
+            //parameters.CommonInput.Origin.Package.License.Username = "ehi"; //provide you own license
+            //parameters.CommonInput.Origin.Package.License.Password = "eHIpwd05"; //provide your own password
+            parameters.CommonInput.Origin.Package.License.Username = "siemens"; //provide you own license
+            parameters.CommonInput.Origin.Package.License.Password = "n7z6Y(S8+X"; //provide your own password
 
             parameters.CommonInput.Origin.CareProvider = new CareProviderType();
             parameters.CommonInput.Origin.CareProvider.Nihii = new NihiiType();
@@ -124,7 +126,7 @@ namespace Egelke.EHealth.Client.ChapterIVTest
             parameters.RecordCommonInput.InputReference = 20101112100503;
             parameters.AgreementStartDate = new DateTime(2013, 04, 01, 0, 0, 0, DateTimeKind.Utc);
             parameters.CareReceiverId = new CareReceiverIdType();
-            parameters.CareReceiverId.Ssin = "47040537505";
+            parameters.CareReceiverId.Ssin = "01093008501";
 
             //send the request
             X509Certificate2 sender;

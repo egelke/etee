@@ -53,18 +53,7 @@ namespace Egelke.EHealth.Client.EhBox
             this.consult = consult;
         }
 
-        protected override System.IO.Stream OnTransferFrom(Object parameters, out byte[] keyId)
-        {
-            keyId = null;
-            throw new NotImplementedException();
-        }
-
-        protected override Object OnTransferTo(System.IO.Stream cyphered, byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Object OnTransferTo(System.IO.Stream cyphered, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
+        protected override Tuple<Stream, object> OnTransferEncrypted(Stream encrypted, object parameters, ref byte[] keyId, System.Collections.ObjectModel.ReadOnlyCollection<Recipient> recipients)
         {
             PublicationMessageType publishMessage = new PublicationMessageType();
 
@@ -92,7 +81,7 @@ namespace Egelke.EHealth.Client.EhBox
 
             NewsType news = new NewsType();
             news.Title = this.title;
-            news.Item = ReadFully(cyphered);
+            news.Item = ReadFully(encrypted);
             news.ItemElementName = ItemChoiceType1.EncryptableTextContent;
             news.MimeType = "text/plain";
             publishMessage.ContentContext.Content.Item = news;
@@ -170,7 +159,7 @@ namespace Egelke.EHealth.Client.EhBox
             }
 
             //TODO: also also Receipts info.
-            return publishResp.Id;
+            return new Tuple<Stream,object>(null, publishResp.Id);
         }
 
         private static int Fibonacci(int n)

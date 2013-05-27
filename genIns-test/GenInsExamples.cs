@@ -38,7 +38,7 @@ namespace Siemens.EHealth.Client.CodageTest
         [TestMethod]
         public void ConfigViaConfig()
         {
-            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient("HospitalEP");
+            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient("DoctorEP");
 
             DoTest(client);
         }
@@ -86,8 +86,8 @@ namespace Siemens.EHealth.Client.CodageTest
             request.CommonInput.Origin.Package.License.Password = "eHIpwd05";
             //request.CommonInput.Origin.Package.License.Username = "siemens";
             //request.CommonInput.Origin.Package.License.Password = "n7z6Y(S8+X";
-            //setDoctor(request);
-            setHospital(request);
+            setDoctor(request);
+            //setHospital(request);
 
             //Create record common input, contains additional tracking info
             request.RecordCommonInput = new RecordCommonInputType();

@@ -1,84 +1,20 @@
-<kmws:kmehrrequest xmlns="http://www.ehealth.fgov.be/standards/kmehr/schema/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:kmws="http://www.ehealth.fgov.be/medicalagreement/core/v1" xmlns:km="http://www.ehealth.fgov.be/standards/kmehr/schema/v1" xsi:schemaLocation="http://www.ehealth.fgov.be/medicalagreement/core/v1 ./medicalagreement/XSD/medicalagreement-core-1_0.xsd">
-  <kmws:kmehrmessage>
-    <km:header>
-      <km:standard>
-        <km:cd S="CD-STANDARD" SV="1.3">20100901</km:cd>
-      </km:standard>
-      <km:id S="ID-KMEHR" SV="1.0">19997341001.20101112100503</km:id>
-      <km:date>2010-11-12</km:date>
-      <km:time>10:05:03</km:time>
-      <km:sender>
-        <km:hcparty>
-          <km:id S="ID-HCPARTY" SV="1.0">19997341001</km:id>
-          <km:id SV="1.0" S="INSS">79021802145</km:id>
-          <km:cd S="CD-HCPARTY" SV="1.0">persphysician</km:cd>
-          <km:firstname>Bryan</km:firstname>
-          <km:familyname>Brouckaert</km:familyname>
-        </km:hcparty>
-      </km:sender>
-      <km:recipient>
-        <km:hcparty>
-          <km:cd S="CD-HCPARTY" SV="1.1">application</km:cd>
-          <km:name>MyCarenet</km:name>
-        </km:hcparty>
-      </km:recipient>
-    </km:header>
-    <km:folder>
-      <km:id S="ID-KMEHR" SV="1.0">1</km:id>
-      <km:patient>
-        <km:id S="ID-PATIENT" SV="1.0">47040537505</km:id>
-        <km:firstname>Luc</km:firstname>
-        <km:familyname>Brouckaert</km:familyname>
-        <km:sex>
-          <km:cd S="CD-SEX" SV="1.0">male</km:cd>
-        </km:sex>
-      </km:patient>
-      <km:transaction>
-        <km:id S="ID-KMEHR" SV="1.0">1</km:id>
-        <km:cd SV="1.3" S="CD-TRANSACTION">medicaladvisoragreement</km:cd>
-        <km:cd SV="1.0" S="CD-TRANSACTION-MAA">consultationrequest</km:cd>
-        <km:date>2010-11-12</km:date>
-        <km:time>10:05:00</km:time>
-        <km:author>
-          <km:hcparty>
-            <km:id S="ID-HCPARTY" SV="1.0">19997341001</km:id>
-            <km:id SV="1.0" S="INSS">79021802145</km:id>
-            <km:cd S="CD-HCPARTY" SV="1.0">persphysician</km:cd>
-            <km:firstname>Bryan</km:firstname>
-            <km:familyname>Brouckaert</km:familyname>
-          </km:hcparty>
-        </km:author>
-        <km:iscomplete>true</km:iscomplete>
-        <km:isvalidated>true</km:isvalidated>
-        <km:item>
-          <km:id SV="1.0" S="ID-KMEHR">1</km:id>
-          <km:cd SV="1.0" S="CD-ITEM-MAA">agreementtype</km:cd>
-          <km:content>
-            <km:cd SV="1.0" S="CD-MAA-TYPE">chapter4</km:cd>
-          </km:content>
-        </km:item>
-        <km:item>
-          <km:id S="ID-KMEHR" SV="1.0">2</km:id>
-          <km:cd S="CD-ITEM-MAA" SV="1.0">consultationstartdate</km:cd>
-          <km:content>
-            <km:date>2013-04-01</km:date>
-          </km:content>
-        </km:item>
-        <km:item>
-          <km:id S="ID-KMEHR" SV="1.0">3</km:id>
-          <km:cd S="CD-ITEM-MAA" SV="1.0">careproviderreference</km:cd>
-          <km:content>
-            <km:text L="FR">my request 123</km:text>
-          </km:content>
-        </km:item>
-        <km:item>
-          <km:id S="ID-KMEHR" SV="1.0">4</km:id>
-          <km:cd S="CD-ITEM-MAA" SV="1.0">chapter4reference</km:cd>
-          <km:content>
-            <km:cd SV="2010-08-10" S="CD-DRUG-CNK">2686392</km:cd>
-          </km:content>
-        </km:item>
-      </km:transaction>
-    </km:folder>
-  </kmws:kmehrmessage>
-</kmws:kmehrrequest>
+<p:RetrieveTransactionRequest 
+  xmlns:k="http://www.ehealth.fgov.be/standards/kmehr/schema/v1"  
+  xmlns:p="http://www.ehealth.fgov.be/messageservices/protocol/v1" 
+  xmlns:c="http://www.ehealth.fgov.be/messageservices/core/v1" >
+  <c:request>
+    <c:id S="ID-KMEHR" SV="1.0">19997341001.20101112100503</c:id>
+    <c:author>
+      <k:hcparty>
+        <k:id S="ID-HCPARTY" SV="1.0">49997341401</k:id>
+        <k:id SV="1.0" S="INSS">79021802145</k:id>
+        <k:cd S="CD-HCPARTY" SV="1.0">persnurse</k:cd>
+        <k:firstname>Bryan</k:firstname>
+        <k:familyname>Brouckaert</k:familyname>
+      </k:hcparty>
+    </c:author>
+    <!-- snip -->
+  </c:request>
+  <!-- snip -->
+</p:RetrieveTransactionRequest>
+      
