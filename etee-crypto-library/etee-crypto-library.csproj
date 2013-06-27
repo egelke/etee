@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Siemens.EHealth.Etee.Crypto.Library</RootNamespace>
-    <AssemblyName>Siemens.EHealth.Etee.Crypto.Library</AssemblyName>
+    <AssemblyName>Egelke.EHealth.Etee.Crypto.Library</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -60,11 +60,9 @@
     <Reference Include="BouncyCastle.Crypto">
       <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
-    <Reference Include="PresentationCore">
-      <RequiredTargetFramework>3.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="PresentationFramework">
-      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    <Reference Include="Egelke.EHealth.Etee.Crypto, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.EHealth.Etee.Crypto.2.0.0-Beta1\lib\net20\Egelke.EHealth.Etee.Crypto.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -89,9 +87,6 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase">
-      <RequiredTargetFramework>3.0</RequiredTargetFramework>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SecurityInfo.cs" />
@@ -119,6 +114,15 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <None Include="Service References\ServiceClient\Siemens.EHealth.Etee.Crypto.Library.ServiceClient.GetEtkResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ServiceClient\Siemens.EHealth.Etee.Crypto.Library.ServiceClient.GetKeyResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ServiceClient\Siemens.EHealth.Etee.Crypto.Library.ServiceClient.GetNewKeyResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
     <None Include="Wsdl\V1\commons-core.xsd" />
     <None Include="Wsdl\V1\commons-protocol.xsd" />
     <None Include="Wsdl\V1\etk.wsdl" />
@@ -146,15 +150,6 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
-    <None Include="Service References\ServiceClient\Siemens.EHealth.Etee.Crypto.Library.ServiceClient.GetEtkResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\ServiceClient\Siemens.EHealth.Etee.Crypto.Library.ServiceClient.GetKeyResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\ServiceClient\Siemens.EHealth.Etee.Crypto.Library.ServiceClient.GetNewKeyResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
     <None Include="Xsd\V1\kgss-protocolcontent.xsd">
       <Generator>Xsd2CodeCustomTool</Generator>
       <LastGenOutput>kgss-protocolcontent.Designer.cs</LastGenOutput>
@@ -181,12 +176,6 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\etee-crypto-core\etee-crypto-core.csproj">
-      <Project>{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}</Project>
-      <Name>etee-crypto-core</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
