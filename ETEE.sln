@@ -1,13 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{86091B0D-E957-4CE8-AE6F-A58338CF6120}"
 	ProjectSection(SolutionItems) = preProject
 		api.shfbproj = api.shfbproj
 		COPYING = COPYING
 		debug.snk = debug.snk
-		ETEE.vsmdi = ETEE.vsmdi
-		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-test", "etee-crypto-test\etee-crypto-test.csproj", "{1B5AFBC6-F0EB-44E3-8B2F-9CB317D71CD5}"

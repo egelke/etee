@@ -8,8 +8,8 @@
     <ProjectGuid>{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Siemens.EHealth.Etee.Crypto</RootNamespace>
-    <AssemblyName>Siemens.EHealth.Etee.Crypto</AssemblyName>
+    <RootNamespace>Egelke.EHealth.Etee.Crypto</RootNamespace>
+    <AssemblyName>Egelke.EHealth.Etee.Crypto</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>false</SignAssembly>
@@ -51,7 +51,7 @@
     <UseVSHostingProcess>true</UseVSHostingProcess>
     <CodeAnalysisRuleSet>custom.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
-    <DocumentationFile>bin\Debug\Siemens.EHealth.Etee.Crypto.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Egelke.EHealth.Etee.Crypto.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -61,7 +61,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>bin\Release\Siemens.EHealth.Etee.Crypto.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Egelke.EHealth.Etee.Crypto.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <DelaySign>false</DelaySign>
@@ -75,9 +75,8 @@
     <AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto, Version=1.6.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\BouncyCastle.Crypto.dll</HintPath>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net20\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
@@ -116,7 +115,6 @@
     <Compile Include="Utils\WindowsTempFileStream.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="BouncyCastle.Crypto.dll" />
     <CodeAnalysisDictionary Include="CustomDictionary.xml" />
     <Content Include="COPYING" />
   </ItemGroup>
@@ -138,11 +136,15 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\debug.snk">
-      <Link>debug.snk</Link>
+    <None Include="etee-crypto-core.nuspec">
+      <SubType>Designer</SubType>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>nuget pack "$(ProjectPath)" -IncludeReferencedProjects -Prop Configuration=$(ConfigurationName)</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

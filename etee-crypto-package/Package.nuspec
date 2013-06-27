@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ETEE_for_eHealth</id>
+    <version>2.0.0</version>
+    <title>.Net End-To-End Encryption Library for eHealth</title>
+    <authors>Egelke BVBA</authors>
+    <owners>Egelke BVBA</owners>
+    <description>
+      http://etee.codeplex.com/
+    </description>
+    <releaseNotes>
+      This project is intended for .Net software integrators that want to produce and/or consume eHealth compliant end-to-end encrypted messages. This document applies both to end-to-end encryption for known and unknown recipients.
+      eHealth is the Belgium Federal Government platform with the goal to bring all healtcare platforms in Belgium together. For more information see https://www.ehealth.fgov.be.
+      This document limits itself to the usage of the .Net ETEE Library; it does not provide information about concepts and principles nor about the eHealth services, ETK Depot and KGSS. See the references where to find information about the concepts, principles and eHealth services. Since it is a library, it can only be used to integrate into an existing or new application, it has no use by its own.
+    </releaseNotes>
+    <summary>
+      .Net Library for End-To-End Encryption compatible with the eHealth End-To-End Encryption library. 
+      It allows to send sensitive messages over an non protected carrier. It not only protect against 
+      unauthorized access, but also identifies the sender.
+    </summary>
+    <language>en-US</language>
+    <projectUrl>http://etee.codeplex.com/</projectUrl>
+    <iconUrl>https://nuget.org/Content/Images/packageDefaultIcon-50x50.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <copyright>Copyright Egelke BVBA 2013</copyright>
+    <dependencies>
+        <group targetFramework="net40">
+          <dependency id="BouncyCastle" version="1.7.0" />
+        </group>
+    </dependencies>
+    <references></references>
+    <tags></tags>
+  </metadata>
+  <files>
+    <file src="lib\" target="lib" />
+    <file src="tools\" target="tools" />
+    <file src="content\" target="content" />
+  </files>
+</package>
