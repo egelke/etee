@@ -59,9 +59,8 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto, Version=1.6.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\etee-crypto\BouncyCastle.Crypto.dll</HintPath>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
@@ -88,7 +87,7 @@
       <Link>debug.snk</Link>
     </None>
     <Content Include="alice\alices_public_key.etk" />
-    <Content Include="App.config" />
+    <None Include="App.config" />
     <Content Include="bob\bobs_public_key.etk" />
     <Content Include="etk\auth_and_encr_not_same_DN.etk" />
     <Content Include="etk\expired_auth.etk" />
@@ -199,6 +198,7 @@
     <None Include="imports\CA.cer" />
     <None Include="imports\interCA.cer" />
     <None Include="imports\web.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">

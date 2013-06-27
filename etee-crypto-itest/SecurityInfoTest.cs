@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Security.Cryptography.X509Certificates;
 using Siemens.EHealth.Etee.Crypto.Library.ServiceClient;
+using System.IO;
 
 namespace Siemens.EHealth.Etee.ITest
 {
@@ -86,13 +87,17 @@ namespace Siemens.EHealth.Etee.ITest
         {
             X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             my.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
-            X509Certificate2 authCert = my.Certificates.Find(X509FindType.FindByThumbprint, "9c4227f1b9c7a52823829837f1a2e80690da8010", false)[0];
+            X509Certificate2 authCert = my.Certificates.Find(X509FindType.FindByThumbprint, "f2f3bc3916d635c69820a0351b6a58c37b445451", false)[0];
             Crypto.Library.ServiceClient.EtkDepotPortTypeClient etkDepot = new Crypto.Library.ServiceClient.EtkDepotPortTypeClient("etk");
 
             SecurityInfo actual;
             actual = SecurityInfo.Create(authCert, StoreLocation.CurrentUser, etkDepot);
 
             Assert.IsNotNull(actual.Token);
+            using (FileStream fs = new FileStream(@"d:\tmp\cin-mcn.etk", FileMode.Create))
+            {
+                fs.Write(actual.Token.GetEncoded(), 0, actual.Token.GetEncoded().Length);
+            }
         }
     }
 }

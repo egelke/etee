@@ -315,6 +315,7 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
             BC::X509Certificate bcSender = DotNetUtilities.FromX509Certificate(sender);
             trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", bcSender.SubjectDN.ToString());
             CmsSignedDataStreamGenerator signedGenerator = new CmsSignedDataStreamGenerator();
+            ((System.Security.Cryptography.RSACryptoServiceProvider)sender.PrivateKey).SignHash(null, "SHA256");
             signedGenerator.AddSigner(DotNetUtilities.GetKeyPair(sender.PrivateKey).Private,
                 bcSender, EteeActiveConfig.Seal.SignatureAlgorithm.EncryptionAlgorithm.Value,
                 EteeActiveConfig.Seal.SignatureAlgorithm.DigestAlgorithm.Value);

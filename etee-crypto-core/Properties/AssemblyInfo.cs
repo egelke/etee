@@ -24,12 +24,12 @@ using System.Security;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle(".Net ETEE for eHealth")]
+[assembly: AssemblyTitle("ETEE_for_eHealth")]
 [assembly: AssemblyDescription(".Net End-To-End Encryption Library for eHealth")]
 [assembly: AssemblyConfiguration("Beta")]
-[assembly: AssemblyCompany("Siemens IT Solutions & Services")]
+[assembly: AssemblyCompany("Egelke BVBA")]
 [assembly: AssemblyProduct(".Net ETEE")]
-[assembly: AssemblyCopyright("Copyright © Siemens IT Solutions & Services 2010")]
+[assembly: AssemblyCopyright("Copyright © Egelke BVBA 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -51,12 +51,13 @@ using System.Security;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.3")]
-[assembly: AssemblyFileVersion("1.0.0.3")]
-[assembly: AssemblyInformationalVersion("1.0.0.0")]
+[assembly: AssemblyVersion("2.0.0")]
+[assembly: AssemblyFileVersion("2.0.0")]
+[assembly: AssemblyInformationalVersion("2.0.0-Beta1")]
+
 
 [assembly: CLSCompliant(true)]
-[assembly: AllowPartiallyTrustedCallers()]
+//[assembly: AllowPartiallyTrustedCallers()]
 
 #if DEBUG
 [assembly: AssemblyKeyFile(@"../debug.snk")]

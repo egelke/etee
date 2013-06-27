@@ -330,7 +330,7 @@ namespace Siemens.EHealth.Etee.Demo.Console
                     System.Console.WriteLine("Starting Encryption");
                     try
                     {
-                        pm.Send(clear, new ReadOnlyCollection<Recipient>(recipients));
+                        pm.TransferAndEncryptOnly(clear, null, new ReadOnlyCollection<Recipient>(recipients));
                     }
                     finally
                     {
@@ -364,7 +364,8 @@ namespace Siemens.EHealth.Etee.Demo.Console
                     try
                     {
                         X509Certificate2 sender;
-                        pm.Receive(clear, out sender);
+                        Tuple<Stream, Object> response = pm.TransferAndDecryptOnly(null, out sender);
+                        response.Item1.CopyTo(clear);
                         System.Console.WriteLine(String.Format("Message from {0}", sender.Subject));
                     }
                     finally
