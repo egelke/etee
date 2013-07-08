@@ -2,7 +2,6 @@
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Egelke.EHealth.Client.GenAsync;
 using System.IO.Compression;
 using System.IO;
@@ -22,10 +21,11 @@ using System.IdentityModel.Tokens;
 using System.ServiceModel.Description;
 using Siemens.EHealth.Client.Sso.WA;
 using System.Threading;
+using NUnit.Framework;
 
 namespace Egelke.EHealth.Client.GenAsyncTest
 {
-    [TestClass]
+    [TestFixture]
     public class GenAsyncExamples
     {
         private static X509Certificate2 sign;
@@ -34,8 +34,8 @@ namespace Egelke.EHealth.Client.GenAsyncTest
         private static X509Certificate2 tsa;
         private static X509Certificate2 tsaTrust;
 
-        [ClassInitialize]
-        public static void MyClassInitialize(TestContext testContext)
+        [TestFixtureSetUp]
+        public static void MyClassInitialize()
         {
             X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadOnly);
@@ -48,15 +48,20 @@ namespace Egelke.EHealth.Client.GenAsyncTest
             auth = hospital;
             session = hospital;
 
-            //Since our hospital can't use TSA, we use a different (you should use the hosptial cert)
-            tsa = store.Certificates.Find(X509FindType.FindByThumbprint, "9c4227f1b9c7a52823829837f1a2e80690da8010", false)[0];
-            
+            //Since our hospital can't use TSA, we use a different (you should use the hospital cert)
+            foreach (X509Certificate2 cert in store.Certificates) {
+                if (cert.FriendlyName == "mcn-test")
+                {
+                    tsa = cert;
+                }
+            }
+         
 
             //We trust eHealth for TSA
-            tsaTrust = new X509Certificate2("tsa.crt");
+            tsaTrust = new X509Certificate2(@"..\..\data\tsa.crt");
         }
 
-        [TestMethod]
+        [Test]
         public void ConfigViaConfig()
         {
             GenericAsyncClient client = new GenericAsyncClient("IO100");
@@ -65,7 +70,7 @@ namespace Egelke.EHealth.Client.GenAsyncTest
             DoTest(client, tsaClient);
         }
 
-        [TestMethod]
+        [Test]
         public void ConfigViaCode()
         {
             var ssoBinding = new SsoBinding();
@@ -244,7 +249,7 @@ namespace Egelke.EHealth.Client.GenAsyncTest
                         XmlElement prop = (XmlElement) XadesTools.FindXadesProperties(verifyDoc.DocumentElement)[0];
                         XadesVerifier verifier = new XadesVerifier();
                         verifier.RevocationMode = X509RevocationMode.NoCheck; //only for testing
-                        verifier.TrustedTsaCert = tsaTrust;
+                        verifier.TrustedTsaCerts.Add(tsaTrust);
                         SignatureInfo info = verifier.Verify(verifyDoc, prop);
 
                         //check info (time & certificate) to your own rules.
@@ -291,7 +296,7 @@ namespace Egelke.EHealth.Client.GenAsyncTest
                         XmlElement prop = (XmlElement)XadesTools.FindXadesProperties(verifyDoc.DocumentElement)[0];
                         XadesVerifier verifier = new XadesVerifier();
                         verifier.RevocationMode = X509RevocationMode.NoCheck; //only for testing
-                        verifier.TrustedTsaCert = tsaTrust;
+                        verifier.TrustedTsaCerts.Add(tsaTrust);
                         SignatureInfo info = verifier.Verify(verifyDoc, prop);
 
                         //check info (time & certificate) to your own rules.

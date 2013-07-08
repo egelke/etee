@@ -1,0 +1,8 @@
+﻿<NUnitProject>
+  <Config name="Debug" binpathtype="Auto" >
+    <assembly path="bin\Debug\Egelke.EHealth.Client.GenAsyncTest.dll" />
+  </Config>
+  <Config name="Release" binpathtype="Auto">
+    <assembly path="bin\Release\Egelke.EHealth.Client.GenAsyncTest.dll" />
+  </Config>
+</NUnitProject>

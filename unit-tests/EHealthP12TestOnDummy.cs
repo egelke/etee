@@ -19,34 +19,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Siemens.EHealth.Client.Tool;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
 using Siemens.eHealth.ETEE.Crypto.Test;
 using System.Collections;
+using NUnit.Framework;
 
 namespace Siemens.EHealth.Client.UnitTest
 {
-    [TestClass]
+    [TestFixture]
     public class EHealthP12TestOnDummy
     {
         EHealthP12 p12;
 
-        [TestInitialize]
+        [TestFixtureSetUp]
         public void setup()
         {
-            p12 = new EHealthP12("dummy.p12", "test001");
+            p12 = new EHealthP12(@"..\..\EHealthP12\dummy.p12", "test001");
         }
 
-        [TestMethod]
+        [Test]
         public void ConstuctorWithByteArray()
         {
-            p12 = new EHealthP12(Utils.ReadFully("dummy.p12"), "test001");
+            p12 = new EHealthP12(Utils.ReadFully(@"..\..\EHealthP12\dummy.p12"), "test001");
             Assert.AreEqual(5, p12.Keys.Count);
         }
 
-        [TestMethod]
+        [Test]
         public void Keys()
         {
             Assert.AreEqual(5, p12.Keys.Count);
@@ -55,7 +55,7 @@ namespace Siemens.EHealth.Client.UnitTest
             Assert.IsFalse(p12.Keys.Contains("security"));
         }
 
-        //[TestMethod]
+        //[Test]
         public void Values()
         {
             Assert.AreEqual(5, p12.Values.Count);
@@ -74,7 +74,7 @@ namespace Siemens.EHealth.Client.UnitTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void AuthValue()
         {
             X509Certificate2 cert = p12["authenication"];
@@ -92,7 +92,7 @@ namespace Siemens.EHealth.Client.UnitTest
             Assert.IsTrue(publicKey.VerifyData(data, new SHA1Managed(), signature));
         }
 
-        [TestMethod]
+        [Test]
         public void EncValue()
         {
             X509Certificate2 cert = p12["encryption"];
@@ -115,28 +115,28 @@ namespace Siemens.EHealth.Client.UnitTest
             }
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(KeyNotFoundException))]
         public void NonExistingValue()
         {
             X509Certificate2 cert = p12["other"];
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(ArgumentNullException))]
         public void ContainsKeyWihtNullValue()
         {
             p12.ContainsKey(null);
         }
 
-        [TestMethod]
+        [Test]
         public void ContainsKey()
         {
             Assert.IsFalse(p12.ContainsKey("other"));
             Assert.IsTrue(p12.ContainsKey("encryption"));
         }
 
-        [TestMethod]
+        [Test]
         public void TryGetValue()
         {
             X509Certificate2 cert;
@@ -147,26 +147,26 @@ namespace Siemens.EHealth.Client.UnitTest
             Assert.IsNull(cert);
         }
 
-        [TestMethod]
+        [Test]
         public void Count()
         {
             Assert.AreEqual(5, p12.Count);
         }
 
-        [TestMethod]
+        [Test]
         public void IsReadOnly()
         {
             Assert.IsTrue(p12.IsReadOnly);
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(ArgumentNullException))]
         public void CopyToNull()
         {
             p12.CopyTo(null, 0);
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void CopyToNegativeIndex()
         {
@@ -174,7 +174,7 @@ namespace Siemens.EHealth.Client.UnitTest
             p12.CopyTo(array, -1);
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(ArgumentException))]
         public void CopyToArrayThatIsToSmall()
         {
@@ -182,7 +182,7 @@ namespace Siemens.EHealth.Client.UnitTest
             p12.CopyTo(array, 2);
         }
 
-        [TestMethod]
+        [Test]
         public void CopyTo()
         {
             KeyValuePair<String, X509Certificate2> def = new KeyValuePair<String, X509Certificate2>();
@@ -197,7 +197,7 @@ namespace Siemens.EHealth.Client.UnitTest
             Assert.AreEqual(def, array[6]);
         }
 
-        [TestMethod]
+        [Test]
         public void ForEach()
         {
             foreach (KeyValuePair<String, X509Certificate2> entry in p12)
@@ -215,7 +215,7 @@ namespace Siemens.EHealth.Client.UnitTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ForEachAsIEnumerable()
         {
             foreach (Object o in ((IEnumerable) p12))

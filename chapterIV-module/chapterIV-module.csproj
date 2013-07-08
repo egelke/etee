@@ -16,6 +16,8 @@
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,13 +37,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="Siemens.EHealth.Etee.Crypto, Version=1.0.0.3, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Siemens.EHealth.Etee.Crypto.dll</HintPath>
+      <HintPath>..\packages\ETEE_for_eHealth.1.0.0\lib\Siemens.EHealth.Etee.Crypto.dll</HintPath>
     </Reference>
     <Reference Include="Siemens.EHealth.Etee.Crypto.Library, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Siemens.EHealth.Etee.Crypto.Library.dll</HintPath>
+      <HintPath>..\packages\ETEE_for_eHealth.1.0.0\lib\Siemens.EHealth.Etee.Crypto.Library.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -79,6 +84,7 @@
     <None Include="genAskXsd.bat" />
     <None Include="genConsultXsd.bat" />
     <None Include="genWsdl.bat" />
+    <None Include="packages.config" />
     <None Include="wsdl\chap4services_core-1_0.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -134,11 +140,8 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="Siemens.EHealth.Etee.Crypto.dll" />
-    <Content Include="Siemens.EHealth.Etee.Crypto.Library.dll" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

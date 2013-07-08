@@ -25,7 +25,7 @@ namespace Egelke.EHealth.Client.ChapterIVTest
         private X509Certificate2 session;
 
         [TestFixtureSetUp]
-        public void MyClassInitialize(TestContext testContext)
+        public void MyClassInitialize()
         {
             X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadOnly);

@@ -19,30 +19,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Siemens.EHealth.Client.Tool;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
 using Siemens.eHealth.ETEE.Crypto.Test;
 using System.Collections;
+using NUnit.Framework;
 
 namespace Siemens.EHealth.Client.UnitTest
 {
-    [TestClass]
+    [TestFixture]
     public class EHealthP12TestOnRealP12
     {
         private static EHealthP12 p12;
 
-        [ClassInitialize]
-        public static void setup(TestContext context)
+        [TestFixtureSetUp]
+        public static void setup()
         {
             String pwd = Microsoft.VisualBasic.Interaction.InputBox("Enther the P12 pwd");
 
-            p12 = new EHealthP12("test.p12", pwd);
+            p12 = new EHealthP12(@"..\..\EHealthP12\ehealth.p12", pwd);
             //p12 = new EHealthP12("prod.p12", pwd);
         }
 
-        [TestMethod]
+        [Test]
         public void AuthValue()
         {
             X509Certificate2 cert = p12["authentication"];
@@ -61,7 +61,7 @@ namespace Siemens.EHealth.Client.UnitTest
             Assert.IsTrue(publicKey.VerifyData(data, new SHA1Managed(), signature));
         }
 
-        [TestMethod]
+        [Test]
         public void EncValue()
         {
             X509Certificate2 cert = p12["148459475702464467506498982825636760342"];
@@ -85,7 +85,7 @@ namespace Siemens.EHealth.Client.UnitTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ReinstallInCurrentUser()
         {
             //Prepare

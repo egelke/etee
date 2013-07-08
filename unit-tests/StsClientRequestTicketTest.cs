@@ -15,7 +15,6 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Security.Cryptography.X509Certificates;
 using System.IdentityModel.Claims;
@@ -30,6 +29,7 @@ using System.Collections.ObjectModel;
 using System.ServiceModel.Channels;
 using Siemens.EHealth.Client.Sso.Sts.WcfAddition;
 using System.ServiceModel.Security;
+using NUnit.Framework;
 
 namespace Siemens.eHealth.ETEE.Crypto.Test
 {
@@ -39,7 +39,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
     ///This is a test class for StsClientTest and is intended
     ///to contain all StsClientTest Unit Tests
     ///</summary>
-    [TestClass()]
+    [TestFixture]
     public class StsClientRequestTicketTest
     {
         private static X509Certificate2 selfSignedSession;
@@ -48,31 +48,8 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
 
         private static Collection<ClaimTypeRequirement> requestedDefault;
 
-        private TestContext testContextInstance;
-
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
-
-        #region Additional test attributes
-        // 
-        //You can use the following additional attributes as you write your tests:
-        //
-        //Use ClassInitialize to run code before running the first test in the class
-        [ClassInitialize()]
-        public static void MyClassInitialize(TestContext testContext)
+        [TestFixtureSetUp]
+        public static void MyClassInitialize()
         {
             selfSignedSession = CertGenerator.GenerateSelfSigned(TimeSpan.FromMinutes(30));
 
@@ -97,13 +74,12 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             requestedDefault = new Collection<ClaimTypeRequirement>(claimReq);
         }
         
-        #endregion
 
 
         /// <summary>
         ///A test for RequestTicket
         ///</summary>
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(ArgumentNullException))]
         public void AllNull()
         {
@@ -111,7 +87,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             target.RequestTicket(null, null, DateTime.MinValue, DateTime.MaxValue, null, null);
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(InvalidOperationException))]
         public void NoClientCert()
         {
@@ -120,7 +96,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             target.RequestTicket("Siemens", selfSignedSession, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(InvalidOperationException))]
         public void NoServerCert()
         {
@@ -129,7 +105,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             target.RequestTicket("Siemens", selfSignedSession, TimeSpan.FromMinutes(10), assertedDefault, requestedDefault);
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(EndpointNotFoundException))]
         public void InvalidAddressHttp404()
         {
@@ -141,7 +117,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
 
         //Not clear what the error should be.
         /*
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(ProtocolException))]
         public void InvalidAddressPage()
         {

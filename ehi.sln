@@ -53,11 +53,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{21ADE7
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chapterIV-package", "chapterIV-package\chapterIV-package.csproj", "{0451BAEF-DF2E-4B98-8644-94EE9415E389}"
-EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 22
+		SccNumberOfProjects = 21
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccProjectUniqueName0 = library\\library.csproj
@@ -115,15 +113,12 @@ Global
 		SccProjectName17 = chapterIV-test
 		SccLocalPath17 = chapterIV-test
 		SccLocalPath18 = .
-		SccProjectUniqueName19 = chapterIV-package\\chapterIV-package.csproj
-		SccProjectName19 = chapterIV-package
-		SccLocalPath19 = chapterIV-package
-		SccProjectUniqueName20 = eid-module\\eid-module.csproj
-		SccProjectName20 = eid-module
-		SccLocalPath20 = eid-module
-		SccProjectUniqueName21 = eid-test\\eid-test.csproj
-		SccProjectName21 = eid-test
-		SccLocalPath21 = eid-test
+		SccProjectUniqueName19 = eid-module\\eid-module.csproj
+		SccProjectName19 = eid-module
+		SccLocalPath19 = eid-module
+		SccProjectUniqueName20 = eid-test\\eid-test.csproj
+		SccProjectName20 = eid-test
+		SccLocalPath20 = eid-test
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -333,16 +328,6 @@ Global
 		{398E1A45-BA82-453F-A169-AA87D78C6B1D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{398E1A45-BA82-453F-A169-AA87D78C6B1D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{398E1A45-BA82-453F-A169-AA87D78C6B1D}.Release|x86.ActiveCfg = Release|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
