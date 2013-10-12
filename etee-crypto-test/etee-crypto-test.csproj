@@ -62,7 +62,9 @@
     <Reference Include="BouncyCastle.Crypto">
       <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
@@ -76,11 +78,9 @@
     <Compile Include="Assembly.cs" />
     <Compile Include="DataUnsealerTest.cs" />
     <Compile Include="EncryptionTokenTest.cs" />
-    <Compile Include="MemoryPipeStreamTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EndToEnd.cs" />
     <Compile Include="Utils.cs" />
-    <Compile Include="VerifierTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\debug.snk">
@@ -195,6 +195,7 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="COPYING" />
+    <None Include="Etee.nunit" />
     <None Include="imports\CA.cer" />
     <None Include="imports\interCA.cer" />
     <None Include="imports\web.config" />
@@ -240,6 +241,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>copy /Y $(ProjectDir)app.config $(TargetPath).config</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
