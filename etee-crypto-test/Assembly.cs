@@ -18,20 +18,19 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 
 namespace Siemens.eHealth.ETEE.Crypto.Test
 {
-    [TestClass]
+    //[TestClass]
     public class Assembly
     {
         private static Process webdev;
 
-        [AssemblyInitialize]
-        public static void Init(TestContext context)
+        //[AssemblyInitialize]
+        public static void Init()
         {
             X509Store store;
 
@@ -71,7 +70,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Thread.Sleep(5000);
         }
 
-        [AssemblyCleanup]
+        //[AssemblyCleanup]
         public static void Treardown()
         {
             webdev.Kill();

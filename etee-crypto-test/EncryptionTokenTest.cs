@@ -19,17 +19,17 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Siemens.EHealth.Etee.Crypto;
 using Siemens.EHealth.Etee.Crypto.Decrypt;
 using Org.BouncyCastle.Cms;
+using NUnit.Framework;
 
 namespace Siemens.eHealth.ETEE.Crypto.Test
 {
     /// <summary>
     /// Summary description for EncryptionTokenTest
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class EncryptionTokenTest
     {
         public EncryptionTokenTest()
@@ -84,15 +84,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
 
         }
         
-        [TestMethod]
+        [Test]
         public void Bob()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("bobs_public_key.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/bobs_public_key.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Unsure, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Unsure, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
             
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.SenderTrustUnknown));
@@ -104,15 +104,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
         }
 
-        [TestMethod]
+        [Test]
         public void Alice()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("alices_public_key.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/alices_public_key.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Unsure, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Unsure, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.SenderTrustUnknown));
@@ -124,15 +124,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
         }
 
-        [TestMethod]
+        [Test]
         public void ValidButScrambledDN()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("valid_but_scrambledDN.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/valid_but_scrambledDN.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Unsure, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Unsure, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
 
@@ -145,22 +145,22 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
         }
 
-        [TestMethod]
+        [Test]
         [ExpectedException(typeof(CmsException))]
         public void EncorrectEncoding()
         {
-            new EncryptionToken(Utils.ReadFully("incorrectly_encoded.etk"));
+            new EncryptionToken(Utils.ReadFully("../../etk/incorrectly_encoded.etk"));
         }
 
-        [TestMethod]
+        [Test]
         public void DifferentDN()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("auth_and_encr_not_same_DN.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/auth_and_encr_not_same_DN.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
@@ -168,15 +168,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.HasNotPermittedNameConstraint));
         }
 
-        [TestMethod]
+        [Test]
         public void ExpiredEnc()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("expired_encr.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/expired_encr.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
@@ -184,15 +184,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
         }
 
-        [TestMethod]
+        [Test]
         public void ExpiredAuth()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("expired_auth.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/expired_auth.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.UntrustedToken));
@@ -201,15 +201,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
         }
 
-        [TestMethod]
+        [Test]
         public void NotYetAuth()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("not_yet_auth.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/not_yet_auth.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.UntrustedToken));
@@ -218,15 +218,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
         }
 
-        [TestMethod]
+        [Test]
         public void InvalidEncKeyUsage()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("invalid_encrkey_usage.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_encrkey_usage.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
@@ -234,15 +234,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
         }
 
-        [TestMethod]
+        [Test]
         public void InvalidAuthKeyUsage()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("invalid_authkey_usage.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_authkey_usage.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
@@ -251,15 +251,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
         }
 
-        [TestMethod]
+        [Test]
         public void InvalidKeySize()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("invalid_key_size.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_key_size.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
@@ -269,15 +269,15 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidKeySize));
         }
 
-        [TestMethod]
+        [Test]
         public void InvalidChain()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("invalid_cert_chain.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_cert_chain.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.UntrustedToken));
@@ -287,16 +287,16 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         }
 
 
-        [TestMethod]
+        [Test]
         public void MixedKeyAlgorithm()
         {
             //In contradiction with its name, it is allowed because it has RSA for encryption and DSA for signing
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("invalid_key_algorithm.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_key_algorithm.etk"));
             EtkSecurityInformation info = receiver.Verify();
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual<TrustStatus>(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual<ValidationStatus>(ValidationStatus.Invalid, info.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
             Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
             Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.UntrustedToken));
