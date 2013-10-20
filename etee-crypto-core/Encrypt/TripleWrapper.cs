@@ -24,14 +24,22 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509.Store;
 using Siemens.EHealth.Etee.Crypto.Configuration;
 using Siemens.EHealth.Etee.Crypto.Utils;
-using BC = Org.BouncyCastle.X509;
+using BC = Org.BouncyCastle;
 using System.Security.Permissions;
 using System;
 using System.Threading;
 using System.Diagnostics;
-using Org.BouncyCastle.Asn1.X509;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Parameters;
+using System.Collections;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.X509.Extension;
+using Org.BouncyCastle.X509;
+using System.Net;
+using Org.BouncyCastle.Ocsp;
+using Org.BouncyCastle.Asn1.Esf;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace Siemens.EHealth.Etee.Crypto.Encrypt
 {
@@ -39,9 +47,15 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
     {
         private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
 
+        //The sender certificate
         private X509Certificate2 sender;
 
-        private IX509Store senderChain;
+        //The bag of sender certifcate path (in undefined order)
+        private IX509Store senderChainStore;
+
+        //The ordered list of sender certificate path (in assending order)
+        private IList<X509Certificate2> senderChainList;
+        
 
         internal TripleWrapper(X509Certificate2 sender)
             : this(sender, null)
@@ -60,13 +74,15 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
             if (extraStore != null) chain.ChainPolicy.ExtraStore.AddRange(extraStore);
             chain.Build(sender);
 
+            senderChainList = new List<X509Certificate2>();
             X509ChainElementEnumerator chainEnum = chain.ChainElements.GetEnumerator();
-            List<BC::X509Certificate> bcChainList = new List<BC::X509Certificate>();
+            List<BC::X509.X509Certificate> senderChainCollection = new List<BC::X509.X509Certificate>();
             while (chainEnum.MoveNext())
             {
-                bcChainList.Add(DotNetUtilities.FromX509Certificate(chainEnum.Current.Certificate));
+                senderChainList.Add(chainEnum.Current.Certificate);
+                senderChainCollection.Add(DotNetUtilities.FromX509Certificate(chainEnum.Current.Certificate));
             }
-            senderChain = X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(bcChainList));
+            senderChainStore = X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(senderChainCollection));
         }
 
         #region DataSealer Members
@@ -223,29 +239,245 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
 
         protected void Sign(Stream signed, Stream unsigned, bool includeSigner)
         {
-            BC::X509Certificate bcSender = DotNetUtilities.FromX509Certificate(sender);
+            BC::X509.X509Certificate bcSender = DotNetUtilities.FromX509Certificate(sender);
             trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", bcSender.SubjectDN.ToString());
+
+            //Get the certs, crls and ocsps
+            IX509Store certStore = null;
+            IList<CertificateList> crls = new List<CertificateList>();
+            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
+            if (includeSigner)
+            {
+                //add the cached certificates
+                certStore = senderChainStore;
+
+                //add the online CRLs & OCSPs
+                ICollection certs = senderChainStore.GetMatches(null);
+                for (int i = 0; i < senderChainList.Count; i++)
+                {
+                    BC::X509.X509Certificate cert = DotNetUtilities.FromX509Certificate(senderChainList[i]);
+                    BC::X509.X509Certificate issuer = i + 1 >= senderChainList.Count ? null : DotNetUtilities.FromX509Certificate(senderChainList[i + 1]);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Adding OCSP or CRL for cert {0}", cert.SubjectDN.ToString());
+
+                    //Lets start with the OCSP, which is smaller and more up to data
+                    Asn1OctetString ocspDPsBytes = cert.GetExtensionValue(X509Extensions.AuthorityInfoAccess);
+                    if (ocspDPsBytes != null)
+                    {
+                        AuthorityInformationAccess ocspAki = AuthorityInformationAccess.GetInstance(X509ExtensionUtilities.FromExtensionValue(ocspDPsBytes));
+                        foreach (AccessDescription ad in ocspAki.GetAccessDescriptions())
+                        {
+                            if (AccessDescription.IdADOcsp.Equals(ad.AccessMethod))
+                            {
+                                if (ad.AccessLocation.TagNo == GeneralName.UniformResourceIdentifier)
+                                {
+                                    //Found an OCSP URL, lets call it.
+                                    string location = DerIA5String.GetInstance(ad.AccessLocation.Name).GetString();
+
+                                    try
+                                    {
+                                        //Prepare the request
+                                        OcspReqGenerator ocspReqGen = new OcspReqGenerator();
+                                        ocspReqGen.AddRequest(new CertificateID(CertificateID.HashSha1, issuer, cert.SerialNumber));
+
+                                        //Make the request & sending it.
+                                        OcspReq ocspReq = ocspReqGen.Generate();
+                                        WebRequest ocspWebReq = WebRequest.Create(location);
+                                        ocspWebReq.Method = "POST";
+                                        ocspWebReq.ContentType = "application/ocsp-request";
+                                        Stream ocspWebReqStream = ocspWebReq.GetRequestStream();
+                                        ocspWebReqStream.Write(ocspReq.GetEncoded(), 0, ocspReq.GetEncoded().Length);
+                                        WebResponse ocspWebResp = ocspWebReq.GetResponse();
+
+                                        //Get the response (in "managed" and "raw" format)
+                                        OcspResp ocspResp;
+                                        OcspResponse ocspResponse;
+                                        using (ocspWebResp)
+                                        {
+                                            ocspResponse = OcspResponse.GetInstance(new Asn1InputStream(ocspWebResp.GetResponseStream()).ReadObject());
+                                            ocspResp = new OcspResp(ocspResponse);
+                                        }
+
+                                        //check if we got a valid OCSP, if not try CRL
+                                        if (ocspResp.Status == 0)
+                                        {
+                                            //Get the basic response (in "managed" and "raw" format)
+                                            BasicOcspResp basicOcspResp = (BasicOcspResp)ocspResp.GetResponseObject();
+                                            BasicOcspResponse basicOcspResponse = BasicOcspResponse.GetInstance(Asn1Object.FromByteArray(ocspResponse.ResponseBytes.Response.GetOctets()));
+
+                                            //Verify the result (no need to create a message that should not be accepted).
+                                            ICollection ocspSignerCerts = basicOcspResp.GetCertificates("COLLECTION").GetMatches(null);
+
+                                            X509Certificate2 ocspSigner = null;
+                                            X509Chain chain = new X509Chain();
+                                            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+                                            chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+                                            chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
+                                            foreach (BC::X509.X509Certificate ocspSignerCert in ocspSignerCerts)
+                                            {
+                                                if (ocspSigner == null)
+                                                {
+                                                    ocspSigner = new X509Certificate2(ocspSignerCert.GetEncoded()); //lets assume perfect order (for now)
+                                                }
+                                                chain.ChainPolicy.ExtraStore.Add(new X509Certificate2(ocspSignerCert.GetEncoded()));
+                                            }
+                                            chain.Build(ocspSigner);
+                                            if ((chain.ChainStatus.Length == 1 && chain.ChainStatus[0].Status != X509ChainStatusFlags.NoError)
+                                                || chain.ChainStatus.Length > 1)
+                                            {
+                                                trace.TraceEvent(TraceEventType.Warning, 0, "Retrieved OCSP {0} has an invalid signer", location);
+                                                throw new InvalidOperationException("The certificate " + cert.SubjectDN.ToString() + " did not result in a valid OCSP response");
+                                            }
+
+                                            if (!basicOcspResp.Verify(DotNetUtilities.GetRsaPublicKey((RSA)ocspSigner.PublicKey.Key)))
+                                            {
+                                                trace.TraceEvent(TraceEventType.Warning, 0, "Retrieved CRL {0} has an invalid signature", location);
+                                                throw new InvalidOperationException("The certificate " + cert.SubjectDN.ToString() + " did not result in a valid OCSP response");
+                                            }
+
+                                            //Lets assume the response is sane because it is generated on the fly (i.e. 1 response (for now), correct time, ...)
+                                            SingleResp singleOcspPres = basicOcspResp.Responses[0];
+
+                                            if (singleOcspPres.GetCertStatus() != null)
+                                            {
+                                                RevokedStatus status = (RevokedStatus)singleOcspPres.GetCertStatus();
+
+                                                trace.TraceEvent(TraceEventType.Warning, 0, "Retrieved OCSP {0} indicates cert is expired on {1}", location, status.RevocationTime);
+                                                throw new InvalidOperationException("The certificate " + cert.SubjectDN.ToString() + " is revoked");
+                                            }
+
+                                            ocsps.Add(basicOcspResponse);
+                                            trace.TraceEvent(TraceEventType.Verbose, 0, "Added OCSP of {0} to message", location);
+                                        }
+                                    }
+                                    catch (InvalidOperationException ioe)
+                                    {
+                                        throw ioe;
+                                    }
+                                    catch (Exception)
+                                    {
+                                        trace.TraceEvent(TraceEventType.Warning, 0, "Failed to retreive the OCSP {0}", location);
+                                    }
+                                }
+                            }
+                        }
+                        continue; //do the next cert, we don't want the CRL in this case
+                    }
+
+                    //We did not find a OCSP, lets look for an CRL
+                    Asn1OctetString crlDPsBytes = cert.GetExtensionValue(X509Extensions.CrlDistributionPoints);
+                    if (crlDPsBytes != null)
+                    {
+                        CrlDistPoint crlDPs = CrlDistPoint.GetInstance(X509ExtensionUtilities.FromExtensionValue(crlDPsBytes));
+                        foreach (DistributionPoint dp in crlDPs.GetDistributionPoints())
+                        {
+                            DistributionPointName dpn = dp.DistributionPointName;
+                            if (dpn != null && dpn.PointType == DistributionPointName.FullName)
+                            {
+                                GeneralName[] genNames = GeneralNames.GetInstance(dpn.Name).GetNames();
+                                foreach (GeneralName genName in genNames)
+                                {
+                                    if (genName.TagNo == GeneralName.UniformResourceIdentifier)
+                                    {
+                                        //Found a CRL URL, lets get it.
+                                        string location = DerIA5String.GetInstance(genName.Name).GetString();
+
+                                        try
+                                        {
+                                            //Make the Web request
+                                            WebRequest crlRequest = WebRequest.Create(location);
+                                            WebResponse crlResponse = crlRequest.GetResponse();
+
+                                            //Parse the result
+                                            X509Crl crl;
+                                            CertificateList certList;
+                                            using (crlResponse)
+                                            {
+                                                Asn1Sequence crlAns1 = (Asn1Sequence)Asn1Sequence.FromStream(crlResponse.GetResponseStream());
+                                                certList = CertificateList.GetInstance(crlAns1);
+                                                crl = new X509Crl(certList);
+                                            }
+
+                                            //Verify the result (no need to create a message that should not be accepted).
+                                            try
+                                            {
+                                                crl.Verify(issuer.GetPublicKey());
+                                            }
+                                            catch
+                                            {
+                                                trace.TraceEvent(TraceEventType.Warning, 0, "Retrieved CRL {0} has an invalid signature", location);
+                                                throw new InvalidOperationException("The certificate " + cert.SubjectDN.ToString() + " isn't valid");
+                                            }
+                                            if (crl.NextUpdate.Value < DateTime.UtcNow)
+                                            {
+                                                trace.TraceEvent(TraceEventType.Warning, 0, "Retrieved CRL {0} is expired on {1}", location, crl.NextUpdate.Value);
+                                                throw new InvalidOperationException("The certificate " + cert.SubjectDN.ToString() + " has no active CRL");
+                                            }
+                                            if (crl.IsRevoked(cert))
+                                            {
+                                                trace.TraceEvent(TraceEventType.Warning, 0, "Retrieved CRL {0} indicates cert is expired on {1}", location, crl.GetRevokedCertificate(cert.SerialNumber).RevocationDate);
+                                                throw new InvalidOperationException("The certificate " + cert.SubjectDN.ToString() + " is revoked");
+                                            }
+
+                                            //All done, add it
+                                            crls.Add(certList);
+                                            trace.TraceEvent(TraceEventType.Verbose, 0, "Added CRL {0} to message", location);
+                                        }
+                                        catch (InvalidOperationException ioe)
+                                        {
+                                            throw ioe;
+                                        }
+                                        catch (Exception)
+                                        {
+                                            trace.TraceEvent(TraceEventType.Warning, 0, "Failed to retreive the CRL {0}", location);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             CmsSignedDataStreamGenerator signedGenerator = new CmsSignedDataStreamGenerator();
+            
+            //add the certificates
+            if (certStore != null) signedGenerator.AddCertificates(certStore);
+
+            //For compatibility we don't add it to the CMS (most implementations, including BC, don't support OCSP here)
+            //IX509Store crlStore = X509StoreFactory.Create("CRL/COLLECTION", new X509CollectionStoreParameters(crls));
+            //signedGenerator.AddCrls(crlStore);
+
+            //Allows to add attributes to signature (for OCSP & CRL)
+            BC::Asn1.Cms.AttributeTable unsignedAttrTable = null;
+            if (crls.Count > 0 || ocsps.Count > 0)
+            {
+                IDictionary unsignedAttrDictionary = new Hashtable();
+                RevocationValues revocationValues = new RevocationValues(crls, ocsps, null);
+                unsignedAttrDictionary.Add(EsfAttributes.RevocationValues,
+                    new BC::Asn1.Cms.Attribute(EsfAttributes.RevocationValues, new DerSet(revocationValues.ToAsn1Object())));
+                unsignedAttrTable = new BC::Asn1.Cms.AttributeTable(unsignedAttrDictionary);
+                //TODO::check if it is correct to put a Set of values
+            }
+
+            //Add the signatures (moved below so it is easier to add unsigned attributes)
             SignatureAlgorithm signAlgo;
             if (((RSACryptoServiceProvider) sender.PrivateKey).CspKeyContainerInfo.Exportable) {
                 signAlgo =  EteeActiveConfig.Seal.NativeSignatureAlgorithm;
                 signedGenerator.AddSigner(DotNetUtilities.GetKeyPair(sender.PrivateKey).Private,
-                    bcSender, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value);
+                    bcSender, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value, 
+                    null, unsignedAttrTable);
             } else {
                 signAlgo = EteeActiveConfig.Seal.WindowsSignatureAlgorithm;
                 signedGenerator.AddSigner(new ProxyRsaKeyParameters((RSACryptoServiceProvider) sender.PrivateKey),
-                    bcSender, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value);
+                    bcSender, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value,
+                    null, unsignedAttrTable);
             }
             trace.TraceEvent(TraceEventType.Verbose, 0, "Added Signer [EncAlgo={0} ({1}), DigestAlgo={2} ({3})",
                 signAlgo.EncryptionAlgorithm.FriendlyName,
                 signAlgo.EncryptionAlgorithm.Value,
                 signAlgo.DigestAlgorithm.FriendlyName,
                 signAlgo.DigestAlgorithm.Value);
-            if (includeSigner)
-            {
-                signedGenerator.AddCertificates(senderChain);
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Added signing certificate to the messages");
-            }
+
             Stream signingStream = signedGenerator.Open(signed, true);
             trace.TraceEvent(TraceEventType.Verbose, 0, "Create embedded signed message (still empty)");
             try
@@ -270,7 +502,7 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
             {
                 foreach (EncryptionToken token in tokens)
                 {
-                    BC::X509Certificate cert = token.ToBCCertificate();
+                    BC::X509.X509Certificate cert = token.ToBCCertificate();
                     encryptGenerator.AddKeyTransRecipient(cert);
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Added known recipient: {0}", cert.SubjectDN.ToString());
                 }
