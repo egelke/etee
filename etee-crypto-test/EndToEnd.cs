@@ -31,6 +31,7 @@ using System.Security.Cryptography;
 using System.Collections.ObjectModel;
 using Siemens.EHealth.Etee.Crypto.Utils;
 using NUnit.Framework;
+using Siemens.EHealth.Etee.Crypto.Status;
 
 namespace Siemens.eHealth.ETEE.Crypto.Test
 {
@@ -49,25 +50,30 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
 
         static X509Certificate2 aliceEnc;
 
-        static X509Certificate2 bob;
-
         static X509Certificate2 bobEnc;
+
+        static X509Certificate2Collection both;
+        static X509Certificate2Collection aliceOnly;
+        static X509Certificate2Collection bobOnly;
 
         [TestFixtureSetUp]
         public static void InitializeClass()
         {
             //Alice, used as sender
             alice = new X509Certificate2("../../imports/users/alice_auth.p12", "test", X509KeyStorageFlags.Exportable);
-            aliceEnc = new X509Certificate2("../../imports/users/alice_enc.p12", "test", X509KeyStorageFlags.Exportable);
+
             //Bob, used as receiver
-            bob = new X509Certificate2("../../imports/users/bob_auth.p12", "test", X509KeyStorageFlags.Exportable);
             bobEnc = new X509Certificate2("../../imports/users/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
+            aliceEnc = new X509Certificate2("../../imports/users/alice_enc.p12", "test", X509KeyStorageFlags.Exportable);
+            both = new X509Certificate2Collection(new X509Certificate2[] { bobEnc, aliceEnc });
+            aliceOnly = new X509Certificate2Collection(new X509Certificate2[] { aliceEnc });
+            bobOnly = new X509Certificate2Collection(new X509Certificate2[] { bobEnc });
         }
 
         [Test]
         public void Addressed()
         {
-            Addressed(DataSealerFactory.Create(alice), DataUnsealerFactory.Create(bobEnc, bob));
+            Addressed(DataSealerFactory.Create(alice), DataUnsealerFactory.Create(false, both));
         }
 
         private void Addressed(IDataSealer sealer, IDataUnsealer unsealer)
@@ -81,6 +87,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Stream output = sealer.Seal(receiver, new MemoryStream(Encoding.UTF8.GetBytes(str)));
 
             UnsealResult result = unsealer.Unseal(output);
+            Console.WriteLine(result.SecurityInformation.ToString());
 
             output.Close();
 
@@ -89,7 +96,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Decrypt.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
             Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
@@ -113,8 +120,9 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             receivers.Add(receiver2);
             Stream output = sealer.Seal(new ReadOnlyCollection<EncryptionToken>(receivers), new MemoryStream(Encoding.UTF8.GetBytes(str)));
 
-            IDataUnsealer unsealer = DataUnsealerFactory.Create(bobEnc, bob);
+            IDataUnsealer unsealer = DataUnsealerFactory.Create(false, both);
             UnsealResult result = unsealer.Unseal(output);
+            Console.WriteLine(result.SecurityInformation.ToString());
 
             output.Position = 0;
 
@@ -123,15 +131,36 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Decrypt.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
-            Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            //Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
 
 
-            unsealer = DataUnsealerFactory.Create(aliceEnc, alice);
+            unsealer = DataUnsealerFactory.Create(false, aliceOnly);
             result = unsealer.Unseal(output);
+            Console.WriteLine(result.SecurityInformation.ToString());
+
+            output.Position = 0;
+
+
+            stream = new MemoryStream();
+            Utils.Copy(result.UnsealedData, stream);
+
+            //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
+            Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
+            Assert.AreEqual(aliceEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
+            Assert.IsNotNull(result.SecurityInformation.ToString());
+
+            unsealer = DataUnsealerFactory.Create(false, bobOnly);
+            result = unsealer.Unseal(output);
+            Console.WriteLine(result.SecurityInformation.ToString());
+
+            output.Position = 0;
 
             output.Close();
 
@@ -140,9 +169,9 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Decrypt.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
-            Assert.AreEqual(aliceEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
@@ -150,7 +179,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         [Test]
         public void NonAddressed()
         {
-            NonAddressed(DataSealerFactory.Create(alice), DataUnsealerFactory.Create());
+            NonAddressed(DataSealerFactory.Create(alice), DataUnsealerFactory.Create(false));
         }
 
         private void NonAddressed(IDataSealer sealer, IAnonymousDataUnsealer unsealer)
@@ -161,6 +190,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), key);
 
             UnsealResult result = unsealer.Unseal(output, key);
+            Console.WriteLine(result.SecurityInformation.ToString());
 
             output.Close();
 
@@ -169,7 +199,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Decrypt.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
             Assert.IsNull(result.SecurityInformation.Encryption.Subject);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
@@ -179,7 +209,7 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         [Test]
         public void Mixed()
         {
-            Mixed(DataSealerFactory.Create(alice), DataUnsealerFactory.Create(bobEnc, bob), DataUnsealerFactory.Create());
+            Mixed(DataSealerFactory.Create(alice), DataUnsealerFactory.Create(false, both), DataUnsealerFactory.Create(false));
         }
 
         private void Mixed(IDataSealer sealer, IDataUnsealer unsealer, IAnonymousDataUnsealer unsealerAnon)
@@ -197,13 +227,14 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             byte[] output = sealer.Seal(new ReadOnlyCollection<EncryptionToken>(receivers), Encoding.UTF8.GetBytes(str), key);
 
             UnsealResult result = unsealerAnon.Unseal(output, key);
+            Console.WriteLine(result.SecurityInformation.ToString());
 
             MemoryStream stream = new MemoryStream();
             Utils.Copy(result.UnsealedData, stream);
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(MemoryStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Decrypt.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
             Assert.IsNull(result.SecurityInformation.Encryption.Subject);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
@@ -211,13 +242,14 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
 
 
             result = unsealer.Unseal(output);
+            Console.WriteLine(result.SecurityInformation.ToString());
 
             stream = new MemoryStream();
             Utils.Copy(result.UnsealedData, stream);
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(MemoryStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Decrypt.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
             Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
@@ -225,28 +257,56 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         }
 
         [Test]
-        public void Eid()
+        public void SelectSender()
         {
+            X509Certificate2 cert;
+            IDataSealer sealer;
+            IDataUnsealer unsealer = DataUnsealerFactory.Create(true, both);
             X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             my.Open(OpenFlags.ReadOnly);
             try
             {
                 X509Certificate2Collection nonRep = my.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.NonRepudiation, true);
-                X509Certificate2UI.SelectFromCollection(nonRep, "Select your eID", "Select the eID you want to used to sign the msg", X509SelectionFlag.SingleSelection);
-
+                cert = X509Certificate2UI.SelectFromCollection(nonRep, "Select your cert", "Select the cert you want to used to sign the msg", X509SelectionFlag.SingleSelection)[0];
+                sealer = DataSealerFactory.Create(cert);
             }
             finally
             {
                 my.Close();
             }
+
+            String str = "This is a secret message from Alice for Bob";
+            
+
+            //Get ETK
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
+            //receiver.Verify();
+
+            Stream output = sealer.Seal(receiver, new MemoryStream(Encoding.UTF8.GetBytes(str)));
+
+            UnsealResult result = unsealer.Unseal(output);
+            Console.WriteLine(result.SecurityInformation.ToString());
+
+            output.Close();
+
+            MemoryStream stream = new MemoryStream();
+            Utils.Copy(result.UnsealedData, stream);
+
+            //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
+            Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(cert.Thumbprint, result.Sender.Thumbprint);
+            Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
+            Assert.IsNotNull(result.SecurityInformation.ToString());
         }
 
         [Test]
         public void ReuseOfSealerAndUnsealer()
         {
             IDataSealer sealer = DataSealerFactory.Create(alice);
-            IDataUnsealer unsealer = DataUnsealerFactory.Create(bobEnc, bob);
-            IDataUnsealer unsealerAlice = DataUnsealerFactory.Create(aliceEnc, alice);
+            IDataUnsealer unsealer = DataUnsealerFactory.Create(false, bobOnly);
+            IDataUnsealer unsealerAlice = DataUnsealerFactory.Create(false, aliceOnly);
 
             Addressed(sealer, unsealer);
             NonAddressed(sealer, unsealer);
@@ -287,9 +347,10 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
                 using (output)
                 {
                     //Unseal again
-                    IDataUnsealer unsealer = DataUnsealerFactory.Create(bobEnc, bob);
+                    IDataUnsealer unsealer = DataUnsealerFactory.Create(false, both);
                     result = unsealer.Unseal(output);
                 }
+                Console.WriteLine(result.SecurityInformation.ToString());
 
                 //check the lenth and the first bytes
                 Assert.AreEqual(hudgeFile.Length, result.UnsealedData.Length);

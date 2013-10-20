@@ -22,7 +22,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Collections.ObjectModel;
 using Siemens.EHealth.Etee.Crypto.Utils;
 
-namespace Siemens.EHealth.Etee.Crypto.Decrypt
+namespace Siemens.EHealth.Etee.Crypto.Status
 {
     /// <summary>
     /// Information about the security checks while unsealing an message.
@@ -41,6 +41,8 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
     /// </remarks>
     public class UnsealSecurityInformation : SecurityResult<UnsealSecurityViolation>
     {
+        private DateTime? sealedOn;
+
         private SecurityInformation outerSignature;
 
         private SecurityInformation encryption;
@@ -60,10 +62,10 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 {
                     switch (this.OuterSignature.TrustStatus)
                     {
-                        case Decrypt.TrustStatus.Unsure:
+                        case TrustStatus.Unsure:
                             violations.Add(UnsealSecurityViolation.SenderTrustUnknown);
                             break;
-                        case Decrypt.TrustStatus.None:
+                        case TrustStatus.None:
                             violations.Add(UnsealSecurityViolation.UntrustedSender);
                             break;
                         default:
@@ -71,11 +73,11 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                     }
                     switch (this.OuterSignature.ValidationStatus)
                     {
-                        case Decrypt.ValidationStatus.Invalid:
+                        case ValidationStatus.Invalid:
                             violations.Add(UnsealSecurityViolation.InvalidData);
                             break;
-                        case Decrypt.ValidationStatus.Unsure:
-                        case Decrypt.ValidationStatus.Unsupported:
+                        case ValidationStatus.Unsure:
+                        case ValidationStatus.Unsupported:
                             violations.Add(UnsealSecurityViolation.DataValidationImpossible);
                             break;
                         default:
@@ -86,10 +88,10 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 {
                     switch (this.Encryption.TrustStatus)
                     {
-                        case Decrypt.TrustStatus.Unsure:
+                        case TrustStatus.Unsure:
                             violations.Add(UnsealSecurityViolation.RecipientTrustUnknown);
                             break;
-                        case Decrypt.TrustStatus.None:
+                        case TrustStatus.None:
                             violations.Add(UnsealSecurityViolation.UntrustedRecipient);
                             break;
                         default:
@@ -97,11 +99,11 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                     }
                     switch (this.Encryption.ValidationStatus)
                     {
-                        case Decrypt.ValidationStatus.Invalid:
+                        case ValidationStatus.Invalid:
                             violations.Add(UnsealSecurityViolation.InvalidData);
                             break;
-                        case Decrypt.ValidationStatus.Unsure:
-                        case Decrypt.ValidationStatus.Unsupported:
+                        case ValidationStatus.Unsure:
+                        case ValidationStatus.Unsupported:
                             violations.Add(UnsealSecurityViolation.DataValidationImpossible);
                             break;
                         default:
@@ -112,10 +114,10 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 {
                     switch (this.InnerSignature.TrustStatus)
                     {
-                        case Decrypt.TrustStatus.Unsure:
+                        case TrustStatus.Unsure:
                             violations.Add(UnsealSecurityViolation.SenderTrustUnknown);
                             break;
-                        case Decrypt.TrustStatus.None:
+                        case TrustStatus.None:
                             violations.Add(UnsealSecurityViolation.UntrustedSender);
                             break;
                         default:
@@ -123,11 +125,11 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                     }
                     switch (this.InnerSignature.ValidationStatus)
                     {
-                        case Decrypt.ValidationStatus.Invalid:
+                        case ValidationStatus.Invalid:
                             violations.Add(UnsealSecurityViolation.InvalidData);
                             break;
-                        case Decrypt.ValidationStatus.Unsure:
-                        case Decrypt.ValidationStatus.Unsupported:
+                        case ValidationStatus.Unsure:
+                        case ValidationStatus.Unsupported:
                             violations.Add(UnsealSecurityViolation.DataValidationImpossible);
                             break;
                         default:
@@ -147,6 +149,21 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                     violations.Remove(UnsealSecurityViolation.DataValidationImpossible);
                 }
                 return new ReadOnlyCollection<UnsealSecurityViolation>(violations);
+            }
+        }
+
+        /// <summary>
+        /// The time the message was sealed, if available.
+        /// </summary>
+        public DateTime? SealedOn
+        {
+            get
+            {
+                return sealedOn;
+            }
+            internal set
+            {
+                sealedOn = value;
             }
         }
 
@@ -222,6 +239,11 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             StringBuilder builder = new StringBuilder();
 
             builder.Append(base.ToString(level));
+
+            builder.Append(lv1);
+            builder.Append("Sealed on: ");
+            builder.AppendLine(SealedOn == null ? "<<Not Available>>" : SealedOn.ToString());
+
             builder.Append(lv1);
             builder.AppendLine("Outer Signature:");
             if (OuterSignature != null)

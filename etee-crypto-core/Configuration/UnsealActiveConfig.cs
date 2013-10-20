@@ -23,9 +23,12 @@ using System.Collections.ObjectModel;
 
 namespace Siemens.EHealth.Etee.Crypto.Configuration
 {
-    internal class UnsealActiveConfig : SealActiveConfig
+    internal class UnsealActiveConfig
     {
         private ReadOnlyCollection<Oid> keyEncryptionAlgorithms;
+        private ReadOnlyCollection<SignatureAlgorithm> signatureAlgorithms;
+        private ReadOnlyCollection<Oid> encryptionAlgorithms;
+        private int[] signatureKeyUsages;
 
 
         public UnsealActiveConfig()
@@ -34,20 +37,65 @@ namespace Siemens.EHealth.Etee.Crypto.Configuration
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        public int MinimuumSignatureKeySize
+        public int MinimumSignatureKeySize
         {
             get
             {
-                return 2048;
+                return 1024; //for eID
             }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        public EncryptionKeySizeActiveConfig MinimuumEncryptionKeySize
+        public EncryptionKeySizeActiveConfig MinimumEncryptionKeySize
         {
             get
             {
                 return new EncryptionKeySizeActiveConfig();
+            }
+        }
+
+        public int[] SignatureKeyUsages
+        {
+            get
+            {
+                if (signatureKeyUsages == null)
+                {
+                    signatureKeyUsages = new int[] { 1 }; //non repudiation;
+                }
+                return signatureKeyUsages;
+            }
+            internal set
+            {
+                signatureKeyUsages = value;
+            }
+        }
+
+        public ReadOnlyCollection<SignatureAlgorithm> SignatureAlgorithms
+        {
+            get
+            {
+                if (signatureAlgorithms == null)
+                {
+                    signatureAlgorithms = new ReadOnlyCollection<SignatureAlgorithm>(new SignatureAlgorithm[] { 
+                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS")), 
+                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.1", "RSA")) 
+                    });
+                }
+                return signatureAlgorithms;
+            }
+        }
+
+        public ReadOnlyCollection<Oid> EncryptionAlgorithms
+        {
+            get
+            {
+                if (encryptionAlgorithms == null)
+                {
+                    encryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] { 
+                        new Oid("2.16.840.1.101.3.4.1.2", "AES128") 
+                    });
+                }
+                return encryptionAlgorithms;
             }
         }
 
@@ -57,7 +105,10 @@ namespace Siemens.EHealth.Etee.Crypto.Configuration
             {
                 if (keyEncryptionAlgorithms == null)
                 {
-                    keyEncryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] { new Oid("1.2.840.113549.1.1.1","rsa"), new Oid("2.16.840.1.101.3.4.1.5", "aes128wrap") });
+                    keyEncryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] { 
+                        new Oid("1.2.840.113549.1.1.1","rsa"), 
+                        new Oid("2.16.840.1.101.3.4.1.5", "aes128wrap") 
+                    });
                 }
                 return keyEncryptionAlgorithms;
             }

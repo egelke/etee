@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Siemens.EHealth.Etee.Crypto.Decrypt
+namespace Siemens.EHealth.Etee.Crypto.Status
 {
     /// <summary>
     /// Indicates if object is correct or not.

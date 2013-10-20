@@ -89,5 +89,10 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
         {
             return new TripleWrapper(sender);
         }
+
+        public static IDataSealer Create(X509Certificate2 sender, X509Certificate2Collection extraStore)
+        {
+            return new TripleWrapper(sender, extraStore);
+        }
     }
 }

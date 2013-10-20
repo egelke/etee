@@ -23,6 +23,9 @@ using Siemens.EHealth.Etee.Crypto;
 using Siemens.EHealth.Etee.Crypto.Decrypt;
 using Org.BouncyCastle.Cms;
 using NUnit.Framework;
+using ETEE = Siemens.EHealth.Etee.Crypto;
+using System.Security.Cryptography.X509Certificates;
+using Siemens.EHealth.Etee.Crypto.Status;
 
 namespace Siemens.eHealth.ETEE.Crypto.Test
 {
@@ -32,117 +35,100 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class EncryptionTokenTest
     {
-        public EncryptionTokenTest()
-        {
-            //
-            // TODO: Add constructor logic here
-            //
-        }
 
-        private TestContext testContextInstance;
+        X509Certificate2 testCA;
 
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
+        [TestFixtureSetUp]
+        public void SetUp()
         {
-            get
+            testCA = new X509Certificate2("../../imports/CA.cer");
+
+            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
+            try
             {
-                return testContextInstance;
+                if (!store.Certificates.Contains(testCA))
+                {
+                    store.Add(testCA);
+                }
             }
-            set
+            finally
             {
-                testContextInstance = value;
+                store.Close();
             }
         }
 
-        #region Additional test attributes
-        //
-        // You can use the following additional attributes as you write your tests:
-        //
-        // Use ClassInitialize to run code before running the first test in the class
-        // [ClassInitialize()]
-        // public static void MyClassInitialize(TestContext testContext) { }
-        //
-        // Use ClassCleanup to run code after all tests in a class have run
-        // [ClassCleanup()]
-        // public static void MyClassCleanup() { }
-        //
-        // Use TestInitialize to run code before running each test 
-        // [TestInitialize()]
-        // public void MyTestInitialize() { }
-        //
-        // Use TestCleanup to run code after each test has run
-        // [TestCleanup()]
-        // public void MyTestCleanup() { }
-        //
-        #endregion
-
-        public void dummy()
+        [TestFixtureTearDown]
+        public void TearDown()
         {
+            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
+            try
+            {
+                if (store.Certificates.Contains(testCA))
+                {
+                    store.Remove(testCA);
+                }
+            }
+            finally
+            {
+                store.Close();
+            }
+        }
 
+        private void LoadNewCert(X509Store store, String certPath)
+        {
+            X509Certificate2 cert = new X509Certificate2(certPath);
+            X509Certificate2Collection found = store.Certificates.Find(X509FindType.FindByThumbprint, cert.Thumbprint, false);
+            if (found.Count == 0)
+            {
+                store.Add(cert);
+            }
         }
         
         [Test]
         public void Bob()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/bobs_public_key.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Unsure, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
-            
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.SenderTrustUnknown));
-            Assert.IsTrue(info.Signature.SecurityViolations.Contains(SecurityViolation.SubjectTrustUnknown));
-            Assert.IsTrue(info.Signature.Subject.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.TokenTrustUnknown));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
-            Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
         }
 
         [Test]
         public void Alice()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/alices_public_key.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../alice/alices_public_key.etk"));
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Unsure, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.SenderTrustUnknown));
-            Assert.IsTrue(info.Signature.SecurityViolations.Contains(SecurityViolation.SubjectTrustUnknown));
-            Assert.IsTrue(info.Signature.Subject.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
-
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.TokenTrustUnknown));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
-            Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
         }
 
         [Test]
         public void ValidButScrambledDN()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/valid_but_scrambledDN.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Unsure, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
-
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.SenderTrustUnknown));
-            Assert.IsTrue(info.Signature.SecurityViolations.Contains(SecurityViolation.SubjectTrustUnknown));
-            Assert.IsTrue(info.Signature.Subject.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
-
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.TokenTrustUnknown));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
-            Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
         }
 
         [Test]
@@ -156,153 +142,134 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public void DifferentDN()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/auth_and_encr_not_same_DN.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
             Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
-            //Assert.IsFalse(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidSignature));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.HasNotPermittedNameConstraint));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.HasNotPermittedNameConstraint));
         }
 
         [Test]
         public void ExpiredEnc()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/expired_encr.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
             Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
-            //Assert.IsFalse(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidSignature));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
         }
 
         [Test]
         public void ExpiredAuth()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/expired_auth.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
+            Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.UntrustedToken));
-           // Assert.IsFalse(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidSignature));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
-            Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
         }
 
         [Test]
         public void NotYetAuth()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/not_yet_auth.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
+            Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.UntrustedToken));
-            //Assert.IsFalse(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidSignature));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
-            Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
         }
 
         [Test]
         public void InvalidEncKeyUsage()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_encrkey_usage.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
             Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
-            //Assert.IsFalse(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidSignature));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
         }
 
         [Test]
         public void InvalidAuthKeyUsage()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_authkey_usage.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
+            Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus); //due to the name, otherwise valid
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
-            //Assert.IsFalse(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidSignature));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
-            Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
         }
 
         [Test]
         public void InvalidKeySize()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_key_size.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
             Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidToken));
-            //Assert.IsFalse(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidSignature));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.NotValidKeySize));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
-            Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidKeySize));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.NotValidKeySize));
+            //This is no longer the case because we allow eID with 1024 bit keys.
+            //Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidKeySize));
         }
 
         [Test]
         public void InvalidChain()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_cert_chain.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
+            Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.UntrustedToken));
-            //Assert.IsFalse(info.SecurityViolations.Contains(EtkSecurityViolation.InvalidSignature));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
-            Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotSignatureValid));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
+            Assert.IsTrue(info.IssuerInfo.IssuerInfo.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.UntrustedRoot));
         }
 
 
         [Test]
         public void MixedKeyAlgorithm()
         {
-            //In contradiction with its name, it is allowed because it has RSA for encryption and DSA for signing
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_key_algorithm.etk"));
-            EtkSecurityInformation info = receiver.Verify();
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(TrustStatus.Unsure, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
-            Assert.IsTrue(info.Sender.Subject.Contains("CN=ETK-RA"));
+            Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
-            Assert.IsTrue(info.SecurityViolations.Contains(EtkSecurityViolation.UntrustedToken));
-            Assert.IsFalse(info.SecurityViolations.Contains(EtkSecurityViolation.UntrustedSender));
-            Assert.IsTrue(info.TokenInformation.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
-            Assert.IsTrue(info.TokenInformation.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidKeySize)); //this is why it is invailid, not because of the key type
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidKeyType)); //this is why it is invailid, not because of the key type
         }
     }
 }

@@ -19,9 +19,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
+using Siemens.EHealth.Etee.Crypto.Configuration;
 
 namespace Siemens.EHealth.Etee.Crypto.Decrypt
 {
+
     /// <summary>
     /// <see cref="IDataUnsealer"/> factory class.
     /// </summary>
@@ -31,6 +33,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
     /// </remarks>
     public static class DataUnsealerFactory
     {
+
         /// <summary>
         /// Creates an unaddressed-only instance of the <see cref="IAnonymousDataUnsealer"/> inferface.
         /// </summary>
@@ -43,11 +46,13 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
         /// threads.
         /// </para>
         /// </remarks>
+        /// <param name="requireProbativeForce">True if the sender should take responsability of the message content (non-Repudiation)
+        /// and therfore have legal meaning (probative force)</param>
         /// <returns>Instance of the IAnonymousDataUnsealer that can be used to open unaddressed messages only</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        public static IAnonymousDataUnsealer Create()
+        public static IAnonymousDataUnsealer Create(bool requireProbativeForce)
         {
-            return new TripleUnwrapper(null, null);
+            return new TripleUnwrapper(requireProbativeForce, null);
         }
 
         /// <summary>
@@ -82,16 +87,17 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
         /// Dim enc As New X509Certificate2("myEncStore.p12", "xxx", X509KeyStorageFlags.Exportable)
         /// </code>
         /// </example>
-        /// <param name="enc">The (eHealth) certificate to use for decypting the protected messages, it must have an <strong>exportable</strong> private key</param>
-        /// <param name="auth">The (eHealth) certificate that was used to create the encryption certificate</param>
+        /// <param name="requireProbativeForce">True if the sender should take responsability of the message content (non-Repudiation)
+        /// and therfore have legal meaning (probative force)</param>
+        /// <param name="encCerts">The (eHealth) certificates to use for decypting the protected messages, they must have an <strong>exportable</strong> private key</param>
         /// <returns>Instance of the IDataUnsealer that can be used to open both address and non-addressed messages</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        public static IDataUnsealer Create(X509Certificate2 enc, X509Certificate2 auth)
+        public static IDataUnsealer Create(bool requireProbativeForce, X509Certificate2Collection encCerts)
         {
-            if (enc == null) throw new ArgumentNullException("enc");
-            if (auth == null) throw new ArgumentNullException("auth");
+            if (encCerts == null) throw new ArgumentNullException("encCerts");
+            if (encCerts.Count == 0) throw new ArgumentException("There should be at least one encryption certificate", "encCerts");
 
-            return new TripleUnwrapper(enc, auth);
+            return new TripleUnwrapper(requireProbativeForce, encCerts);
         }
     }
 }

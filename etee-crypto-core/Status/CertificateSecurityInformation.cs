@@ -15,6 +15,7 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,73 +23,90 @@ using System.Security.Cryptography.X509Certificates;
 using System.Collections.ObjectModel;
 using Siemens.EHealth.Etee.Crypto.Utils;
 
-namespace Siemens.EHealth.Etee.Crypto.Decrypt
+namespace Siemens.EHealth.Etee.Crypto.Status
 {
     /// <summary>
-    /// Security information of eighter signatures or encrypted messages.
+    /// Security information of certificates.
     /// </summary>
-    public class SecurityInformation : SecurityResult<SecurityViolation>
+    public class CertificateSecurityInformation : SecurityResult<CertSecurityViolation>
     {
-        private CertificateSecurityInformation subject;
+        private X509Certificate2 certificate;
+
+        private CertificateSecurityInformation issuer;
 
         /// <summary>
-        /// Information about the issuer/sender (signature) or recipient (decryption).
+        /// The certificate on which the checks where executed.
         /// </summary>
-        public CertificateSecurityInformation Subject
+        public X509Certificate2 Certificate
         {
             get
             {
-                return subject;
+                return certificate;
             }
             internal set
             {
-                subject = value;
+                certificate = value;
+            }
+        }
+
+        /// <summary>
+        /// The security information of the issuer.
+        /// </summary>
+        public CertificateSecurityInformation IssuerInfo
+        {
+            get
+            {
+                return issuer;
+            }
+            internal set
+            {
+                issuer = value;
             }
         }
 
         /// <summary>
         /// Detailed list of all the security violations for this object.
         /// </summary>
-        /// <seealso cref="SecurityViolation"/>
-        public override ReadOnlyCollection<SecurityViolation> SecurityViolations
+        /// <seealso cref="CertSecurityViolation"/>
+        public override ReadOnlyCollection<CertSecurityViolation> SecurityViolations
         {
             get
             {
-                UniqueCollection<SecurityViolation> violations = new UniqueCollection<SecurityViolation>(base.securityViolations);
-                if (this.Subject != null)
+                UniqueCollection<CertSecurityViolation> violations = new UniqueCollection<CertSecurityViolation>(base.securityViolations);
+                if (this.IssuerInfo != null)
                 {
                     //Add the cumuldated result of the parent parents
-                    switch (this.Subject.TrustStatus)
+                    switch (this.IssuerInfo.TrustStatus)
                     {
-                        case Decrypt.TrustStatus.Unsure:
-                            violations.Add(SecurityViolation.SubjectTrustUnknown);
+                        case TrustStatus.Unsure:
+                            violations.Add(CertSecurityViolation.IssuerTrustUnknown);
                             break;
-                        case Decrypt.TrustStatus.None:
-                            violations.Add(SecurityViolation.UntrustedSubject);
+                        case TrustStatus.None:
+                            violations.Add(CertSecurityViolation.UntrustedIssuer);
                             break;
                         default:
                             break;
                     }
                     //Add the result of the parent
-                    switch (this.Subject.ValidationStatus)
+                    switch (this.IssuerInfo.ValidationStatus)
                     {
-                        case Decrypt.ValidationStatus.Invalid:
-                            violations.Add(SecurityViolation.UntrustedSubject);
+                        case ValidationStatus.Invalid:
+                            violations.Add(CertSecurityViolation.UntrustedIssuer);
                             break;
-                        case Decrypt.ValidationStatus.Unsure:
-                        case Decrypt.ValidationStatus.Unsupported:
-                            violations.Add(SecurityViolation.SubjectTrustUnknown);
+                        case ValidationStatus.Unsure:
+                        case ValidationStatus.Unsupported:
+                            violations.Add(CertSecurityViolation.IssuerTrustUnknown);
                             break;
                         default:
                             break;
                     }
                     //Remove less specific violations
-                    if (violations.Contains(SecurityViolation.UntrustedSubject))
+                    if (violations.Contains(CertSecurityViolation.UntrustedIssuer))
                     {
-                        violations.Remove(SecurityViolation.SubjectTrustUnknown);
+                        violations.Remove(CertSecurityViolation.IssuerTrustUnknown);
                     }
                 }
-                return new ReadOnlyCollection<SecurityViolation>(violations);
+                return new ReadOnlyCollection<CertSecurityViolation>(violations);
             }
         }
 
@@ -107,15 +125,28 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
 
             builder.Append(base.ToString(level));
             builder.Append(lv1);
-            builder.AppendLine("Subject:");
-            if (Subject != null)
+            builder.AppendLine("Certificate:");
+            if (Certificate != null)
             {
-                builder.Append(Subject.ToString(level + 1));
+                builder.Append(lv2);
+                builder.AppendLine(certificate.ToString(false).Replace("\n", "\n"+ lv2));
             }
             else
             {
                 builder.Append(lv2);
                 builder.AppendLine("<<Not Provided>>");
+            }
+
+            builder.Append(lv1);
+            builder.AppendLine("Issuer Info:");
+            if (IssuerInfo != null)
+            {
+                builder.Append(IssuerInfo.ToString(level + 1));
+            }
+            else
+            {
+                builder.Append(lv2);
+                builder.AppendLine("<<Unknown or Root>>");
             }
 
             return builder.ToString();
