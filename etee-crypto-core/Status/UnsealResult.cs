@@ -22,7 +22,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Siemens.EHealth.Etee.Crypto.Decrypt
+namespace Siemens.EHealth.Etee.Crypto.Status
 {
     /// <summary>
     /// The unsealed data and additional info.

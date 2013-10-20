@@ -29,6 +29,8 @@ using Org.BouncyCastle.Security;
 using System.Collections;
 using Siemens.EHealth.Etee.Crypto.Decrypt;
 using System.Diagnostics;
+using Egelke.EHealth.Etee.Crypto.Utils;
+using Siemens.EHealth.Etee.Crypto.Status;
 
 namespace Siemens.EHealth.Etee.Crypto
 {
@@ -123,39 +125,35 @@ namespace Siemens.EHealth.Etee.Crypto
                     MemoryStream memStream = new MemoryStream();
                     raw.SignedContent.Write(memStream);
                     content = memStream.ToArray();
-                    //content = StreamUtils.ReadFully(raw.SignedContent.Read());
                 }
                 return content;
             }
         }
 
         /// <summary>
-        /// Verifies if the ETK is still valid and can be trusted.
+        /// Verifies if the ETK contains a token that is still valid and can be trusted.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This method checks if the ETK is issued by a trusted party.  Tust means
+        /// This method checks if the certificate in the ETK is issued by a trusted party.  Tust means
         /// the root certificate is trusted by the computer it is running on and all
         /// validation checks, including revocation, are successful.  Root
         /// certificates are trusted by the computer if present in the 
         /// <see cref="StoreName.Root"/> store.
         /// </para>
         /// <para>
-        /// <strong>The method does NOT verify that the ETK is issued by eHealth</strong>,
-        /// it only verifies the issuer is who he claims to be.  It is the caller of this method's 
-        /// responsablity to check if this specific issuer (or sender) is trusted for issuing ETKs or not.
-        /// Use the <see cref="EtkSecurityInformation.Sender"/> property of the return value to get the certificate of 
-        /// the issuer and check the subject name or any other attribute to determine who is the issuer/sender.
+        /// This method no longer validates the signer of the ETK token due lack of signing time in the ETK.
+        /// The encryption certificate inside the ETK is still completley verified, this means there isn't a reduction in
+        /// security compared to the previous implementation.
         /// </para>
         /// </remarks>
-        /// <returns>Detailed information about the verification</returns>
-        public EtkSecurityInformation Verify()
+        /// <returns>Detailed information about the encryption certificate status</returns>
+        public CertificateSecurityInformation Verify()
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying ETK: {0}", ToBCCertificate().SubjectDN.ToString());
 
             BC::X509Certificate encCert;
             BC::X509Certificate authCert = null;
-            EtkSecurityInformation result = new EtkSecurityInformation();
 
             //Get encryption cert
             encCert = ToBCCertificate();
@@ -166,22 +164,20 @@ namespace Siemens.EHealth.Etee.Crypto
             SignerID authCertSelector = new SignerID();
             authCertSelector.Subject = encCert.IssuerDN;
             ICollection authCertMatch = certs.GetMatches(authCertSelector);
-            if (authCertMatch.Count == 1)
+            if (authCertMatch.Count != 1)
             {
-                IEnumerator iterator = authCertMatch.GetEnumerator();
-                if (!iterator.MoveNext())
-                {
-                    trace.TraceEvent(TraceEventType.Error, 0, "Certificate present but could not be retrieved");
-                    throw new InvalidOperationException("Could not retrieve certificate, please report issue");
-                }
-                authCert = (BC::X509Certificate)iterator.Current;
+                trace.TraceEvent(TraceEventType.Warning, 0, "Authentication certificate not found in ETK");
+                throw new InvalidMessageException("The ETK does not contain the authentication certificate");
             }
+            IEnumerator iterator = authCertMatch.GetEnumerator();
+            if (!iterator.MoveNext())
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "Certificate present but could not be retrieved");
+                throw new InvalidOperationException("Could not retrieve certificate, please report issue");
+            }
+            authCert = (BC::X509Certificate)iterator.Current;
 
-            //Verify message & get etk certificate
-            result.Signature = Verifier.Verify(certs, crls, raw.GetSignerInfos(), null, false, false);
-            result.TokenInformation = Verifier.Verify(encCert, authCert);
-
-            return result;
+            return CertVerifier.VerifyEnc(encCert, authCert, certs, crls, null, null);
         }
 
     }

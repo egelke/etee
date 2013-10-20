@@ -22,7 +22,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using Siemens.EHealth.Etee.Crypto.Utils;
 
-namespace Siemens.EHealth.Etee.Crypto.Decrypt
+namespace Siemens.EHealth.Etee.Crypto.Status
 {
     /// <summary>
     /// Base class for security violation data.

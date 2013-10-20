@@ -22,9 +22,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-core", "etee-cr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-demo-console", "etee-demo-console\etee-demo-console.csproj", "{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto", "bc-patch\crypto.csproj", "{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 8
+		SccNumberOfProjects = 9
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccLocalPath0 = .
@@ -49,6 +51,9 @@ Global
 		SccProjectUniqueName7 = etee-demo-console\\etee-demo-console.csproj
 		SccProjectName7 = etee-demo-console
 		SccLocalPath7 = etee-demo-console
+		SccProjectUniqueName8 = bc-patch\\crypto.csproj
+		SccProjectName8 = bc-patch
+		SccLocalPath8 = bc-patch
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = ETEE.vsmdi
@@ -146,6 +151,18 @@ Global
 		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|Win32.ActiveCfg = Release|x86
 		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|x86.ActiveCfg = Release|x86
 		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|x86.Build.0 = Release|x86
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Win32.ActiveCfg = Release|Any CPU
+		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -32,12 +32,20 @@ namespace Siemens.EHealth.Etee.Crypto.Configuration
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        public SignatureAlgorithm SignatureAlgorithm
+        public SignatureAlgorithm NativeSignatureAlgorithm
         {
             get
             {
-                //RSASSA-PSS/SHA256
                 return new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS"));
+            }
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
+        public SignatureAlgorithm WindowsSignatureAlgorithm
+        {
+            get
+            {
+                return new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.1", "RSA"));
             }
         }
 

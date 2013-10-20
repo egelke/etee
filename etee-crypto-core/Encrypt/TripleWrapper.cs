@@ -30,6 +30,8 @@ using System;
 using System.Threading;
 using System.Diagnostics;
 using Org.BouncyCastle.Asn1.X509;
+using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Siemens.EHealth.Etee.Crypto.Encrypt
 {
@@ -37,60 +39,34 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
     {
         private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
 
-        private class SignParams
-        {
-            public SignParams(Stream signed, Stream unsigned, bool includeSigner)
-            {
-                this.signed = signed;
-                this.unsigned = unsigned;
-                this.includeSigner = includeSigner;
-            }
-
-            public Stream signed;
-            
-            public Stream unsigned;
-
-            public bool includeSigner;
-
-            public Exception exception;
-        }
-
-        private class EncryptParams
-        {
-            public EncryptParams(Stream cypher, Stream clear, ICollection<EncryptionToken> tokens, SecretKey key)
-            {
-                this.cypher = cypher;
-                this.clear = clear;
-                this.tokens = tokens;
-                this.key = key;
-            }
-
-            public Stream cypher;
-            
-            public Stream clear;
-            
-            public ICollection<EncryptionToken> tokens;
-
-            public SecretKey key;
-
-            public Exception exception;
-        }
-
         private X509Certificate2 sender;
 
-
-        private Thread innerSignatureThread;
-
-        private Thread encryptThread;
-
-        private Thread outerSignatureThread;
+        private IX509Store senderChain;
 
         internal TripleWrapper(X509Certificate2 sender)
+            : this(sender, null)
+        {
+
+        }
+
+        internal TripleWrapper(X509Certificate2 sender, X509Certificate2Collection extraStore)
         {
             this.sender = sender;
-            innerSignatureThread = new Thread(this.Sign);
-            encryptThread = new Thread(this.Encrypt);
-            outerSignatureThread = new Thread(this.Sign);
+
+            X509Chain chain = new X509Chain();
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+            chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
+            if (extraStore != null) chain.ChainPolicy.ExtraStore.AddRange(extraStore);
+            chain.Build(sender);
+
+            X509ChainElementEnumerator chainEnum = chain.ChainElements.GetEnumerator();
+            List<BC::X509Certificate> bcChainList = new List<BC::X509Certificate>();
+            while (chainEnum.MoveNext())
+            {
+                bcChainList.Add(DotNetUtilities.FromX509Certificate(chainEnum.Current.Certificate));
+            }
+            senderChain = X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(bcChainList));
         }
 
         #region DataSealer Members
@@ -104,7 +80,7 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
             MemoryStream unsealedStream = new MemoryStream(unsealed, false);
             using (unsealedStream)
             {
-                MemoryStream sealedStream = (MemoryStream)SealSemiOptimized(factory, unsealedStream, tokens, null);
+                MemoryStream sealedStream = (MemoryStream)Seal(factory, unsealedStream, tokens, null);
                 using (sealedStream)
                 {
                     return sealedStream.ToArray();
@@ -118,7 +94,7 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
             MemoryStream unsealedStream = new MemoryStream(unsealed, false);
             using (unsealedStream)
             {
-                MemoryStream sealedStream = (MemoryStream)SealSemiOptimized(factory, unsealedStream, tokens, null);
+                MemoryStream sealedStream = (MemoryStream)Seal(factory, unsealedStream, tokens, null);
                 using (sealedStream)
                 {
                     return sealedStream.ToArray();
@@ -133,14 +109,14 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
             tokens.Add(token);
 
             ITempStreamFactory factory = new TempFileStreamFactory();
-            return SealSemiOptimized(factory, unsealed, tokens, null);
+            return Seal(factory, unsealed, tokens, null);
         }
 
         [PermissionSet(SecurityAction.LinkDemand, Name = "FullTrust")]
         public Stream Seal(ReadOnlyCollection<EncryptionToken> tokens, Stream unsealed)
         {
             ITempStreamFactory factory = new TempFileStreamFactory();
-            return SealSemiOptimized(factory, unsealed, tokens, null);
+            return Seal(factory, unsealed, tokens, null);
         }
 
         public byte[] Seal(byte[] unsealed, SecretKey key)
@@ -149,7 +125,7 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
             MemoryStream unsealedStream = new MemoryStream(unsealed, false);
             using (unsealedStream)
             {
-                MemoryStream sealedStream = (MemoryStream)SealSemiOptimized(factory, unsealedStream, null, key);
+                MemoryStream sealedStream = (MemoryStream)Seal(factory, unsealedStream, null, key);
                 using (sealedStream)
                 {
                     return sealedStream.ToArray();
@@ -162,7 +138,7 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
         {
             List<EncryptionToken> tokens = new List<EncryptionToken>();
             ITempStreamFactory factory = new TempFileStreamFactory();
-            return SealSemiOptimized(factory, unsealed, tokens, key);
+            return Seal(factory, unsealed, tokens, key);
         }
 
         public byte[] Seal(ReadOnlyCollection<EncryptionToken> tokens, byte[] unsealed, SecretKey key)
@@ -171,7 +147,7 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
             MemoryStream unsealedStream = new MemoryStream(unsealed, false);
             using (unsealedStream)
             {
-                MemoryStream sealedStream = (MemoryStream)SealSemiOptimized(factory, unsealedStream, tokens, key);
+                MemoryStream sealedStream = (MemoryStream)Seal(factory, unsealedStream, tokens, key);
                 using (sealedStream)
                 {
                     return sealedStream.ToArray();
@@ -183,12 +159,12 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
         public Stream Seal(ReadOnlyCollection<EncryptionToken> tokens, Stream unsealed, SecretKey key)
         {
             ITempStreamFactory factory = new TempFileStreamFactory();
-            return SealSemiOptimized(factory, unsealed, tokens, key);
+            return Seal(factory, unsealed, tokens, key);
         }
 
         #endregion
 
-        private Stream SealSemiOptimized(ITempStreamFactory factory, Stream unsealedStream, ICollection<EncryptionToken> tokens, SecretKey key)
+        private Stream Seal(ITempStreamFactory factory, Stream unsealedStream, ICollection<EncryptionToken> tokens, SecretKey key)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Sealing message of {0} bytes for {1} known recipients and {1} unknown recipients", 
                 unsealedStream.Length, tokens == null ? 0 : tokens.Count, key == null ? 0 : 1);
@@ -208,13 +184,35 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
                     //Encrypt
                     Encrypt(signedEncrypted, signed, tokens, key);
 
-                    signedEncrypted.Position = 0;
+                    //Outer sign with retry for eID
+                    int tries = 0;
+                    Stream sealedStream = null;
+                    while (true)
+                    {
+                        signedEncrypted.Position = 0;
 
-                    //This is the output, so we need to make it a temp stream (temp file or memory stream)
-                    Stream sealedStream = factory.CreateNew();
-
-                    //Outer sign
-                    Sign(sealedStream, signedEncrypted, true);
+                        try
+                        {
+                            //This is the output, so we need to make it a temp stream (temp file or memory stream)
+                            sealedStream = factory.CreateNew();
+                            Sign(sealedStream, signedEncrypted, true);
+                            break;
+                        }
+                        catch (CryptographicException ce)
+                        {
+                            trace.TraceEvent(TraceEventType.Warning, 0, "Failed to put outer signature (try {0}): {1}", tries, ce);
+                            if (tries++ < 4)
+                            {
+                                sealedStream.Close();
+                                sealedStream = null;
+                                Thread.Sleep((int) Math.Pow(10, tries)); //wait longer and longer
+                            }
+                            else
+                            {
+                                throw ce; 
+                            }
+                        }
+                    }
 
                     sealedStream.Position = 0; //reset the stream
 
@@ -222,121 +220,37 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
                 }
             }
         }
-
-
-        private Stream SealOptimized(ITempStreamFactory factory, Stream unsealedStream, ICollection<EncryptionToken> tokens, SecretKey key)
-        {
-            trace.TraceEvent(TraceEventType.Information, 0, "Sealing message of {0} bytes for {1} known recipients and {1} unknown recipients",
-                unsealedStream.Length, tokens == null ? 0 : tokens.Count, key == null ? 0 : 1);
-            //Create pipe for inner signed stream
-            Stream signed = new MemoryPipeStream();
-            try
-            {
-                //Inner sign
-                SignParams inner = new SignParams(signed, unsealedStream, false);
-                innerSignatureThread.Start(inner);
-
-                //Create pipe for encrypted stresm
-                Stream signedEncrypted = new MemoryPipeStream();
-                try
-                {
-                    //Encrypt
-                    EncryptParams encrypt = new EncryptParams(signedEncrypted, signed, tokens, key);
-                    encryptThread.Start(encrypt);
-
-                    //This is the output, so we need to make it a temp stream (temp file or memory stream)
-                    Stream sealedStream = factory.CreateNew();
-
-                    //Outer sign
-                    SignParams outer = new SignParams(sealedStream, signedEncrypted, true);
-                    outerSignatureThread.Start(outer);
-
-                    //Wait for all the threads to finish and check the results
-                    innerSignatureThread.Join();
-                    signed.Close();
-                    signed = null;
-
-                    encryptThread.Join();
-                    signedEncrypted.Close();
-                    signedEncrypted = null;
-
-                    outerSignatureThread.Join();
-                    sealedStream.Position = 0; //reset the stream
-
-                    if (inner.exception != null) throw new InvalidOperationException("Inner signature failed", inner.exception);
-                    if (encrypt.exception != null) throw new InvalidOperationException("Encryption failed", encrypt.exception);
-                    if (outer.exception != null) throw new InvalidOperationException("Outer signature failed", outer.exception);
-
-                    return sealedStream;
-                }
-                finally
-                {
-                    if (signedEncrypted != null) signedEncrypted.Close();
-                }
-            }
-            finally
-            {
-                if (signed != null) signed.Close();
-            }
-        }
-         
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private void Sign(Object data)
-        {
-            SignParams param = (SignParams)data;
-            try
-            {
-                Sign(param.signed, param.unsigned, param.includeSigner);
-            }
-            catch (Exception e)
-            {
-                param.exception = e;
-            }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private void Encrypt(Object data)
-        {
-            EncryptParams param = (EncryptParams)data;
-            try
-            {
-                Encrypt(param.cypher, param.clear, param.tokens, param.key);
-            }
-            catch (Exception e)
-            {
-                param.exception = e;
-            }
-        }
-        
 
         protected void Sign(Stream signed, Stream unsigned, bool includeSigner)
         {
             BC::X509Certificate bcSender = DotNetUtilities.FromX509Certificate(sender);
             trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", bcSender.SubjectDN.ToString());
             CmsSignedDataStreamGenerator signedGenerator = new CmsSignedDataStreamGenerator();
-            ((System.Security.Cryptography.RSACryptoServiceProvider)sender.PrivateKey).SignHash(null, "SHA256");
-            signedGenerator.AddSigner(DotNetUtilities.GetKeyPair(sender.PrivateKey).Private,
-                bcSender, EteeActiveConfig.Seal.SignatureAlgorithm.EncryptionAlgorithm.Value,
-                EteeActiveConfig.Seal.SignatureAlgorithm.DigestAlgorithm.Value);
+            SignatureAlgorithm signAlgo;
+            if (((RSACryptoServiceProvider) sender.PrivateKey).CspKeyContainerInfo.Exportable) {
+                signAlgo =  EteeActiveConfig.Seal.NativeSignatureAlgorithm;
+                signedGenerator.AddSigner(DotNetUtilities.GetKeyPair(sender.PrivateKey).Private,
+                    bcSender, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value);
+            } else {
+                signAlgo = EteeActiveConfig.Seal.WindowsSignatureAlgorithm;
+                signedGenerator.AddSigner(new ProxyRsaKeyParameters((RSACryptoServiceProvider) sender.PrivateKey),
+                    bcSender, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value);
+            }
             trace.TraceEvent(TraceEventType.Verbose, 0, "Added Signer [EncAlgo={0} ({1}), DigestAlgo={2} ({3})",
-                EteeActiveConfig.Seal.SignatureAlgorithm.EncryptionAlgorithm.FriendlyName,
-                EteeActiveConfig.Seal.SignatureAlgorithm.EncryptionAlgorithm.Value,
-                EteeActiveConfig.Seal.SignatureAlgorithm.DigestAlgorithm.FriendlyName,
-                EteeActiveConfig.Seal.SignatureAlgorithm.DigestAlgorithm.Value);
+                signAlgo.EncryptionAlgorithm.FriendlyName,
+                signAlgo.EncryptionAlgorithm.Value,
+                signAlgo.DigestAlgorithm.FriendlyName,
+                signAlgo.DigestAlgorithm.Value);
             if (includeSigner)
             {
-                List<BC::X509Certificate> signerColl = new List<BC::X509Certificate>();
-                signerColl.Add(bcSender);
-                IX509Store signerBcColl = X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(signerColl));
-                signedGenerator.AddCertificates(signerBcColl);
+                signedGenerator.AddCertificates(senderChain);
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Added signing certificate to the messages");
             }
             Stream signingStream = signedGenerator.Open(signed, true);
             trace.TraceEvent(TraceEventType.Verbose, 0, "Create embedded signed message (still empty)");
             try
             {
-                StreamUtils.Copy(unsigned, signingStream);
+                unsigned.CopyTo(signingStream);
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Message copied and digest calculated");
             }
             finally
@@ -372,7 +286,7 @@ namespace Siemens.EHealth.Etee.Crypto.Encrypt
                 EteeActiveConfig.Seal.EncryptionAlgorithm.FriendlyName, EteeActiveConfig.Seal.EncryptionAlgorithm.Value);
             try
             {
-                StreamUtils.Copy(clear, encryptingStream);
+                clear.CopyTo(encryptingStream);
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Message encrypted");
             }
             finally

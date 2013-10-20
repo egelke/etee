@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Security.Permissions;
+using Siemens.EHealth.Etee.Crypto.Status;
 
 namespace Siemens.EHealth.Etee.Crypto.Decrypt
 {
