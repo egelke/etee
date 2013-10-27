@@ -224,6 +224,10 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             }
             catch (CmsException cmse)
             {
+                if (cmse.Message.Contains("RSAandMGF1 not supported"))
+                {
+                    throw new NotSupportedException("RSA-PSS not supported with streaming in case of raw signatures");
+                }
                 throw new InvalidMessageException("The message isn't a tripple wrapped message", cmse);
             }
         }
