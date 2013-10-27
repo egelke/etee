@@ -57,8 +57,8 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             cert = AskCertificate();
 
             //Bob (and Alice) used as receiver
-            bobEnc = new X509Certificate2("../../imports/users/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
-            aliceEnc = new X509Certificate2("../../imports/users/alice_enc.p12", "test", X509KeyStorageFlags.Exportable);
+            bobEnc = new X509Certificate2("../../bob/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
+            aliceEnc = new X509Certificate2("../../alice/alice_enc.p12", "test", X509KeyStorageFlags.Exportable);
             both = new X509Certificate2Collection(new X509Certificate2[] { bobEnc, aliceEnc });
         }
 

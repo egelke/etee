@@ -56,11 +56,11 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
         public static void InitializeClass()
         {
             //Alice, used as sender
-            alice = new X509Certificate2("../../imports/users/alice_auth.p12", "test", X509KeyStorageFlags.Exportable);
+            alice = new X509Certificate2("../../alice/alice_auth.p12", "test", X509KeyStorageFlags.Exportable);
 
             //Bob, used as receiver
-            bobEnc = new X509Certificate2("../../imports/users/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
-            aliceEnc = new X509Certificate2("../../imports/users/alice_enc.p12", "test", X509KeyStorageFlags.Exportable);
+            bobEnc = new X509Certificate2("../../bob/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
+            aliceEnc = new X509Certificate2("../../alice/alice_enc.p12", "test", X509KeyStorageFlags.Exportable);
             both = new X509Certificate2Collection(new X509Certificate2[] { bobEnc, aliceEnc });
             aliceOnly = new X509Certificate2Collection(new X509Certificate2[] { aliceEnc });
             bobOnly = new X509Certificate2Collection(new X509Certificate2[] { bobEnc });
