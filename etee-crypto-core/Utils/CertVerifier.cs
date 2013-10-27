@@ -15,11 +15,16 @@
  * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using Egelke.EHealth.Etee.Crypto.Configuration;
+using Org.BouncyCastle.Asn1.Ocsp;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
+using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 using Siemens.EHealth.Etee.Crypto.Configuration;
 using Siemens.EHealth.Etee.Crypto.Status;
@@ -38,12 +43,12 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
     {
         private static TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
 
-        public static CertificateSecurityInformation VerifyAuth(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IX509Store crls, Object ocsps, DateTime? date)
+        public static CertificateSecurityInformation VerifyAuth(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, DateTime date)
         {
             return Verify(cert, nonRepudiation, certs, crls, ocsps, date);
         }
 
-        public static CertificateSecurityInformation VerifyEnc(BC::X509Certificate encCert, BC::X509Certificate authCert, IX509Store certs, IX509Store crls, Object ocsps, DateTime? date)
+        public static CertificateSecurityInformation VerifyEnc(BC::X509Certificate encCert, BC::X509Certificate authCert, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, DateTime date)
         {
             CertificateSecurityInformation result = new CertificateSecurityInformation();
 
@@ -52,7 +57,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             //check validity
             try
             {
-                encCert.CheckValidity(date == null ? DateTime.UtcNow : date.Value);
+                encCert.CheckValidity(date);
             }
             catch (CertificateExpiredException)
             {
@@ -107,7 +112,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             return result;
         }
 
-        private static CertificateSecurityInformation Verify(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IX509Store crls, Object ocsps, DateTime? date)
+        private static CertificateSecurityInformation Verify(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, DateTime date)
         {
             CertificateSecurityInformation result = new CertificateSecurityInformation();
 
@@ -116,7 +121,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             //check validity
             try
             {
-                cert.CheckValidity(date == null ? DateTime.UtcNow : date.Value);
+                cert.CheckValidity(date);
             }
             catch (CertificateExpiredException)
             {
@@ -164,13 +169,17 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 
             //Check certificate status + validity
             X509Chain chain = new X509Chain();
-            chain.ChainPolicy.RevocationMode = X509RevocationMode.Online; //TODO: make dependant on input of CRLS and ocps
+            if (ocsps.Count > 0 || crls.Count > 0)
+            {
+                chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            }
+            else
+            {
+                chain.ChainPolicy.RevocationMode = Settings.Default.Offline ? X509RevocationMode.Offline : X509RevocationMode.Online;
+            }
             chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
             chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
-            if (date.HasValue)
-            {
-                chain.ChainPolicy.VerificationTime = date.Value;
-            }
+            chain.ChainPolicy.VerificationTime = date;
             if (certs != null)
             {
                 ICollection authCertMatch = certs.GetMatches(null);
@@ -207,7 +216,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             X509ChainElementEnumerator chainEnum = chain.ChainElements.GetEnumerator();
             if (chainEnum.MoveNext())
             {
-                Translate(result, chainEnum, partial);
+                Process(result, chainEnum, crls, ocsps, date, partial);
             }
 
             trace.TraceEvent(TraceEventType.Verbose, 0, "Verified certificate {0} for date {1}", cert.SubjectDN.ToString(), date);
@@ -235,10 +244,13 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             return true;
         }
 
-        private static void Translate(CertificateSecurityInformation dest, X509ChainElementEnumerator srcChain, bool partial)
+        private static void Process(CertificateSecurityInformation dest, X509ChainElementEnumerator srcChain, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, DateTime on, bool partial)
         {
             X509ChainElement src = srcChain.Current;
             dest.Certificate = src.Certificate;
+
+            BC::X509Certificate cert = DotNetUtilities.FromX509Certificate(src.Certificate);
+            BC::X509Certificate issuer = null;
 
             foreach (X509ChainStatus status in src.ChainElementStatus)
             {
@@ -263,7 +275,16 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             if (srcChain.MoveNext())
             {
                 dest.IssuerInfo = new CertificateSecurityInformation();
-                Translate(dest.IssuerInfo, srcChain, partial);
+                Process(dest.IssuerInfo, srcChain, crls, ocsps, on, partial);
+                issuer = DotNetUtilities.FromX509Certificate(dest.IssuerInfo.Certificate);
+
+                //don't do if checked by 
+                if ((ocsps.Count > 0 || crls.Count > 0) 
+                    && !OcspVerifier.Verify(ocsps, on, cert, issuer, "embedded")
+                    && !CrlVerifier.Verify(crls, on, cert, issuer, "embedded"))
+                {
+                    dest.securityViolations.Add(CertSecurityViolation.RevocationStatusUnknown);
+                }
             }
             else if (partial)
             {

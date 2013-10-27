@@ -36,6 +36,11 @@ using Org.BouncyCastle.Asn1.Cms;
 using Egelke.EHealth.Etee.Crypto.Utils;
 using System.Collections.Generic;
 using Siemens.EHealth.Etee.Crypto.Status;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Asn1.Ocsp;
+using Org.BouncyCastle.Asn1.Esf;
+using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Ocsp;
 
 namespace Siemens.EHealth.Etee.Crypto.Decrypt
 {
@@ -173,7 +178,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 Stream decryptedVerified = factory.CreateNew();
                 using (decryptedVerified)
                 {
-                    result.SecurityInformation.Encryption = Decrypt(decryptedVerified, verified, key, date); //always via stream, it works
+                    result.SecurityInformation.Encryption = Decrypt(decryptedVerified, verified, key, date.Value); //always via stream, it works
                     trace.TraceEvent(TraceEventType.Information, 0, "Decrypted the message");
 
                     decryptedVerified.Position = 0; //reset the stream
@@ -213,11 +218,9 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Copied the signed data & calculated the message digest");
 
                 IX509Store certs = signedData.GetCertificates("COLLECTION");
-                IX509Store crls = signedData.GetCrls("COLLECTION");
-                //TODO: extract OCSPs
                 SignerInformationStore signerInfos = signedData.GetSignerInfos();
 
-                return Verify(signerInfos, certs, crls, null, origine, ref date);
+                return Verify(signerInfos, certs, origine, ref date);
             }
             catch (CmsException cmse)
             {
@@ -245,10 +248,8 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Copied the signed data");
 
                 IX509Store certs = signedData.GetCertificates("COLLECTION");
-                IX509Store crls = signedData.GetCrls("COLLECTION");
-                //TODO: extract OCSPs
                 SignerInformationStore signerInfos = signedData.GetSignerInfos();
-                return Verify(signerInfos, certs, crls, null, origine, ref date);
+                return Verify(signerInfos, certs, origine, ref date);
             }
             catch(CmsException cmse)
             {
@@ -256,7 +257,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
             }
         }
 
-        private SecurityInformation Verify(SignerInformationStore signerInfos, IX509Store certs, IX509Store crls, Object ocsps, CertificateSecurityInformation origine, ref DateTime? date)
+        private SecurityInformation Verify(SignerInformationStore signerInfos, IX509Store certs, CertificateSecurityInformation origine, ref DateTime? date)
         {
             SecurityInformation result = new SecurityInformation();
 
@@ -328,25 +329,51 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
                         }
                         signerCert = (BC::X509Certificate)iterator.Current;
 
-                        if (date == null)
+                        //get the signing time if present, otherwise set on now
+                        date = DateTime.UtcNow;
+                        trace.TraceEvent(TraceEventType.Verbose, 0, "Found the signer certificate: {0}", signerCert.SubjectDN.ToString());
+                        if (signerInfo != null && signerInfo.SignedAttributes != null)
                         {
-                            //get the signing time if present, otherwise set on now
-                            date = DateTime.UtcNow;
-                            trace.TraceEvent(TraceEventType.Verbose, 0, "Found the signer certificate: {0}", signerCert.SubjectDN.ToString());
-                            if (signerInfo != null && signerInfo.SignedAttributes != null)
+                            trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains signed attributes");
+                            Org.BouncyCastle.Asn1.Cms.Attribute time = signerInfo.SignedAttributes[CmsAttributes.SigningTime];
+                            if (time != null && time.AttrValues.Count > 0)
                             {
-                                trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains signed attributes");
-                                Org.BouncyCastle.Asn1.Cms.Attribute time = signerInfo.SignedAttributes[CmsAttributes.SigningTime];
-                                if (time != null && time.AttrValues.Count == 1)
-                                {
-                                    date = Time.GetInstance(time.AttrValues[0]).Date;
-                                    trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains a signing time: {0}", date);
-                                }
+                                date = Org.BouncyCastle.Asn1.Cms.Time.GetInstance(time.AttrValues[0]).Date;
+                                trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains a signing time: {0}", date);
                             }
                         }
 
+                        //Get the CRLs and OCSPs
+                        CertificateList[] rawCrls = new CertificateList[0];
+                        BasicOcspResponse[] rawOcsps = new BasicOcspResponse[0];
+                        if (signerInfo != null && signerInfo.UnsignedAttributes != null)
+                        {
+                            trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
+                            Org.BouncyCastle.Asn1.Cms.Attribute revocationValuesList = signerInfo.UnsignedAttributes[EsfAttributes.RevocationValues];
+                            if (revocationValuesList != null && revocationValuesList.AttrValues.Count > 0)
+                            {
+                                RevocationValues revocationValues = RevocationValues.GetInstance(revocationValuesList.AttrValues[0]);
+                                if (revocationValues.GetCrlVals() != null) rawCrls = revocationValues.GetCrlVals();
+                                if (revocationValues.GetOcspVals() != null) rawOcsps = revocationValues.GetOcspVals();
+                            }
+                        }
+
+                        //convert the CRLs in something useful
+                        IList<X509Crl> crls = new List<X509Crl>();
+                        foreach (CertificateList rawCrl in rawCrls)
+                        {
+                            crls.Add(new X509Crl(rawCrl));
+                        }
+
+                        //conver the OCSPs in something useful
+                        IList<BasicOcspResp> ocsps = new List<BasicOcspResp>();
+                        foreach (BasicOcspResponse rawOcsp in rawOcsps)
+                        {
+                            ocsps.Add(new BasicOcspResp(rawOcsp));
+                        }
+
                         //Validating everything
-                        result.Subject = CertVerifier.VerifyAuth(signerCert, requireProbativeForce, certs, crls, null, date);
+                        result.Subject = CertVerifier.VerifyAuth(signerCert, requireProbativeForce, certs, crls, ocsps, date.Value);
                         break;
                     default:
                         //found several certificates...
@@ -369,7 +396,7 @@ namespace Siemens.EHealth.Etee.Crypto.Decrypt
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
-        private SecurityInformation Decrypt(Stream clear, Stream cypher, SecretKey key, DateTime? date)
+        private SecurityInformation Decrypt(Stream clear, Stream cypher, SecretKey key, DateTime date)
         {
             int i;
             bool found;

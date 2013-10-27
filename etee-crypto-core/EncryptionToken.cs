@@ -31,6 +31,8 @@ using Siemens.EHealth.Etee.Crypto.Decrypt;
 using System.Diagnostics;
 using Egelke.EHealth.Etee.Crypto.Utils;
 using Siemens.EHealth.Etee.Crypto.Status;
+using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Ocsp;
 
 namespace Siemens.EHealth.Etee.Crypto
 {
@@ -160,7 +162,6 @@ namespace Siemens.EHealth.Etee.Crypto
 
             //Get authentication cert
             IX509Store certs = raw.GetCertificates("COLLECTION");
-            IX509Store crls = raw.GetCrls("COLLECTION");
             SignerID authCertSelector = new SignerID();
             authCertSelector.Subject = encCert.IssuerDN;
             ICollection authCertMatch = certs.GetMatches(authCertSelector);
@@ -177,7 +178,7 @@ namespace Siemens.EHealth.Etee.Crypto
             }
             authCert = (BC::X509Certificate)iterator.Current;
 
-            return CertVerifier.VerifyEnc(encCert, authCert, certs, crls, null, null);
+            return CertVerifier.VerifyEnc(encCert, authCert, certs, new List<X509Crl>(0) , new List<BasicOcspResp>(0), DateTime.UtcNow);
         }
 
     }

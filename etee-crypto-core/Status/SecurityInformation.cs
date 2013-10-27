@@ -76,7 +76,6 @@ namespace Siemens.EHealth.Etee.Crypto.Status
                             violations.Add(SecurityViolation.UntrustedSubject);
                             break;
                         case ValidationStatus.Unsure:
-                        case ValidationStatus.Unsupported:
                             violations.Add(SecurityViolation.SubjectTrustUnknown);
                             break;
                         default:
