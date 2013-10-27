@@ -75,7 +75,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assembly.cs" />
     <Compile Include="SelectCert.cs" />
     <Compile Include="EncryptionTokenTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -100,54 +99,10 @@
     <Content Include="etk\invalid_key_size.etk" />
     <Content Include="etk\not_yet_auth.etk" />
     <Content Include="etk\valid_but_scrambledDN.etk" />
-    <Content Include="imports\sisca.crl" />
-    <Content Include="imports\sisintca.crl" />
-    <Content Include="imports\trustedRoot\cacert.pem" />
-    <Content Include="imports\trustedRoot\int\cacert.pem" />
-    <Content Include="imports\trustedRoot\int\dsacert.pem" />
-    <Content Include="imports\trustedRoot\int\dsasizecert.pem" />
-    <Content Include="imports\trustedRoot\int\expiredcert.pem" />
-    <Content Include="imports\trustedRoot\int\isigncert.pem" />
-    <Content Include="imports\trustedRoot\int\iusagecert.pem" />
-    <Content Include="imports\trustedRoot\int\keysizecert.pem" />
-    <Content Include="imports\trustedRoot\int\musagecert.pem" />
-    <Content Include="imports\trustedRoot\int\normalcert.pem" />
-    <Content Include="imports\trustedRoot\int\nyacert.pem" />
-    <Content Include="imports\trustedRoot\int\revokedcert.pem" />
-    <Content Include="imports\trustedRoot\int\unnestedcert.pem" />
-    <Content Include="imports\trustedRoot\int_overlap2\cacert.pem" />
-    <Content Include="imports\trustedRoot\int_overlap2\normalcert.pem" />
-    <Content Include="imports\trustedRoot\int_overlap\cacert.pem" />
-    <Content Include="imports\trustedRoot\int_overlap\normalcert.pem" />
-    <Content Include="imports\trustedRoot\int_revoked\cacert.pem" />
-    <Content Include="imports\trustedRoot\int_revoked\normalcert.pem" />
-    <Content Include="imports\trustedRoot\int_sign\cacert.pem" />
-    <Content Include="imports\trustedRoot\int_sign\normalcert.pem" />
-    <Content Include="imports\trustedRoot\int_usageBase\cacert.pem" />
-    <Content Include="imports\trustedRoot\int_usageBase\normalcert.pem" />
-    <Content Include="imports\trustedRoot\int_usageKey\cacert.pem" />
-    <Content Include="imports\trustedRoot\int_usageKey\normalcert.pem" />
-    <Content Include="imports\untrustedRoot\cacert.pem" />
-    <Content Include="imports\untrustedRoot\int\cacert.pem" />
-    <Content Include="imports\untrustedRoot\int\normalcert.pem" />
-    <Content Include="imports\users\alice_auth.p12" />
-    <Content Include="imports\users\alice_enc.p12" />
-    <Content Include="imports\users\bob_auth.p12" />
-    <Content Include="imports\users\bob_enc.p12" />
-    <Content Include="imports\users\dirk_auth.p12" />
-    <Content Include="imports\users\dirk_enc.p12" />
-    <Content Include="imports\users\hospital_auth.p12" />
-    <Content Include="imports\users\hospital_enc.p12" />
-    <Content Include="imports\users\niala2_auth.p12" />
-    <Content Include="imports\users\niala2_enc.p12" />
-    <Content Include="imports\users\niala3_auth.p12" />
-    <Content Include="imports\users\niala3_enc.p12" />
-    <Content Include="imports\users\niala4_auth.p12" />
-    <Content Include="imports\users\niala4_enc.p12" />
-    <Content Include="imports\users\niala_auth.p12" />
-    <Content Include="imports\users\niala_enc.p12" />
-    <Content Include="imports\users\oldHospital_auth.p12" />
-    <Content Include="imports\users\oldHospital_enc.p12" />
+    <Content Include="alice\alice_auth.p12" />
+    <Content Include="alice\alice_enc.p12" />
+    <Content Include="bob\bob_auth.p12" />
+    <Content Include="bob\bob_enc.p12" />
     <Content Include="msg\openssl_encrypted.msg" />
     <Content Include="msg\openssl_inner_signed.msg" />
     <Content Include="msg\openssl_outer_signed.msg" />
@@ -182,23 +137,9 @@
     <Content Include="msg\triple_wrapped_without_outer_eid_cert.msg" />
     <Content Include="msg\triple_wrapped_with_2_signerinfos.msg" />
     <Content Include="msg\triple_wrapped_wrong_encryption_key.msg" />
-    <Content Include="xsd\saml-assertion.xsd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="xsd\saml-protocol.xsd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="xsd\xmldsig.xsd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="COPYING" />
     <None Include="Etee.nunit" />
     <None Include="imports\CA.cer" />
-    <None Include="imports\interCA.cer" />
-    <None Include="imports\web.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -231,6 +172,9 @@
       <Project>{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}</Project>
       <Name>etee-crypto-core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="imports\users\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
