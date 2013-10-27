@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -41,10 +41,6 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class EndToEnd
     {
-        public EndToEnd()
-        {
-
-        }
 
         static X509Certificate2 alice;
 
@@ -251,51 +247,6 @@ namespace Siemens.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
-            Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
-            Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
-            Assert.IsNotNull(result.SecurityInformation.ToString());
-        }
-
-        [Test]
-        public void SelectSender()
-        {
-            X509Certificate2 cert;
-            IDataSealer sealer;
-            IDataUnsealer unsealer = DataUnsealerFactory.Create(true, both);
-            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            my.Open(OpenFlags.ReadOnly);
-            try
-            {
-                X509Certificate2Collection nonRep = my.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.NonRepudiation, true);
-                cert = X509Certificate2UI.SelectFromCollection(nonRep, "Select your cert", "Select the cert you want to used to sign the msg", X509SelectionFlag.SingleSelection)[0];
-                sealer = DataSealerFactory.Create(cert);
-            }
-            finally
-            {
-                my.Close();
-            }
-
-            String str = "This is a secret message from Alice for Bob";
-            
-
-            //Get ETK
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
-            //receiver.Verify();
-
-            Stream output = sealer.Seal(receiver, new MemoryStream(Encoding.UTF8.GetBytes(str)));
-
-            UnsealResult result = unsealer.Unseal(output);
-            Console.WriteLine(result.SecurityInformation.ToString());
-
-            output.Close();
-
-            MemoryStream stream = new MemoryStream();
-            Utils.Copy(result.UnsealedData, stream);
-
-            //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
-            Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(cert.Thumbprint, result.Sender.Thumbprint);
             Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
