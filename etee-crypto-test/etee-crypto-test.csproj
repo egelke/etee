@@ -75,6 +75,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JavaV16IntegrationTest.cs" />
     <Compile Include="SelectCert.cs" />
     <Compile Include="EncryptionTokenTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -103,6 +104,12 @@
     <Content Include="alice\alice_enc.p12" />
     <Content Include="bob\bob_auth.p12" />
     <Content Include="bob\bob_enc.p12" />
+    <Content Include="javabin\lib\bcmail-jdk16-145.jar" />
+    <Content Include="javabin\lib\bcprov-jdk16-145.jar" />
+    <Content Include="javabin\lib\junit-4.8.2.jar" />
+    <Content Include="javabin\lib\log4j-1.2.16.jar" />
+    <Content Include="javabin\v1.6\SIGNED-etee-crypto-1.6.1-tests.jar" />
+    <Content Include="javabin\v1.6\SIGNED-etee-crypto-1.6.1.jar" />
     <Content Include="msg\openssl_encrypted.msg" />
     <Content Include="msg\openssl_inner_signed.msg" />
     <Content Include="msg\openssl_outer_signed.msg" />
