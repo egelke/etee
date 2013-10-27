@@ -80,6 +80,7 @@
     <Compile Include="Configuration\EncryptionKeySizeActiveConfig.cs" />
     <Compile Include="Configuration\EteeActiveConfig.cs" />
     <Compile Include="Configuration\SealActiveConfig.cs" />
+    <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Configuration\SignatureAlgorithm.cs" />
     <Compile Include="Configuration\UnsealActiveConfig.cs" />
     <Compile Include="Status\CertificateSecurityInformation.cs" />
@@ -100,6 +101,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecretKey.cs" />
     <Compile Include="Utils\CertVerifier.cs" />
+    <Compile Include="Utils\CrlVerifier.cs" />
+    <Compile Include="Utils\OcspVerifier.cs" />
     <Compile Include="Utils\TempFileStreamFactory.cs" />
     <Compile Include="Utils\MemoryStreamFactory.cs" />
     <Compile Include="Utils\ITempStreamFactory.cs" />

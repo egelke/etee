@@ -77,8 +77,7 @@ namespace Siemens.EHealth.Etee.Crypto.Status
                             violations.Add(UnsealSecurityViolation.InvalidData);
                             break;
                         case ValidationStatus.Unsure:
-                        case ValidationStatus.Unsupported:
-                            violations.Add(UnsealSecurityViolation.DataValidationImpossible);
+                            throw new InvalidOperationException("The signature validation status should not be unsure");
                             break;
                         default:
                             break;
@@ -89,8 +88,8 @@ namespace Siemens.EHealth.Etee.Crypto.Status
                     switch (this.Encryption.TrustStatus)
                     {
                         case TrustStatus.Unsure:
-                            violations.Add(UnsealSecurityViolation.RecipientTrustUnknown);
-                            break;
+                            //since we don't do many checks, we are pritty sure
+                            throw new InvalidOperationException("The encryption trust status should not be unsure");
                         case TrustStatus.None:
                             violations.Add(UnsealSecurityViolation.UntrustedRecipient);
                             break;
@@ -103,9 +102,7 @@ namespace Siemens.EHealth.Etee.Crypto.Status
                             violations.Add(UnsealSecurityViolation.InvalidData);
                             break;
                         case ValidationStatus.Unsure:
-                        case ValidationStatus.Unsupported:
-                            violations.Add(UnsealSecurityViolation.DataValidationImpossible);
-                            break;
+                            throw new InvalidOperationException("The encryption validation status should not be unsure");
                         default:
                             break;
                     }
@@ -129,9 +126,7 @@ namespace Siemens.EHealth.Etee.Crypto.Status
                             violations.Add(UnsealSecurityViolation.InvalidData);
                             break;
                         case ValidationStatus.Unsure:
-                        case ValidationStatus.Unsupported:
-                            violations.Add(UnsealSecurityViolation.DataValidationImpossible);
-                            break;
+                            throw new InvalidOperationException("The signature validation status should not be unsure");
                         default:
                             break;
                     }
@@ -139,14 +134,6 @@ namespace Siemens.EHealth.Etee.Crypto.Status
                 if (violations.Contains(UnsealSecurityViolation.UntrustedSender))
                 {
                     violations.Remove(UnsealSecurityViolation.SenderTrustUnknown);
-                }
-                if (violations.Contains(UnsealSecurityViolation.UntrustedRecipient))
-                {
-                    violations.Remove(UnsealSecurityViolation.RecipientTrustUnknown);
-                }
-                if (violations.Contains(UnsealSecurityViolation.InvalidData))
-                {
-                    violations.Remove(UnsealSecurityViolation.DataValidationImpossible);
                 }
                 return new ReadOnlyCollection<UnsealSecurityViolation>(violations);
             }

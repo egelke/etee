@@ -34,7 +34,7 @@ namespace Siemens.EHealth.Etee.Crypto.Status
     /// and that is conforms to the eHealth requirements.
     /// </para>
     /// </remarks>
-    public enum ValidationStatus : int
+    public enum ValidationStatus
     {
 
         /// <summary>
@@ -62,19 +62,6 @@ namespace Siemens.EHealth.Etee.Crypto.Status
 
         /// <summary>
         /// <para>
-        /// It was impossible to execute all required checks because some security information is detected but not supported.
-        /// </para>
-        /// <para>
-        /// You should not use this object.  Check the <see cref="SecurityInformation.SecurityViolations"/> 
-        /// property for the reason and communicate it to the sender.  The sender should then re-create the object
-        /// without the unsupported security information.
-        /// </para>
-        /// </summary>
-        /// 
-        Unsupported = 2,
-
-        /// <summary>
-        /// <para>
         /// The checks detected a security violation.
         /// </para>
         /// <para>
@@ -83,7 +70,7 @@ namespace Siemens.EHealth.Etee.Crypto.Status
         /// this time according to the specs.
         /// </para>
         /// </summary>
-        Invalid = 3,
+        Invalid = 2,
     }
 
     /// <summary>
@@ -211,22 +198,6 @@ namespace Siemens.EHealth.Etee.Crypto.Status
 
         /// <summary>
         /// <para>
-        /// Receiver trust is unknown.
-        /// </para>
-        /// <para>
-        /// It is unsure if the receiver, that is you, can't be trusted or not.  
-        /// This means an encryption/decryption certficate is used could not be validated.
-        /// Check the <see cref="UnsealSecurityInformation.Encryption"/> properties for
-        /// more information.
-        /// </para>
-        /// </summary>
-        [TrustLevel(TrustStatus.Unsure)]
-        [ValidationResult(ValidationStatus.Valid)]
-        RecipientTrustUnknown,
-
-
-        /// <summary>
-        /// <para>
         /// The data is invalid.
         /// </para>
         /// <para>
@@ -240,128 +211,7 @@ namespace Siemens.EHealth.Etee.Crypto.Status
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
         [ValidationResult(ValidationStatus.Invalid)]
-        InvalidData,
-
-        /// <summary>
-        /// <para>
-        /// Data validation is impossible.
-        /// </para>
-        /// </summary>
-        [TrustLevel(TrustStatus.Full)]
-        [ValidationResult(ValidationStatus.Unsure)]
-        DataValidationImpossible,
-    }
-
-    /// <summary>
-    /// Detailed security information about an Encryption Token (ETK).
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Indicates which parts of the ETK there are security issues:
-    /// <list type="bullet">
-    /// <item>
-    /// <description>Sender, this should be the ETK-depot</description>
-    /// </item>
-    /// <item>
-    /// <description>Data, the content (clear) of the message</description>
-    /// </item>
-    /// <item>
-    /// <description>Recipient, the receiver for who the message is intended</description>
-    /// </item>
-    /// </list>
-    /// </para>
-    /// </remarks>
-    public enum EtkSecurityViolation
-    {
-        /// <summary>
-        /// <para>
-        /// Sender can't be trusted.
-        /// </para>
-        /// <para>
-        /// The sender/issuer information that is in this message can't be trusted,
-        /// indepentant of who the issuer is.
-        /// Check the <see cref="EtkSecurityInformation.Signature"/> property for
-        /// more information.
-        /// </para>
-        /// </summary>
-        [TrustLevel(TrustStatus.None)]
-        [ValidationResult(ValidationStatus.Valid)]
-        UntrustedSender,
-
-        /// <summary>
-        /// <para>
-        /// Sender trust is unknown.
-        /// </para>
-        /// <para>
-        /// It is unsure if the sender/issuer information that is in this message can be trusted or not.
-        /// The sender/issuer information that is in this message can't be trusted.
-        /// Check the <see cref="EtkSecurityInformation.Signature"/> property for
-        /// more information.
-        /// </para>
-        /// </summary>
-        [TrustLevel(TrustStatus.Unsure)]
-        [ValidationResult(ValidationStatus.Valid)]
-        SenderTrustUnknown,
-
-        /// <summary>
-        /// <para>
-        /// The encryption certificate (=ETK content) can't be trusted.
-        /// </para>
-        /// <para>
-        /// The ETK contains an encryption certificate, if it isn't trusted
-        /// it should not be used for encryption because the receive will most
-        /// likely not trust it eighter.  Check the <see cref="EtkSecurityInformation.TokenInformation"/>
-        /// property for more information.
-        /// </para>
-        /// </summary>
-        [TrustLevel(TrustStatus.Full)]
-        [ValidationResult(ValidationStatus.Invalid)]
-        UntrustedToken,
-
-        /// <summary>
-        /// <para>
-        /// The encryption certifcate (=ETK content) trust uknown.
-        /// </para>
-        /// <para>
-        /// The ETK contains an encryption certificate, if its trust status can't be determined
-        /// it should not be used for encryption because the receive might also have issues
-        /// determening the trust status.  Check the <see cref="EtkSecurityInformation.TokenInformation"/>
-        /// property for more information.
-        /// </para>
-        /// </summary>
-        [TrustLevel(TrustStatus.Full)]
-        [ValidationResult(ValidationStatus.Unsure)]
-        TokenTrustUnknown,
-
-        /// <summary>
-        /// <para>
-        /// The encryption certificate (=ETK content) is invalid.
-        /// </para>
-        /// <para>
-        /// Eighter the encryption certificate in the ETK is not conform to the eHealth requirements
-        /// or the certificate is potentialy altered.  Check the <see cref="EtkSecurityInformation.Signature"/>
-        /// to see if the certificate isn't altered and check the <see cref="EtkSecurityInformation.TokenInformation"/>
-        /// if the certificate is conform to the eHealth requirements.
-        /// </para>
-        /// </summary>
-        [TrustLevel(TrustStatus.Full)]
-        [ValidationResult(ValidationStatus.Invalid)]
-        InvalidToken,
-
-        /// <summary>
-        /// <para>
-        /// The encryption certificate (=ETK content) could not be validated.
-        /// </para>
-        /// <para>
-        /// Eighter the encryption certificate in the ETK could not be checked for conformity
-        /// or the certificate integrety could not be checked.  Check the <see cref="EtkSecurityInformation.Signature"/>
-        /// why the integrity check was inpossible check the <see cref="EtkSecurityInformation.TokenInformation"/>
-        /// why the conformity could not be dertermined.
-        /// </para>
-        /// </summary>
-        [TrustLevel(TrustStatus.Full)]
-        [ValidationResult(ValidationStatus.Unsure)]
-        TokenValidationImpossible
+        InvalidData
     }
 
     /// <summary>
@@ -447,8 +297,8 @@ namespace Siemens.EHealth.Etee.Crypto.Status
         /// There was no signature present (signing).
         /// </para>
         /// </summary>
-        [TrustLevel(TrustStatus.Unsure)]
-        [ValidationResult(ValidationStatus.Unsure)]
+        [TrustLevel(TrustStatus.None)]
+        [ValidationResult(ValidationStatus.Invalid)]
         NotSigned, //only in case of a cms-signed-message without signature
 
         /// <summary>
@@ -461,8 +311,8 @@ namespace Siemens.EHealth.Etee.Crypto.Status
         /// signature and this violation is raised.
         /// </para>
         /// </summary>
-        [TrustLevel(TrustStatus.Unsure)]
-        [ValidationResult(ValidationStatus.Unsure)]
+        [TrustLevel(TrustStatus.None)]
+        [ValidationResult(ValidationStatus.Invalid)]
         NotFoundSigner,
 
         /// <summary>
@@ -474,7 +324,7 @@ namespace Siemens.EHealth.Etee.Crypto.Status
         /// or the issuer information is subsituted.
         /// </para>
         /// </summary>
-        [TrustLevel(TrustStatus.Unsure)]
+        [TrustLevel(TrustStatus.None)]
         [ValidationResult(ValidationStatus.Invalid)]
         NotSignatureValid,
 
@@ -612,9 +462,6 @@ namespace Siemens.EHealth.Etee.Crypto.Status
         [ValidationResult(ValidationStatus.Invalid)]
         NotTimeValid,
 
-        //[TrustLevel(TrustStatus.Full)]
-        //[ValidationResult(ValidationStatus.Invalid)]
-        //NotTimeNested,
 
         /// <summary>
         /// <para>
@@ -712,7 +559,7 @@ namespace Siemens.EHealth.Etee.Crypto.Status
         /// The certificate contains a name constraint that can't be validated by windows.
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
-        [ValidationResult(ValidationStatus.Unsupported)]
+        [ValidationResult(ValidationStatus.Unsure)]
         HasNotSupportedNameConstraint,
 
         /// <summary>
