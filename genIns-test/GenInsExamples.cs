@@ -26,6 +26,10 @@ using System.ServiceModel.Description;
 using Siemens.EHealth.Client.Sso.WA;
 using Egelke.EHealth.Client.GenIns;
 using NUnit.Framework;
+using Siemens.EHealth.Client.Sso;
+using System.Xml;
+using System.IdentityModel.Tokens;
+using System.ServiceModel.Security.Tokens;
 
 
 
@@ -34,11 +38,71 @@ namespace Siemens.EHealth.Client.CodageTest
     [TestFixture]
     public class GenInsExamples
     {
+        private X509Certificate2 auth;
+        private X509Certificate2 session;
+
+        [TestFixtureSetUp]
+        public void MyClassInitialize()
+        {
+            X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadOnly);
+
+            //Select the care provider certificate issued by eHealth
+            X509Certificate2 eh = store.Certificates.Find(X509FindType.FindByThumbprint, "415442ca384c853231e203fafa9a436f33b4043b", false)[0];
+
+            //For the session we use eHealth certificate
+            session = eh;
+
+            //For authentication we use eid certificate
+            auth = eh;
+        }
 
         [Test]
         public void ConfigViaConfig()
         {
-            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient("DoctorEP");
+            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient("HospitalEP");
+
+            DoTest(client);
+        }
+
+        [Test]
+        public void ConfigViaCode()
+        {
+            //Create SSOBinding
+            var ssoBinding = new SsoBinding();
+            ssoBinding.Security.Mode = WSFederationHttpSecurityMode.Message;
+            ssoBinding.Security.Message.IssuedKeyType = SecurityKeyType.AsymmetricKey;
+            ssoBinding.Security.Message.NegotiateServiceCredential = false;
+            ssoBinding.Security.Message.EstablishSecurityContext = false;
+
+            ssoBinding.Security.Message.IssuerAddress = new EndpointAddress("https://wwwacc.ehealth.fgov.be/sts_1_1/SecureTokenService");
+            ssoBinding.Security.Message.IssuerBinding = new StsBinding();
+
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml("<saml:Attribute xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\" AttributeNamespace=\"urn:be:fgov:identification-namespace\" AttributeName=\"urn:be:fgov:ehealth:1.0:hospital:nihii-number\"> "  +
+                "<saml:AttributeValue xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">71022212</saml:AttributeValue> " +
+                "</saml:Attribute>");
+            ssoBinding.Security.Message.TokenRequestParameters.Add(doc.DocumentElement);
+            doc = new XmlDocument();
+            doc.LoadXml("<saml:Attribute xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\" AttributeNamespace=\"urn:be:fgov:identification-namespace\" AttributeName=\"urn:be:fgov:ehealth:1.0:certificateholder:hospital:nihii-number\"> " +
+                  "<saml:AttributeValue xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">71022212</saml:AttributeValue> " +
+                "</saml:Attribute>");
+            ssoBinding.Security.Message.TokenRequestParameters.Add(doc.DocumentElement);
+
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:hospital:nihii-number"));
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:hospital:nihii-number"));
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:ehealth:1.0:certificateholder:hospital:nihii-number:recognisedhospital:boolean"));
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:ehealth:1.0:hospital:nihii-number:recognisedhospital:nihii11"));
+
+            //Create the Consult proxy
+            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient(ssoBinding, new EndpointAddress("https://services-acpt.ehealth.fgov.be/GenericInsurability/v1"));
+            client.Endpoint.Behaviors.Remove<ClientCredentials>();
+            client.Endpoint.Behaviors.Add(new SsoClientCredentials());
+            //client.Endpoint.Behaviors.Add(new SessionBehavior(session, TimeSpan.FromHours(1), typeof(MemorySessionCache), null));
+            XmlDocument fscConfig = new XmlDocument();
+            fscConfig.LoadXml(@"<path>C:\Users\admin\Documents\tmp</path>");
+            client.Endpoint.Behaviors.Add(new SessionBehavior(session, TimeSpan.FromHours(1), typeof(FileSessionCache), fscConfig));
+            client.ClientCredentials.ClientCertificate.Certificate = auth; //must be put after the behavior
 
             DoTest(client);
         }
@@ -84,12 +148,12 @@ namespace Siemens.EHealth.Client.CodageTest
             request.CommonInput.Origin.Package.Name = new ValueRefString();
             request.CommonInput.Origin.Package.Name.Value = "eH-I Test";
             request.CommonInput.Origin.Package.License = new LicenseType();
-            request.CommonInput.Origin.Package.License.Username = "ehi";
-            request.CommonInput.Origin.Package.License.Password = "eHIpwd05";
-            //request.CommonInput.Origin.Package.License.Username = "siemens";
-            //request.CommonInput.Origin.Package.License.Password = "n7z6Y(S8+X";
-            setDoctor(request);
-            //setHospital(request);
+            //request.CommonInput.Origin.Package.License.Username = "ehi";
+            //request.CommonInput.Origin.Package.License.Password = "eHIpwd05";
+            request.CommonInput.Origin.Package.License.Username = "siemens";
+            request.CommonInput.Origin.Package.License.Password = "n7z6Y(S8+X";
+            //setDoctor(request);
+            setHospital(request);
 
             //Create record common input, contains additional tracking info
             request.RecordCommonInput = new RecordCommonInputType();
@@ -99,7 +163,7 @@ namespace Siemens.EHealth.Client.CodageTest
             //Create actual request (attributes should not be provided)
             request.Request = new SingleInsurabilityRequestType();
             request.Request.CareReceiverId = new CareReceiverIdType();
-            request.Request.CareReceiverId.Inss = "23011411057"; //"75042628553";
+            request.Request.CareReceiverId.Inss = "79021802145";
             request.Request.InsurabilityRequestDetail = new InsurabilityRequestDetailType();
             request.Request.InsurabilityRequestDetail.Period = new PeriodType();
             request.Request.InsurabilityRequestDetail.Period.PeriodStartSpecified = true;
