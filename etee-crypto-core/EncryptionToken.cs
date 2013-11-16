@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -22,19 +22,19 @@ using System.Security.Cryptography.X509Certificates;
 using BC = Org.BouncyCastle.X509;
 using Org.BouncyCastle.Cms;
 using System.IO;
-using Siemens.EHealth.Etee.Crypto.Utils;
+using Egelke.EHealth.Etee.Crypto.Utils;
 using System.Security.Cryptography;
 using Org.BouncyCastle.X509.Store;
 using Org.BouncyCastle.Security;
 using System.Collections;
-using Siemens.EHealth.Etee.Crypto.Decrypt;
+using Egelke.EHealth.Etee.Crypto.Decrypt;
 using System.Diagnostics;
 using Egelke.EHealth.Etee.Crypto.Utils;
-using Siemens.EHealth.Etee.Crypto.Status;
+using Egelke.EHealth.Etee.Crypto.Status;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Ocsp;
 
-namespace Siemens.EHealth.Etee.Crypto
+namespace Egelke.EHealth.Etee.Crypto
 {
     /// <summary>
     /// Represents an ETK.
@@ -48,7 +48,7 @@ namespace Siemens.EHealth.Etee.Crypto
     /// </remarks>
     public class EncryptionToken
     {
-        private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+        private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         private byte[] content;
         private CmsSignedData raw;

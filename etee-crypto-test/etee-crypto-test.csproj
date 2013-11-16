@@ -8,8 +8,8 @@
     <ProjectGuid>{1B5AFBC6-F0EB-44E3-8B2F-9CB317D71CD5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Siemens.eHealth.ETEE.Crypto.Test</RootNamespace>
-    <AssemblyName>Siemens.eHealth.ETEE.Crypto.Test</AssemblyName>
+    <RootNamespace>Egelke.eHealth.ETEE.Crypto.Test</RootNamespace>
+    <AssemblyName>Egelke.eHealth.ETEE.Crypto.Test</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -75,6 +75,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JavaV20IntegrationTest.cs" />
     <Compile Include="JavaV16IntegrationTest.cs" />
     <Compile Include="SelectCert.cs" />
     <Compile Include="EncryptionTokenTest.cs" />
@@ -104,12 +105,20 @@
     <Content Include="alice\alice_enc.p12" />
     <Content Include="bob\bob_auth.p12" />
     <Content Include="bob\bob_enc.p12" />
+    <Content Include="javabin\lib\bcmail-jdk15on-146.jar" />
     <Content Include="javabin\lib\bcmail-jdk16-145.jar" />
+    <Content Include="javabin\lib\bcprov-jdk15on-146.jar" />
     <Content Include="javabin\lib\bcprov-jdk16-145.jar" />
+    <Content Include="javabin\lib\commons-eid-client-0.4.0.jar" />
+    <Content Include="javabin\lib\commons-eid-dialogs-0.4.0.jar" />
+    <Content Include="javabin\lib\commons-eid-jca-0.4.0.jar" />
+    <Content Include="javabin\lib\commons-logging-1.1.3.jar" />
     <Content Include="javabin\lib\junit-4.8.2.jar" />
     <Content Include="javabin\lib\log4j-1.2.16.jar" />
     <Content Include="javabin\v1.6\SIGNED-etee-crypto-1.6.1-tests.jar" />
     <Content Include="javabin\v1.6\SIGNED-etee-crypto-1.6.1.jar" />
+    <Content Include="javabin\v2.0\etee-crypto-lib-2.0.1.jar" />
+    <Content Include="javabin\v2.0\etee-crypto-test.jar" />
     <Content Include="msg\openssl_encrypted.msg" />
     <Content Include="msg\openssl_inner_signed.msg" />
     <Content Include="msg\openssl_outer_signed.msg" />

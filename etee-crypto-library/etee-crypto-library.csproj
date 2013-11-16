@@ -60,9 +60,8 @@
     <Reference Include="BouncyCastle.Crypto">
       <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
-    <Reference Include="Egelke.EHealth.Etee.Crypto, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Egelke.EHealth.Etee.Crypto.2.0.0-Beta1\lib\net20\Egelke.EHealth.Etee.Crypto.dll</HintPath>
+    <Reference Include="Egelke.EHealth.Client">
+      <HintPath>..\packages\Egelke.EHealth.Client.2.0.0\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -109,7 +108,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="COPYING" />
+    <None Include="COPYING" />
     <None Include="etee-crypto-core.nuspec">
       <SubType>Designer</SubType>
     </None>
@@ -176,6 +175,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\etee-crypto-core\etee-crypto-core.csproj">
+      <Project>{cdd132d9-1dcb-49c4-b6d7-bd5c52620c64}</Project>
+      <Name>etee-crypto-core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

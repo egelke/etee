@@ -32,7 +32,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 {
     internal class OcspVerifier
     {
-        private static TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+        private static TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         /// <summary>
         /// 

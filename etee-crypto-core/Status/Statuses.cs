@@ -12,14 +12,14 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Siemens.EHealth.Etee.Crypto.Status
+namespace Egelke.EHealth.Etee.Crypto.Status
 {
     /// <summary>
     /// Indicates if object is correct or not.

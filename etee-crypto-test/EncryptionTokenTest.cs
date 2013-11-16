@@ -19,15 +19,15 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 
-using Siemens.EHealth.Etee.Crypto;
-using Siemens.EHealth.Etee.Crypto.Decrypt;
+using Egelke.EHealth.Etee.Crypto;
+using Egelke.EHealth.Etee.Crypto.Decrypt;
 using Org.BouncyCastle.Cms;
 using NUnit.Framework;
-using ETEE = Siemens.EHealth.Etee.Crypto;
+using ETEE = Egelke.EHealth.Etee.Crypto;
 using System.Security.Cryptography.X509Certificates;
-using Siemens.EHealth.Etee.Crypto.Status;
+using Egelke.EHealth.Etee.Crypto.Status;
 
-namespace Siemens.eHealth.ETEE.Crypto.Test
+namespace Egelke.eHealth.ETEE.Crypto.Test
 {
     /// <summary>
     /// Summary description for EncryptionTokenTest

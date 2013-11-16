@@ -24,54 +24,18 @@ namespace Siemens.EHealth.Etee.Crypto.Library
 {
     public class UnknownRecipient : Recipient
     {
-        public String Namespace
-        {
-            get
-            {
-                return (String)this["Namespace"];
-            }
-            set
-            {
-                this["Namespace"] = value;
-            }
-        }
+        public String Namespace { get; set;}
 
-        public String Name
-        {
-            get
-            {
-                return (String)this["Name"];
-            }
-            set
-            {
-                this["Name"] = value;
-            }
-        }
+        public String Name { get; set; }
 
-        public String Value
-        {
-            get
-            {
-                return (String)this["Value"];
-            }
-            set
-            {
-                this["Value"] = value;
-            }
-        }
+        public String Value { get; set; }
 
-        public UnknownRecipient()
-            : base("Unknown")
-        {
-
-        }
 
         public UnknownRecipient(String ns, String name, String value)
-            : this()
         {
-            this["Namespace"] = ns;
-            this["Name"] = name;
-            this["Value"] = value;
+            Namespace = ns;
+            Name= name;
+            Value= value;
         }
     }
 }

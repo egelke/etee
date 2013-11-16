@@ -31,11 +31,11 @@ using Egelke.EHealth.Etee.Crypto.Status;
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
     [TestFixture]
-    public class JavaV16IntegrationTest
+    public class JavaV20IntegrationTest
     {
         private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
-        private IDataSealer aliceSealer;
+        private IDataSealer sealer;
 
         private IDataUnsealer bobUnsealer;
 
@@ -44,12 +44,29 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [TestFixtureSetUp]
         public void MyClassInitialize()
         {
-            X509Certificate2 aliceAuth = new X509Certificate2("../../alice/alice_auth.p12", "test", X509KeyStorageFlags.Exportable);
             X509Certificate2 bobEnc = new X509Certificate2("../../bob/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
 
-            aliceSealer = DataSealerFactory.Create(aliceAuth);
+            sealer = DataSealerFactory.Create(AskCertificate());
             bobUnsealer = DataUnsealerFactory.Create(false, new X509Certificate2Collection(new X509Certificate2[] { bobEnc }));
             anonUnsealer = DataUnsealerFactory.Create(false);
+        }
+
+        private static X509Certificate2 AskCertificate()
+        {
+            X509Certificate2 cert;
+
+            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            my.Open(OpenFlags.ReadOnly);
+            try
+            {
+                X509Certificate2Collection nonRep = my.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.NonRepudiation, true);
+                cert = X509Certificate2UI.SelectFromCollection(nonRep, "Select your cert", "Select the cert you want to used to sign the msg", X509SelectionFlag.SingleSelection)[0];
+            }
+            finally
+            {
+                my.Close();
+            }
+            return cert;
         }
 
         private String RunJava(String program)
@@ -62,7 +79,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.FileName = "java.exe";
-            p.StartInfo.Arguments = @"-cp ..\..\javabin\v1.6\SIGNED-etee-crypto-1.6.1-tests.jar;..\..\javabin\v1.6\SIGNED-etee-crypto-1.6.1.jar;..\..\javabin\lib\bcmail-jdk16-145.jar;..\..\javabin\lib\bcprov-jdk16-145.jar;..\..\javabin\lib\junit-4.8.2.jar;..\..\javabin\lib\log4j-1.2.16.jar " + program;
+            p.StartInfo.Arguments = @"-cp ..\..\javabin\v2.0\etee-crypto-test.jar;..\..\javabin\v2.0\etee-crypto-lib-2.0.1.jar;..\..\javabin\lib\bcmail-jdk15on-146.jar;..\..\javabin\lib\bcprov-jdk15on-146.jar;..\..\javabin\lib\junit-4.8.2.jar;..\..\javabin\lib\log4j-1.2.16.jar;..\..\javabin\lib\commons-logging-1.1.3.jar;..\..\javabin\lib\commons-eid-client-0.4.0.jar;..\..\javabin\lib\commons-eid-dialogs-0.4.0.jar;..\..\javabin\lib\commons-eid-jca-0.4.0.jar " + program;
             p.Start();
 
             result = p.StandardOutput.ReadToEnd();
@@ -76,6 +93,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             return result;
         }
 
+        /*
         [Test]
         public void Java2NetAddressed()
         {
@@ -98,27 +116,26 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String msg = Encoding.UTF8.GetString(bytes);
             Assert.IsTrue(msg.StartsWith("This is a secret message from Alice for Bob written at "));
         }
-
+        */
        
         [Test]
         public void Net2JavaAddressed()
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
-            byte[] msg = aliceSealer.Seal(new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")), Encoding.UTF8.GetBytes(text));
+            byte[] msg = sealer.Seal(new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")), Encoding.UTF8.GetBytes(text));
 
-            FileStream msgFile = new FileStream("message_from_alice_for_bob.msg", FileMode.OpenOrCreate);
+            FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
             using(msgFile)
             {
                 msgFile.Write(msg, 0, msg.Length);
-            } 
-           
-            String output = RunJava("be.smals.ehealth.etee.crypto.examples.Unseal");
+            }
 
-            Assert.IsTrue(output.Contains("NIHII=00000000101"));
+            String output = RunJava("etee.crypto.test.Unseal L3");
+
             Assert.IsTrue(output.Contains(text));
         }
-
+        /*
         
         [Test]
         public void Java2NetUnaddressed()
@@ -143,7 +160,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String msg = Encoding.UTF8.GetString(bytes);
             Assert.IsTrue(msg.StartsWith("This is a secret message from Alice for an unknown addressee written at "));
         }
-
+        
 
         [Test]
         public void Net2JavaUnaddressed()
@@ -165,6 +182,6 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(output.Contains("NIHII=00000000101"));
             Assert.IsTrue(output.Contains(text));
         }
-
+        */
     }
 }

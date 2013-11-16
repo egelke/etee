@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System.Collections.Generic;
@@ -22,8 +22,8 @@ using System.Security.Cryptography.X509Certificates;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509.Store;
-using Siemens.EHealth.Etee.Crypto.Configuration;
-using Siemens.EHealth.Etee.Crypto.Utils;
+using Egelke.EHealth.Etee.Crypto.Configuration;
+using Egelke.EHealth.Etee.Crypto.Utils;
 using BC = Org.BouncyCastle;
 using System.Security.Permissions;
 using System;
@@ -44,12 +44,12 @@ using Egelke.EHealth.Etee.Crypto.Utils;
 using Org.BouncyCastle.Asn1.Cms;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 
-namespace Siemens.EHealth.Etee.Crypto.Encrypt
+namespace Egelke.EHealth.Etee.Crypto.Encrypt
 {
     internal class TripleWrapper : IDataSealer
     {
 
-        private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+        private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         //The sender certificate
         private X509Certificate2 sender;

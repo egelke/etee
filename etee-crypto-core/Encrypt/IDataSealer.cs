@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -23,7 +23,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Security.Permissions;
 
-namespace Siemens.EHealth.Etee.Crypto.Encrypt
+namespace Egelke.EHealth.Etee.Crypto.Encrypt
 {
     /// <summary>
     /// Interface to protect messages according to the eHealth End-To-End encryption.

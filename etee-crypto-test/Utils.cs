@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace Siemens.eHealth.ETEE.Crypto.Test
+namespace Egelke.eHealth.ETEE.Crypto.Test
 {
     public class Utils
     {

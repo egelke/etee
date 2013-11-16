@@ -37,10 +37,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto, Version=1.7.4114.6375, Culture=neutral, PublicKeyToken=0e99375e54769942" />
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
+    <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="Siemens.EHealth.Client, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\Siemens.EHealth.Client.dll</HintPath>
@@ -75,10 +74,6 @@
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\etee-crypto-core\etee-crypto-core.csproj">
-      <Project>{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}</Project>
-      <Name>etee-crypto-core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\etee-crypto-library\etee-crypto-library.csproj">
       <Project>{58029749-3EC1-4D76-8D0C-7BFED160F918}</Project>
       <Name>etee-crypto-library</Name>
@@ -94,6 +89,7 @@
     <Content Include="COPYING" />
     <None Include="messages\message_from_eryk_for_sis.msg" />
     <None Include="messages\message_from_eryk_for_unknown.msg" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="javabin\lib\bcmail-jdk16-145.jar" />
