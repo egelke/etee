@@ -25,91 +25,42 @@ namespace Siemens.EHealth.Etee.Crypto.Library
 {
     public class KnownRecipient : Recipient
     {
-        
-        public String Type
+       
+        public class ID
         {
-            get
-            {
-                return (String)this["Type"];
-            }
-            set
-            {
-                this["Type"] = value;
-            }
-        }
+            public String Value { get; set; }
 
+            public String Type { get; set; }
 
-        public String Id
-        {
-            get
+            public ID(String type, String value)
             {
-                return (String)this["Id"];
+                this.Value = value;
+                this.Type = type;
             }
-            set
-            {
-                this["Id"] = value;
-            }
-        }
-
-        public String Application
-        {
-            get
-            {
-                return (String)this["Application"];
-            }
-            set
-            {
-                this["Application"] = value;
-            }
-        }
-
-        public EncryptionToken Token
-        {
-            get
-            {
-                return (EncryptionToken)this["Token"];
-            }
-            set
-            {
-                this["Token"] = value;
-            }
-        }
-
-        public KnownRecipient()
-            : base("Known")
-        {
 
         }
 
-        public KnownRecipient(String type, String id)
-            : this()
+        public ID Id { get ; set;}
+
+        public String Application {get; set;}
+
+        public EncryptionToken Token {get; set;}
+
+        public KnownRecipient(ID id)
         {
-            this["Type"] = type;
-            this["Id"] = id;
+            Id = id;
         }
 
-        public KnownRecipient(String type, String id, String application)
-            : this(type, id)
+        public KnownRecipient(ID id, String application)
+            : this(id)
         {
-            this["Application"] = application;
+            this.Application = application;
         }
 
         public KnownRecipient(EncryptionToken token)
-            : this()
         {
-            this["Token"] = token;
-        }
-
-        public KnownRecipient(EncryptionToken token, String type, String id)
-            : this(type, id)
-        {
-            this["Token"] = token;
-        }
-
-        public KnownRecipient(EncryptionToken token, String type, String id, String application)
-            : this(type, id, application)
-        {
-            this["Token"] = token;
+            this.Token = token;
+            //TODO: extract Id & application from token
         }
     }
 }

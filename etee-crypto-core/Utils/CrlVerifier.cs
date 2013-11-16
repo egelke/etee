@@ -10,7 +10,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 {
     internal class CrlVerifier
     {
-        private static TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+        private static TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         public static bool Verify(IList<X509Crl> crls, DateTime on, BC::X509.X509Certificate cert, BC::X509.X509Certificate issuer, string location)
         {

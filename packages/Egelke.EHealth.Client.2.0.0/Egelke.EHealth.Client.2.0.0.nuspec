@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Egelke.EHealth.Client</id>
+    <version>2.0.0</version>
+    <title>eH-I library</title>
+    <authors>Egelke BVBA</authors>
+    <owners>Egelke BVBA</owners>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <projectUrl>http://ehi.codeplex.com/</projectUrl>
+    <iconUrl>https://egelke-web.sharepoint.com/SiteImages/Health-care-shield-icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>eHealth Web Service Interoperability library</description>
+    <releaseNotes>Transformed Library into NuGet Package.
+Officially transfered IP from Siemens to Egelke.</releaseNotes>
+    <copyright>Copyright © Egelke BVBA 2013</copyright>
+    <language />
+    <tags>eHealth STS SSO SAML</tags>
+    <dependencies>
+      <dependency id="BouncyCastle" version="1.7.0" />
+    </dependencies>
+  </metadata>
+</package>

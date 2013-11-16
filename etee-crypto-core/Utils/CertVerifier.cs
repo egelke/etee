@@ -26,8 +26,8 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
-using Siemens.EHealth.Etee.Crypto.Configuration;
-using Siemens.EHealth.Etee.Crypto.Status;
+using Egelke.EHealth.Etee.Crypto.Configuration;
+using Egelke.EHealth.Etee.Crypto.Status;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -41,7 +41,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 {
     internal class CertVerifier
     {
-        private static TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+        private static TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         public static CertificateSecurityInformation VerifyAuth(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, DateTime date)
         {

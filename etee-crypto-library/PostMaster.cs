@@ -15,7 +15,7 @@ using System.Xml.Serialization;
 
 namespace Siemens.EHealth.Etee.Crypto.Library
 {
-    public abstract class PostMaster : INotifyPropertyChanged
+    public abstract class PostMaster
     {
         private static EncryptionToken kgssToken;
 
@@ -487,8 +487,8 @@ namespace Siemens.EHealth.Etee.Crypto.Library
                 ServiceClient.GetEtkRequest request = new ServiceClient.GetEtkRequest();
                 request.SearchCriteria = new ServiceClient.IdentifierType[1];
                 request.SearchCriteria[0] = new ServiceClient.IdentifierType();
-                request.SearchCriteria[0].Type = knownRecipient.Type;
-                request.SearchCriteria[0].Value = knownRecipient.Id;
+                request.SearchCriteria[0].Type = knownRecipient.Id.Type;
+                request.SearchCriteria[0].Value = knownRecipient.Id.Value;
                 request.SearchCriteria[0].ApplicationID = knownRecipient.Application;
 
                 ServiceClient.GetEtkResponse response = etkDepot.GetEtk(request);
@@ -531,18 +531,5 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             }
         }
 
-        protected virtual void OnPropertyChanged(PropertyChangedEventArgs e)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged.Invoke(this, e);
-            }
-        }
-
-        #region INotifyPropertyChanged Members
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        #endregion
     }
 }

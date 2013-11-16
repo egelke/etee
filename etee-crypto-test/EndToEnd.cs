@@ -19,21 +19,21 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 
-using Siemens.EHealth.Etee.Crypto.Encrypt;
+using Egelke.EHealth.Etee.Crypto.Encrypt;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Resources;
-using Siemens.EHealth.Etee.Crypto;
-using ETEE = Siemens.EHealth.Etee.Crypto;
+using Egelke.EHealth.Etee.Crypto;
+using ETEE = Egelke.EHealth.Etee.Crypto;
 using System.IO;
-using Siemens.EHealth.Etee.Crypto.Decrypt;
+using Egelke.EHealth.Etee.Crypto.Decrypt;
 using System.Security.Cryptography;
 using System.Collections.ObjectModel;
-using Siemens.EHealth.Etee.Crypto.Utils;
+using Egelke.EHealth.Etee.Crypto.Utils;
 using NUnit.Framework;
-using Siemens.EHealth.Etee.Crypto.Status;
+using Egelke.EHealth.Etee.Crypto.Status;
 
-namespace Siemens.eHealth.ETEE.Crypto.Test
+namespace Egelke.eHealth.ETEE.Crypto.Test
 {
     /// <summary>
     /// Summary description for Seal

@@ -11,7 +11,11 @@
     <iconUrl>https://nuget.org/Content/Images/packageDefaultIcon-50x50.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Transformed Library into NuGet Package</releaseNotes>
+    <releaseNotes>
+Transformed Library into NuGet Package
+Officially transfered IP from Siemens to Egelke.
+Alligned with v2.0 of eHealth version of the library
+    </releaseNotes>
     <copyright>Copyright © Egelke BVBA 2013</copyright>
     <tags>eHealth Encrpytion</tags>
   </metadata>
