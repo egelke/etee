@@ -103,7 +103,7 @@
     <None Include="..\debug.snk">
       <Link>debug.snk</Link>
     </None>
-    <Content Include="COPYING" />
+    <None Include="COPYING" />
     <None Include="ehi-library.nuspec" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
