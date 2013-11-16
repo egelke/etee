@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -26,7 +26,7 @@ using System.IdentityModel.Selectors;
 using System.Xml;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Siemens.EHealth.Client.Sso
+namespace Egelke.EHealth.Client.Sso
 {
     public class SsoClientCredentials : ClientCredentials
     {
@@ -34,7 +34,7 @@ namespace Siemens.EHealth.Client.Sso
 
         private TimeSpan duration = new TimeSpan(1, 0, 0, 0); //defaults to 1 day
 
-        private Type cache = typeof(Siemens.EHealth.Client.Sso.MemorySessionCache);
+        private Type cache = typeof(Egelke.EHealth.Client.Sso.MemorySessionCache);
 
         private XmlDocument config = null;
 

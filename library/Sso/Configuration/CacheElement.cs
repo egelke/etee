@@ -22,13 +22,13 @@ using System.Text;
 using System.Configuration;
 using System.Xml;
 
-namespace Siemens.EHealth.Client.Sso.Configuration
+namespace Egelke.EHealth.Client.Sso.Configuration
 {
     public class CacheElement : ConfigurationElement
     {
         private XmlDocument content;
 
-        [ConfigurationProperty("type", DefaultValue = "Siemens.EHealth.Client.Sso.MemorySessionCache")]
+        [ConfigurationProperty("type", DefaultValue = "Egelke.EHealth.Client.Sso.MemorySessionCache")]
         public String Type
         {
             get

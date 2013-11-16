@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -29,7 +29,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.ServiceModel.Security.Tokens;
 
-namespace Siemens.EHealth.Client.Sso.Sts.Service
+namespace Egelke.EHealth.Client.Sso.Sts.Service
 {
     [ServiceContractAttribute(ProtectionLevel = ProtectionLevel.Sign, Namespace = "urn:be:fgov:ehealth:sts:protocol:v1", ConfigurationName = "StsV1", Name = "SecureTokenServicePort")]
     public interface StsPortType

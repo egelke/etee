@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -23,9 +23,9 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Security.Tokens;
 using System.ServiceModel.Security;
 using System.ServiceModel;
-using Siemens.EHealth.Client.Sso.Sts.WcfAddition;
+using Egelke.EHealth.Client.Sso.Sts.WcfAddition;
 
-namespace Siemens.EHealth.Client.Sso.Sts
+namespace Egelke.EHealth.Client.Sso.Sts
 {
     public class StsBinding : Binding
     {

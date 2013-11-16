@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Security.Cryptography;
 
-namespace Siemens.EHealth.Client.Sso
+namespace Egelke.EHealth.Client.Sso
 {
     public class FileSessionCache : ISessionCache
     {

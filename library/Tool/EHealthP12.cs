@@ -28,7 +28,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Security;
 
-namespace Siemens.EHealth.Client.Tool
+namespace Egelke.EHealth.Client.Tool
 {
     public class EHealthP12 : IDictionary<String, X509Certificate2>
     {

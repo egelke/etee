@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Collections.Concurrent;
 
-namespace Siemens.EHealth.Client.Sso
+namespace Egelke.EHealth.Client.Sso
 {
     public class MemorySessionCache : ISessionCache
     {

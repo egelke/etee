@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -27,7 +27,7 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Description;
 
-namespace Siemens.EHealth.Client.Sso.WA
+namespace Egelke.EHealth.Client.Sso.WA
 {
     public class OptSecurityTokenManager : ClientCredentialsSecurityTokenManager
     {

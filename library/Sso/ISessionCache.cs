@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace Siemens.EHealth.Client.Sso
+namespace Egelke.EHealth.Client.Sso
 {
     public interface ISessionCache
     {

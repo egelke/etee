@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -21,7 +21,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace Siemens.EHealth.Client.Sso.Sts.Service
+namespace Egelke.EHealth.Client.Sso.Sts.Service
 {
     public class Response
     {
