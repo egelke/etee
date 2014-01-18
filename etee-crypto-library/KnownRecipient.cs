@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -21,18 +21,18 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 
-namespace Siemens.EHealth.Etee.Crypto.Library
+namespace Egelke.EHealth.Etee.Crypto.Library
 {
     public class KnownRecipient : Recipient
     {
        
-        public class ID
+        public class IdType
         {
             public String Value { get; set; }
 
             public String Type { get; set; }
 
-            public ID(String type, String value)
+            public IdType(String type, String value)
             {
                 this.Value = value;
                 this.Type = type;
@@ -40,18 +40,29 @@ namespace Siemens.EHealth.Etee.Crypto.Library
 
         }
 
-        public ID Id { get ; set;}
+        public IdType Id { get ; set;}
 
         public String Application {get; set;}
 
-        public EncryptionToken Token {get; set;}
+        private EncryptionToken token;
 
-        public KnownRecipient(ID id)
+        public EncryptionToken Token { 
+            get { return token; }
+            set
+            {
+                token = value;
+                TokenRetreivalTime = DateTime.UtcNow;
+            }
+        }
+
+        public DateTime TokenRetreivalTime { get; private set; }
+
+        public KnownRecipient(IdType id)
         {
             Id = id;
         }
 
-        public KnownRecipient(ID id, String application)
+        public KnownRecipient(IdType id, String application)
             : this(id)
         {
             this.Application = application;
@@ -60,6 +71,7 @@ namespace Siemens.EHealth.Etee.Crypto.Library
         public KnownRecipient(EncryptionToken token)
         {
             this.Token = token;
+            TokenRetreivalTime = DateTime.UtcNow;
             //TODO: extract Id & application from token
         }
     }

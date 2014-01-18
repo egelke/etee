@@ -12,38 +12,33 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Siemens.EHealth.Etee.Crypto.Decrypt;
+using Egelke.EHealth.Etee.Crypto.Status;
 
-namespace Siemens.EHealth.Etee.Crypto.Library
+namespace Egelke.EHealth.Etee.Crypto.Library
 {
     public class VerifyException<Violation> : Exception
         where Violation : struct, IConvertible
     {
-        private SecurityResult<Violation> result;
 
-        public SecurityResult<Violation> Result
-        {
-            get { return result; }
-            set { result = value; }
-        }
+        public SecurityResult<Violation> Result { get; set; }
 
         public VerifyException(SecurityResult<Violation> result)
             : base()
         {
-            this.result = result;
+            this.Result = result;
         }
 
         public VerifyException(String message, SecurityResult<Violation> result)
             : base(message)
         {
-            this.result = result;
+            this.Result = result;
         }
 
         
@@ -54,11 +49,11 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             {
                 if (String.IsNullOrWhiteSpace(base.Message))
                 {
-                    return result.ToString();
+                    return Result.ToString();
                 }
                 else
                 {
-                    return base.Message + "':\n" + result.ToString();
+                    return base.Message + "':\n" + Result.ToString();
                 }
             }
         }

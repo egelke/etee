@@ -56,6 +56,11 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
     public interface IDataSealer
     {
         /// <summary>
+        /// Override global Offline setting if provided.
+        /// </summary>
+        bool? Offline { get; set; }
+
+        /// <summary>
         /// Seals a clear in memory message for one recipient.
         /// </summary>
         /// <remarks>

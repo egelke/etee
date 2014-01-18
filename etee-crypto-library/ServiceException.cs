@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Siemens.EHealth.Etee.Crypto.Library
+namespace Egelke.EHealth.Etee.Crypto.Library
 {
     public class ServiceException : Exception
     {
@@ -53,62 +53,55 @@ namespace Siemens.EHealth.Etee.Crypto.Library
             if (inner != null) throw inner;
         }
 
-        private String code;
+        public String Code { get; set;}
 
-        public String Code
-        {
-            get { return code; }
-            set { code = value; }
-        }
 
-        
-       
         internal ServiceException(ServiceClient.EteeResponseTypeStatus error)
             : base(error.Message)
         {
-            this.code = error.Code;
+            this.Code = error.Code;
         }
 
         internal ServiceException(ServiceClient.EteeResponseTypeStatus error, Exception inner)
             : base(error.Message, inner)
         {
-            this.code = error.Code;
+            this.Code = error.Code;
         }
 
         internal ServiceException(ServiceClient.ErrorType1 error)
             : base(error.Message)
         {
-            this.code = error.Code;
+            this.Code = error.Code;
         }
 
         internal ServiceException(ServiceClient.ErrorType1 error, Exception inner)
             : base(error.Message, inner)
         {
-            this.code = error.Code;
+            this.Code = error.Code;
         }
 
         private ServiceException(ServiceClient.ResponseType response)
             : base((from m in response.Status.Message where m.Lang == ServiceClient.LangageType.EN select m.Value).Single())
         {
-            this.code = response.Status.Code;
+            this.Code = response.Status.Code;
         }
 
         private ServiceException(ServiceClient.ResponseType response, Exception inner)
             : base((from m in response.Status.Message where m.Lang == ServiceClient.LangageType.EN select m.Value).Single(), inner)
         {
-            this.code = response.Status.Code;
+            this.Code = response.Status.Code;
         }
 
         private ServiceException(ServiceClient.ErrorType error)
             : base((from m in error.Message where m.Lang == ServiceClient.LangageType.EN select m.Value).Single())
         {
-            this.code = error.Code;
+            this.Code = error.Code;
         }
 
         private ServiceException(ServiceClient.ErrorType error, Exception inner)
             : base((from m in error.Message where m.Lang == ServiceClient.LangageType.EN select m.Value).Single(), inner)
         {
-            this.code = error.Code;
+            this.Code = error.Code;
         }
 
     }
