@@ -59,6 +59,8 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
 
         //The ordered list of sender certificate path (in assending order)
         private IList<X509Certificate2> senderChainList;
+
+        public bool? Offline { get; set; }
         
 
         internal TripleWrapper(X509Certificate2 sender)
@@ -259,7 +261,7 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
                 certStore = senderChainStore;
 
                 //add the CRLs & OCSPs if online
-                if (!Settings.Default.Offline)
+                if ((Offline == null && !Settings.Default.Offline) || !Offline.Value)
                 {
                     ICollection certs = senderChainStore.GetMatches(null);
                     for (int i = 0; i < senderChainList.Count; i++)

@@ -1,0 +1,17 @@
+﻿<NUnitProject>
+  <Settings activeconfig="Debug" />
+  <Config name="Debug" binpathtype="Auto">
+    <assembly path="bin\Debug\Egelke.EHealth.Etee.Crypto.ITest.dll" />
+  </Config>
+  <Config name="Release" binpathtype="Auto">
+    <assembly path="bin\Release\Egelke.EHealth.Etee.Crypto.ITest.dll" />
+  </Config>
+  <NUnit>
+    <TestRunner>
+      <add key="ApartmentState" value="MTA" />
+      <add key="ThreadPriority" value="Normal" />
+      <add key="DefaultLogThreshold" value="Debug" />
+    </TestRunner>
+  </NUnit>
+
+</NUnitProject>

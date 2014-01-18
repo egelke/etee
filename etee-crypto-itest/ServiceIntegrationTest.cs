@@ -12,37 +12,38 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Siemens.EHealth.Etee.Crypto.Library;
+using Egelke.EHealth.Etee.Crypto.Library;
 using System.IO;
 using System.Collections.ObjectModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Diagnostics;
+using NUnit.Framework;
 
-namespace Siemens.EHealth.Etee.ITest
+namespace Egelke.EHealth.Etee.ITest
 {
-    [TestClass]
+    [TestFixture]
     public class ServiceIntegrationTest
     {
         /*
          * Different senarios.
          * Care Provider means a known party at eHealth.  Known means a ETK in the ETK-depot.
          */
-        private static BasicPostMaster pmForAlice_S_0; //send to addressed Care Provider
-        private static BasicPostMaster pmForAlice_SR_0; //send to addressed Care Provider, received addressed message
-        private static BasicPostMaster pmForAlice_SR_S; //send to addressed Care Provider, received addressed message, send non-addressed messages
-        private static BasicPostMaster pmForAlice_SR_SR; //send to addressed Care Provider, received addressed message, send non-addressed messages, receive non-address messages
-        private static BasicPostMaster pmForBob_R_0; //receive addressed messages
-        private static BasicPostMaster pmForBob_SR_0; //send to addressed Care Provider, received addressed message
-        private static BasicPostMaster pmForBob_SR_SR; //send to addressed Care Provider, received addressed message, send non-addressed messages, receive non-addressed message
+        private static PostMaster pmForAlice_S_0; //send to addressed Care Provider
+        private static PostMaster pmForAlice_SR_0; //send to addressed Care Provider, received addressed message
+        private static PostMaster pmForAlice_SR_S; //send to addressed Care Provider, received addressed message, send non-addressed messages
+        private static PostMaster pmForAlice_SR_SR; //send to addressed Care Provider, received addressed message, send non-addressed messages, receive non-address messages
+        private static PostMaster pmForBob_R_0; //receive addressed messages
+        private static PostMaster pmForBob_SR_0; //send to addressed Care Provider, received addressed message
+        private static PostMaster pmForBob_SR_SR; //send to addressed Care Provider, received addressed message, send non-addressed messages, receive non-addressed message
 
+        /*
         [ClassInitialize]
         public static void InitializeClass(TestContext testContext)
         {
@@ -75,7 +76,7 @@ namespace Siemens.EHealth.Etee.ITest
             pmForBob_SR_SR = new BasicPostMaster(new SecurityInfo(bob, bobEnc), etkDepot, myKgss);
         }
 
-        private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+        private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         private TestContext testContextInstance;
         /// <summary>
@@ -121,9 +122,6 @@ namespace Siemens.EHealth.Etee.ITest
             String msgText = Encoding.UTF8.GetString(msgBytes);
 
 
-            /*
-             * Test Verification
-             */
             Assert.AreEqual<String>(orgMsgText, msgText); //check if the text wasn't changed
             Assert.IsTrue(sender.Subject.Contains("00000000101")); //check if it actualy comes from alice
         }
@@ -138,9 +136,6 @@ namespace Siemens.EHealth.Etee.ITest
             pmForAlice_S_0.To.Add(pmForBob_SR_0);
             pmForAlice_S_0.To.Add(pmForBob_SR_SR);
 
-            /*
-             * Sender role
-             */
 
             //Prepare
             msg = new MemoryStream(Encoding.UTF8.GetBytes(orgMsgText)); //create a message
@@ -154,9 +149,6 @@ namespace Siemens.EHealth.Etee.ITest
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
 
-            /*
-             * Reciever role
-             */
 
             //Prepare
             X509Certificate2 sender;
@@ -182,9 +174,6 @@ namespace Siemens.EHealth.Etee.ITest
             pmForAlice_SR_0.To.Add(pmForBob_SR_0);
             pmForAlice_SR_0.To.Add(pmForBob_SR_SR);
 
-            /*
-             * Sender role
-             */
 
             //Prepare
             msg = new MemoryStream(Encoding.UTF8.GetBytes(orgMsgText)); //create a message
@@ -198,9 +187,6 @@ namespace Siemens.EHealth.Etee.ITest
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
 
-            /*
-             * Reciever role
-             */
 
             //Prepare
             X509Certificate2 sender;
@@ -226,9 +212,7 @@ namespace Siemens.EHealth.Etee.ITest
             pmForAlice_SR_S.To.Add(pmForBob_SR_0);
             pmForAlice_SR_S.To.Add(pmForBob_SR_SR);
 
-            /*
-             * Sender role
-             */
+ 
 
             //Prepare
             msg = new MemoryStream(Encoding.UTF8.GetBytes(orgMsgText)); //create a message
@@ -242,9 +226,6 @@ namespace Siemens.EHealth.Etee.ITest
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
 
-            /*
-             * Reciever role
-             */
 
             //Prepare
             X509Certificate2 sender;
@@ -270,9 +251,6 @@ namespace Siemens.EHealth.Etee.ITest
             pmForAlice_SR_SR.To.Add(pmForBob_SR_0);
             pmForAlice_SR_SR.To.Add(pmForBob_SR_SR);
 
-            /*
-             * Sender role
-             */
 
             //Prepare
             msg = new MemoryStream(Encoding.UTF8.GetBytes(orgMsgText)); //create a message
@@ -285,10 +263,6 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
-
-            /*
-             * Reciever role
-             */
 
             //Prepare
             X509Certificate2 sender;
@@ -312,10 +286,6 @@ namespace Siemens.EHealth.Etee.ITest
 
             pmForAlice_SR_S.To.Add(pmForBob_SR_SR); //Alice sends to Bob, non-addressed (also supports addressed)
 
-            /*
-             * Sender role
-             */
-
             //Prepare
             msg = new MemoryStream(Encoding.UTF8.GetBytes(orgMsgText)); //create a message
 
@@ -326,11 +296,6 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Post treat
             
-
-            /*
-             * Reciever role
-             */
-
             //Prepare
             X509Certificate2 sender;
 
@@ -347,10 +312,6 @@ namespace Siemens.EHealth.Etee.ITest
 
             pmForAlice_SR_SR.To.Add(pmForBob_SR_SR); //Alice sends to Bob, non-addressed (also supports addressed)
 
-            /*
-             * Sender role
-             */
-
             //Prepare
             msg = new MemoryStream(Encoding.UTF8.GetBytes(orgMsgText)); //create a message
 
@@ -361,10 +322,6 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Post treat
 
-
-            /*
-             * Reciever role
-             */
 
             //Prepare
             X509Certificate2 sender;
@@ -384,9 +341,6 @@ namespace Siemens.EHealth.Etee.ITest
             pmForAlice_SR_S.To.Add(pmForBob_SR_0);
             pmForAlice_SR_S.To.Add(pmForBob_SR_SR);
 
-            /*
-             * Sender role
-             */
 
             //Prepare
             msg = new MemoryStream(Encoding.UTF8.GetBytes(orgMsgText)); //create a message
@@ -403,9 +357,6 @@ namespace Siemens.EHealth.Etee.ITest
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
             Assert.IsNotNull(alice.Token); //In realy applications save token for future use
 
-            /*
-             * Reciever role
-             */
 
             //Prepare
             X509Certificate2 sender;
@@ -432,9 +383,6 @@ namespace Siemens.EHealth.Etee.ITest
             pmForAlice_SR_S.To.Add(pmForBob_SR_SR); //will receive the non-addressed (has priority)
             pmForAlice_SR_S.To.Add(pmForAlice_SR_SR); //will receive the non-addressed
 
-            /*
-             * Sender role
-             */
 
             //Prepare
             msg = new MemoryStream(Encoding.UTF8.GetBytes(orgMsgText)); //create a message
@@ -448,10 +396,6 @@ namespace Siemens.EHealth.Etee.ITest
 
             //Post treat
             Assert.IsNotNull(bob.Token); //In realy applications save token for future use
-
-            /*
-             * Reciever role
-             */
 
             //Prepare
             X509Certificate2 sender;
@@ -469,5 +413,6 @@ namespace Siemens.EHealth.Etee.ITest
             msg = pmForAlice_SR_SR.TransferAndDecryptOnly(null, out sender).Item1;
             VerifyReceive(msg, sender, orgMsgText);
         }
+         */
     }
 }

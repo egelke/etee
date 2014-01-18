@@ -26,7 +26,6 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
-using Egelke.EHealth.Etee.Crypto.Configuration;
 using Egelke.EHealth.Etee.Crypto.Status;
 using System;
 using System.Collections;

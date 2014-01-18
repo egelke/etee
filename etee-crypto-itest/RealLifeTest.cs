@@ -12,70 +12,82 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Security.Cryptography.X509Certificates;
 using System.IO;
-using Siemens.EHealth.Etee.Crypto.Library;
+using Egelke.EHealth.Etee.Crypto.Library;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using NUnit.Framework;
 
-namespace Siemens.EHealth.Etee.ITest
+namespace Egelke.EHealth.Etee.ITest
 {
-    [TestClass]
+    [TestFixture]
     public class RealLifeTest
     {
-        private TraceSource trace = new TraceSource("Siemens.EHealth.Etee");
+        private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
-        private static BasicPostMaster outgoing;
-        private static BasicPostMaster incommingSis;
-        private static BasicPostMaster incommingSisAsMe;
-        private static BasicPostMaster incommingSisByItself;
+        X509Certificate2 eid;
+        X509Certificate2 rootct2;
 
-        private TestContext testContextInstance;
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
+        private static PostMaster outgoing;
+        private static PostMaster incommingAddressed;
+        private static PostMaster incommingUnaddressed;
+
+        FileTransport sharedFileOut;
+        FileTransport sharedFileIn;
+
+        [TestFixtureSetUp]
+        public void SetUpClass()
         {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
+            rootct2 = new X509Certificate2("../../rootct2.crt");
 
-        [ClassInitialize]
-        public static void InitializeClass(TestContext testContext)
-        {
+            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
+            try
+            {
+                if (!store.Certificates.Contains(rootct2))
+                {
+                    store.Add(rootct2);
+                }
+            }
+            finally
+            {
+                store.Close();
+            }
+
             X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             my.Open(OpenFlags.ReadOnly);
             try
             {
+
                 Crypto.Library.ServiceClient.EtkDepotPortTypeClient etkDepot = new Crypto.Library.ServiceClient.EtkDepotPortTypeClient("etk");
                 Crypto.Library.ServiceClient.KgssPortTypeClient kgssForSendOnly = new Crypto.Library.ServiceClient.KgssPortTypeClient("kgss-anon");
-                Crypto.Library.ServiceClient.KgssPortTypeClient kgssForSisAsMe = new Crypto.Library.ServiceClient.KgssPortTypeClient("kgss-79021802145-0459540270");
-                Crypto.Library.ServiceClient.KgssPortTypeClient kgssForSisByItself = new Crypto.Library.ServiceClient.KgssPortTypeClient("kgss-0459540270");
+                Crypto.Library.ServiceClient.KgssPortTypeClient kgssForMe = new Crypto.Library.ServiceClient.KgssPortTypeClient("kgss-79021802145");
 
-                X509Certificate2 auth = my.Certificates.Find(X509FindType.FindByThumbprint, "c175242f2454fa00b69b49308f82cae919f8e8f5", true)[0];
+                eid = my.Certificates.Find(X509FindType.FindByThumbprint, "1ac02600f2f2b68f99f1e8eeab2e780470e0ea4c", false)[0];
+                X509Certificate2 auth = my.Certificates.Find(X509FindType.FindByThumbprint, "566FD3FE13E3AB185A7224BCEC8AD9CFFBF9E9C2", false)[0];
+                X509Certificate2Collection dataEncipherment = my.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.DataEncipherment, false);
 
-                outgoing = new BasicPostMaster(SecurityInfo.Create(auth), etkDepot, kgssForSendOnly);
-                incommingSis = new BasicPostMaster(SecurityInfo.Create(auth));
-                //incommingSis.Lax = false;
-                incommingSisAsMe = new BasicPostMaster(SecurityInfo.Create(auth), etkDepot, kgssForSisAsMe);
-                //incommingSis.Lax = false;
-                incommingSisByItself = new BasicPostMaster(SecurityInfo.Create(auth), etkDepot, kgssForSisByItself);
-                //incommingSisAsMe.Lax = false;
+                X509Certificate2Collection decryption = new X509Certificate2Collection();
+                foreach(X509Certificate2 cert in dataEncipherment) {
+                    if (cert.HasPrivateKey) decryption.Add(cert);
+                }
+
+                sharedFileOut = new OutFileTransport(Path.GetTempFileName(), Path.GetTempFileName());
+                sharedFileIn = new InFileTransport(sharedFileOut.Content, sharedFileOut.KekId);
+
+                outgoing = new PostMaster(sharedFileOut, auth, decryption, etkDepot, kgssForSendOnly);
+                incommingAddressed = new PostMaster(sharedFileIn, decryption, etkDepot);
+                incommingAddressed.Test = true;
+                incommingUnaddressed = new PostMaster(sharedFileIn, auth, decryption, etkDepot, kgssForMe);
+                incommingUnaddressed.Test = true;
             }
             finally
             {
@@ -83,90 +95,56 @@ namespace Siemens.EHealth.Etee.ITest
             }
         }
 
-        [TestInitialize]
-        public void SetupTest()
+        [TestFixtureTearDown]
+        public void TearDownClass()
         {
-            trace.TraceEvent(TraceEventType.Information, 0, "Starting {0}.{1} test", this.GetType().Name, TestContext.TestName);
-        }
-
-        [TestCleanup]
-        public void CleanupTest()
-        {
-            outgoing.Reset();
-            incommingSis.Reset();
-            incommingSisAsMe.Reset();
-            incommingSisByItself.Reset();
-        }
-
-
-
-        [TestMethod]
-        public void Send()
-        {
-            string msg = "My secret message in the name of SIS";
-            KnownRecipient self = new KnownRecipient("CBE", "0459540270");
-            KnownRecipient eh = new KnownRecipient("SSIN", "78042003561");
-            UnknownRecipient anyPers = new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:person:ssin", null);
-            UnknownRecipient anyOrg = new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:kbo-cbe:cbe-number", null);
-
-            List<Recipient> recipients = new List<Recipient>();
-            recipients.Add(self);
-            recipients.Add(eh);
-            recipients.Add(anyOrg);
-            recipients.Add(anyPers);
-
-            MemoryStream msgOut = new MemoryStream(Encoding.UTF8.GetBytes(msg));
-            outgoing.File = "message_from_sis";
-            outgoing.TransferAndEncryptOnly(msgOut, null, new ReadOnlyCollection<Recipient>(recipients));
-        }
-
-        [TestMethod]
-        public void ReceiveUnknown()
-        {
-            String msg = "This is a secret message from Eryk for an unknown addressee written at Fri Sep 17 15:09:31 CEST 2010";
-
-            /*
-             * Not yet configured
-             *
-            incommingSisAsMe.Message = new FileStream("message_from_eryk_for_unknown.msg", FileMode.Open);
-           
-            using (incommingSisAsMe.Message)
+            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
+            try
             {
-                incommingSisAsMe.KeyId = Convert.FromBase64String("vN064UnUgmuhtD9ZBA7d5A==");
-
-                Stream msgIn;
-                X509Certificate2 from;
-
-                msgIn = incommingSisAsMe.Receive(out from);
-                VerifyReceive(msgIn, from, msg, "78042003561");
+                if (store.Certificates.Contains(rootct2))
+                {
+                    store.Remove(rootct2);
+                }
             }
-            */
-
-            incommingSisByItself.Message = new FileStream("message_from_eryk_for_unknown.msg", FileMode.Open);
-            using (incommingSisByItself.Message)
+            finally
             {
-                incommingSisByItself.KeyId = Convert.FromBase64String("vN064UnUgmuhtD9ZBA7d5A==");
-
-                Stream msgIn;
-                X509Certificate2 from;
-
-                msgIn = incommingSisByItself.TransferAndDecryptOnly(null, out from).Item1;
-                VerifyReceive(msgIn, from, msg, "78042003561");
+                store.Close();
             }
         }
 
-        [TestMethod]
-        public void Receive()
-        {
-            String msg = "This is a secret message from Eryk for Bryan written at Fri Sep 17 14:01:32 CEST 2010";
-            incommingSis.Message = new FileStream("message_from_eryk_for_sis.msg", FileMode.Open);
-            using (incommingSis.Message)
-            {
-                Stream msgIn;
-                X509Certificate2 from;
 
-                msgIn = incommingSis.TransferAndDecryptOnly(null, out from).Item1;
-                VerifyReceive(msgIn, from, msg, "78042003561");
+        [Test]
+        public async void Full()
+        {
+            string msg = "My secret message to myself";
+
+
+            //sending the message
+            Letter outbound = new Letter();
+            outbound.Content = new MemoryStream(Encoding.UTF8.GetBytes(msg));
+            outbound.Sender = eid;
+            outbound.Recipients = new List<Recipient>();
+            outbound.Recipients.Add(new KnownRecipient(new KnownRecipient.IdType("SSIN", "79021802145")));
+            outbound.Recipients.Add(new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:person:ssin", null));
+
+            await outgoing.TransferAsync(outbound, true, false); //there is not relevant response so we ignore it.
+
+            Letter inbound;
+
+            //getting the message (addressed)
+            inbound = await incommingAddressed.TransferAsync(null, false, true);
+            using (inbound)
+            {
+                VerifyReceive(inbound.Content, inbound.Sender, msg, "");
+            }
+            
+
+            //getting the message (unaddressed)
+            inbound = await incommingUnaddressed.TransferAsync(null, false, true);
+            using (inbound)
+            {
+                VerifyReceive(inbound.Content, inbound.Sender, msg, "");
             }
         }
 
@@ -181,7 +159,7 @@ namespace Siemens.EHealth.Etee.ITest
             /*
              * Test Verification
              */
-            Assert.AreEqual<String>(orgMsgText, msgText); //check if the text wasn't changed
+            Assert.AreEqual(orgMsgText, msgText); //check if the text wasn't changed
             Assert.IsTrue(sender.Subject.Contains(user)); //check if it actualy comes from SIS
         }
     }

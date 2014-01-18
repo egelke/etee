@@ -33,7 +33,6 @@ using System.Security.Cryptography;
 using Org.BouncyCastle.X509.Store;
 using System.Collections;
 using Org.BouncyCastle.Asn1.Cms;
-using Egelke.EHealth.Etee.Crypto.Utils;
 using System.Collections.Generic;
 using Egelke.EHealth.Etee.Crypto.Status;
 using Org.BouncyCastle.Asn1.X509;
@@ -455,10 +454,12 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                         IList<KeyValuePair<RecipientInformation, IList>> allMatches = new List<KeyValuePair<RecipientInformation, IList>>();
                         foreach (RecipientInformation recipient in recipients)
                         {
-                            IList matches = (IList) encCertStore.GetMatches(recipient.RecipientID);
-                            if (matches.Count > 0)
-                            {
-                                allMatches.Add(new KeyValuePair<RecipientInformation, IList>(recipient, matches));
+                            if (recipient is KeyTransRecipientInformation) {
+                                IList matches = (IList) encCertStore.GetMatches(recipient.RecipientID);
+                                if (matches.Count > 0)
+                                {
+                                    allMatches.Add(new KeyValuePair<RecipientInformation, IList>(recipient, matches));
+                                }
                             }
                         }
 
