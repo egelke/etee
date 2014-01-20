@@ -79,7 +79,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.FileName = "java.exe";
-            p.StartInfo.Arguments = @"-cp ..\..\javabin\v2.0\etee-crypto-test.jar;..\..\javabin\v2.0\etee-crypto-lib-2.0.1.jar;..\..\javabin\lib\bcmail-jdk15on-146.jar;..\..\javabin\lib\bcprov-jdk15on-146.jar;..\..\javabin\lib\junit-4.8.2.jar;..\..\javabin\lib\log4j-1.2.16.jar;..\..\javabin\lib\commons-logging-1.1.3.jar;..\..\javabin\lib\commons-eid-client-0.4.0.jar;..\..\javabin\lib\commons-eid-dialogs-0.4.0.jar;..\..\javabin\lib\commons-eid-jca-0.4.0.jar " + program;
+            p.StartInfo.Arguments = @"-cp ..\..\javabin\v2.0\etee-crypto-test.jar;..\..\javabin\v2.0\etee-crypto-lib-2.0.7.jar;..\..\javabin\lib\bcmail-jdk15on-146.jar;..\..\javabin\lib\bcprov-jdk15on-146.jar;..\..\javabin\lib\junit-4.8.2.jar;..\..\javabin\lib\log4j-1.2.16.jar;..\..\javabin\lib\commons-logging-1.1.3.jar;..\..\javabin\lib\commons-eid-client-0.4.0.jar;..\..\javabin\lib\commons-eid-dialogs-0.4.0.jar;..\..\javabin\lib\commons-eid-jca-0.4.0.jar " + program;
             p.Start();
 
             result = p.StandardOutput.ReadToEnd();
@@ -88,41 +88,42 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String error = p.StandardError.ReadToEnd();
             if (!String.IsNullOrWhiteSpace(error))
             {
-                throw new Exception(error);
+                throw new InvalidOperationException(error);
             }
             return result;
         }
 
-        /*
         [Test]
-        public void Java2NetAddressed()
+        public void Java2NetAddressedWithEmbedded()
         {
-            RunJava("be.smals.ehealth.etee.crypto.examples.Seal");
+            RunJava("etee.crypto.test.Seal online");
 
             UnsealResult result;
-            FileStream file = new FileStream("message_from_alice_for_bob.msg", FileMode.Open);
+            bobUnsealer.Offline = true;
+            FileStream file = new FileStream("message_to_bob.msg", FileMode.Open);
             using (file)
             {
                 result = bobUnsealer.Unseal(file);
             }
+            System.Console.WriteLine(result.SecurityInformation);
             
-            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
 
-            Assert.IsTrue(result.Sender.Subject.Contains("NIHII=00000000101"));
+            Assert.AreEqual("SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Authentication), C=BE", result.Sender.Subject);
 
             byte[] bytes = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(bytes, 0, bytes.Length);
             String msg = Encoding.UTF8.GetString(bytes);
-            Assert.IsTrue(msg.StartsWith("This is a secret message from Alice for Bob written at "));
+            Assert.IsTrue(msg.StartsWith("This is a message to bob"));
         }
-        */
        
         [Test]
-        public void Net2JavaAddressed()
+        public void Net2JavaAddressedWithEmbedded()
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
+            sealer.Offline = false;
             byte[] msg = sealer.Seal(new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")), Encoding.UTF8.GetBytes(text));
 
             FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
@@ -134,6 +135,29 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String output = RunJava("etee.crypto.test.Unseal L3");
 
             Assert.IsTrue(output.Contains(text));
+        }
+
+        [Test]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void Net2JavaAddressedWithoutEmbedded()
+        {
+            String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
+
+            sealer.Offline = true;
+            byte[] msg = sealer.Seal(new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")), Encoding.UTF8.GetBytes(text));
+
+            FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
+            using (msgFile)
+            {
+                msgFile.Write(msg, 0, msg.Length);
+            }
+
+            String output = RunJava("etee.crypto.test.Unseal L2"); //should be OK
+
+            Assert.IsTrue(output.Contains(text));
+
+            output = RunJava("etee.crypto.test.Unseal L3"); //should fail, with exception
+
         }
         /*
         

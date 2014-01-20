@@ -54,7 +54,10 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
     /// </remarks>
     public interface IAnonymousDataUnsealer
     {
-
+        /// <summary>
+        /// Override global Offline setting if provided.
+        /// </summary>
+        bool? Offline { get; set; }
 
         /// <summary>
         /// Unseals a protected message of which you have the secret (but shared) key.
