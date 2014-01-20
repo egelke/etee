@@ -82,6 +82,8 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
         private IX509Store encCertStore;
         private bool requireProbativeForce;
 
+        public bool? Offline { get; set; }
+
         internal TripleUnwrapper(bool requireProbativeForce, X509Certificate2Collection encCerts)
         {
             this.requireProbativeForce = requireProbativeForce;
@@ -355,28 +357,41 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                             Org.BouncyCastle.Asn1.Cms.Attribute revocationValuesList = signerInfo.UnsignedAttributes[EsfAttributes.RevocationValues];
                             if (revocationValuesList != null && revocationValuesList.AttrValues.Count > 0)
                             {
+                                trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains Revocation Values");
                                 RevocationValues revocationValues = RevocationValues.GetInstance(revocationValuesList.AttrValues[0]);
                                 if (revocationValues.GetCrlVals() != null) rawCrls = revocationValues.GetCrlVals();
                                 if (revocationValues.GetOcspVals() != null) rawOcsps = revocationValues.GetOcspVals();
                             }
+                        }
+                        else
+                        {
+                            trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message does not contain any unsigned attributes");
                         }
 
                         //convert the CRLs in something useful
                         IList<X509Crl> crls = new List<X509Crl>();
                         foreach (CertificateList rawCrl in rawCrls)
                         {
-                            crls.Add(new X509Crl(rawCrl));
+                            X509Crl crl = new X509Crl(rawCrl);
+                            trace.TraceEvent(TraceEventType.Verbose, 0, "Found CRL:\r\n" + crl.ToString());
+                            crls.Add(crl);
                         }
 
                         //conver the OCSPs in something useful
                         IList<BasicOcspResp> ocsps = new List<BasicOcspResp>();
                         foreach (BasicOcspResponse rawOcsp in rawOcsps)
                         {
+                            BasicOcspResp ocsp = new BasicOcspResp(rawOcsp);
+                            trace.TraceEvent(TraceEventType.Verbose, 0, "Found OCSP for:\r\n" + ocsp.GetCerts()[0].ToString());
+                            foreach (BC.X509Certificate cert in ocsp.GetCerts())
+                            {
+                                trace.TraceEvent(TraceEventType.Verbose, 0, "\tCertificate:\r\n" + cert.ToString());
+                            }
                             ocsps.Add(new BasicOcspResp(rawOcsp));
                         }
 
                         //Validating everything
-                        result.Subject = CertVerifier.VerifyAuth(signerCert, requireProbativeForce, certs, crls, ocsps, date.Value);
+                        result.Subject = CertVerifier.VerifyAuth(signerCert, requireProbativeForce, certs, crls, ocsps, this.Offline, date.Value);
                         break;
                     default:
                         //found several certificates...
@@ -478,7 +493,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                             foreach (X509Certificate2 cert in match.Value)
                             {
                                 //Validate the decription cert, providing minimal info to force minimal validation.
-                                CertificateSecurityInformation certVerRes = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(cert), null, null, null, null, date);
+                                CertificateSecurityInformation certVerRes = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(cert), null, null, null, null, this.Offline, date);
                                 trace.TraceEvent(TraceEventType.Verbose, 0, "Validated potential decryption certificate ({0}) : {1}", cert.Subject, certVerRes);
                                 if (certVerRes.SecurityViolations.Count == 0)
                                 {
@@ -509,7 +524,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                         recipientKey = DotNetUtilities.GetKeyPair(selectedCert.PrivateKey).Private;
 
                         //we validate the selected certificate again to inform the caller
-                        result.Subject = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(selectedCert), null, null, null, null, date);
+                        result.Subject = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(selectedCert), null, null, null, null, this.Offline, date);
                     }
                     else
                     {

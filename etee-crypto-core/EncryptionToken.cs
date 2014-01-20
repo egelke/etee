@@ -178,7 +178,7 @@ namespace Egelke.EHealth.Etee.Crypto
             }
             authCert = (BC::X509Certificate)iterator.Current;
 
-            return CertVerifier.VerifyEnc(encCert, authCert, certs, new List<X509Crl>(0) , new List<BasicOcspResp>(0), DateTime.UtcNow);
+            return CertVerifier.VerifyEnc(encCert, authCert, certs, new List<X509Crl>(0) , new List<BasicOcspResp>(0), null, DateTime.UtcNow);
         }
 
     }

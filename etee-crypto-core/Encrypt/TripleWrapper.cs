@@ -261,7 +261,7 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
                 certStore = senderChainStore;
 
                 //add the CRLs & OCSPs if online
-                if ((Offline == null && !Settings.Default.Offline) || !Offline.Value)
+                if ((Offline != null && !Offline.Value) || (Offline == null && !Settings.Default.Offline))
                 {
                     ICollection certs = senderChainStore.GetMatches(null);
                     for (int i = 0; i < senderChainList.Count; i++)

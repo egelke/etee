@@ -42,12 +42,12 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
     {
         private static TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
-        public static CertificateSecurityInformation VerifyAuth(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, DateTime date)
+        public static CertificateSecurityInformation VerifyAuth(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, bool? offline, DateTime date)
         {
-            return Verify(cert, nonRepudiation, certs, crls, ocsps, date);
+            return Verify(cert, nonRepudiation, certs, crls, ocsps, offline, date);
         }
 
-        public static CertificateSecurityInformation VerifyEnc(BC::X509Certificate encCert, BC::X509Certificate authCert, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, DateTime date)
+        public static CertificateSecurityInformation VerifyEnc(BC::X509Certificate encCert, BC::X509Certificate authCert, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, bool? offline, DateTime date)
         {
             CertificateSecurityInformation result = new CertificateSecurityInformation();
 
@@ -100,7 +100,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                 }
 
                 //Validate
-                result.IssuerInfo = Verify(authCert, false, certs, crls, ocsps, date);
+                result.IssuerInfo = Verify(authCert, false, certs, crls, ocsps, offline, date);
             }
             else
             {
@@ -111,7 +111,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             return result;
         }
 
-        private static CertificateSecurityInformation Verify(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, DateTime date)
+        private static CertificateSecurityInformation Verify(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, bool? offline, DateTime date)
         {
             CertificateSecurityInformation result = new CertificateSecurityInformation();
 
@@ -174,7 +174,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             }
             else
             {
-                chain.ChainPolicy.RevocationMode = Settings.Default.Offline ? X509RevocationMode.Offline : X509RevocationMode.Online;
+                chain.ChainPolicy.RevocationMode = (offline != null && offline.Value) || Settings.Default.Offline ? X509RevocationMode.Offline : X509RevocationMode.Online;
             }
             chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
             chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
