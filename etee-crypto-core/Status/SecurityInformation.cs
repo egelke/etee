@@ -25,7 +25,7 @@ using Egelke.EHealth.Etee.Crypto.Utils;
 namespace Egelke.EHealth.Etee.Crypto.Status
 {
     /// <summary>
-    /// Security information of eighter signatures or encrypted messages.
+    /// Security information of encrypted blocks, based for signed blocks.
     /// </summary>
     public class SecurityInformation : SecurityResult<SecurityViolation>
     {
@@ -106,7 +106,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
 
             builder.Append(base.ToString(level));
             builder.Append(lv1);
-            builder.AppendLine("Subject:");
+            builder.AppendLine("Subject: ");
             if (Subject != null)
             {
                 builder.Append(Subject.ToString(level + 1));

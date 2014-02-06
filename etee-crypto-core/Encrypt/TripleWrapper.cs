@@ -40,9 +40,7 @@ using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Asn1.Esf;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
-using Egelke.EHealth.Etee.Crypto.Utils;
 using Org.BouncyCastle.Asn1.Cms;
-using Egelke.EHealth.Etee.Crypto.Configuration;
 
 namespace Egelke.EHealth.Etee.Crypto.Encrypt
 {
@@ -51,44 +49,75 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
 
         private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
-        //The sender certificate
-        private X509Certificate2 sender;
+        //The sender authentication certificate
+        private X509Certificate2 authentication;
 
-        //The bag of sender certifcate path (in undefined order)
-        private IX509Store senderChainStore;
+        //The sender signature certificate
+        private X509Certificate2 signature;
 
         //The ordered list of sender certificate path (in assending order)
         private IList<X509Certificate2> senderChainList;
 
         public bool? Offline { get; set; }
-        
 
-        internal TripleWrapper(X509Certificate2 sender)
-            : this(sender, null)
+        private bool MustRetrieveValidationInfo
         {
 
+            get { return (Offline != null && !Offline.Value) || (Offline == null && !Settings.Default.Offline); }
         }
 
-        internal TripleWrapper(X509Certificate2 sender, X509Certificate2Collection extraStore)
+        private bool HasMultipleCertificates
         {
-            this.sender = sender;
+            get { return signature != null; }
+        }
+
+        internal TripleWrapper(X509Certificate2 authentication, X509Certificate2 signature, X509Certificate2Collection extraStore)
+        {
+            //basic checks
+            if (authentication == null) throw new ArgumentNullException("authentication", "The authentication certificate must be provided");
+            if (!authentication.HasPrivateKey) throw new ArgumentException("authentication", "The authentication certificate must have a private key");
+            
+            //correct wrong input
+            if (signature == authentication) signature = null;
+
+            //advanced checks (for eHealth certificate)
+            BC::X509.X509Certificate bcAuthentication = DotNetUtilities.FromX509Certificate(authentication);
+            if (signature == null)
+            {
+                //for eHealth certificate
+                if (!((RSACryptoServiceProvider)authentication.PrivateKey).CspKeyContainerInfo.Exportable) throw new ArgumentException("authentication", "The authentication certificate must be exportable if no (eID) signature certificate is provided");
+                if (!bcAuthentication.GetKeyUsage()[0] || !bcAuthentication.GetKeyUsage()[1]) throw new ArgumentException("authentication", "The authentication certificate must have a key for both non-Repudiation and signing");
+            }
+            else
+            {
+                //for eID certificate
+                if (signature.Issuer != authentication.Issuer) throw new ArgumentException("signature", "The signature certificate must have the same issuer as the authentication certificate");
+                if (!signature.HasPrivateKey) throw new ArgumentException("signature", "The signature certificate must have a private key");
+
+                BC::X509.X509Certificate bcSignature = DotNetUtilities.FromX509Certificate(signature);
+                if (!bcAuthentication.GetKeyUsage()[0]) throw new ArgumentException("authentication", "The authentication certificate must have a key for signing");
+                if (!bcSignature.GetKeyUsage()[1]) throw new ArgumentException("signature", "The authentication certificate must have a key for non-Repudiation");
+            }
+
+            this.authentication = authentication;
+            this.signature = signature;
 
             X509Chain chain = new X509Chain();
             chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
             chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
             chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
             if (extraStore != null) chain.ChainPolicy.ExtraStore.AddRange(extraStore);
-            chain.Build(sender);
+            chain.Build(authentication);
 
             senderChainList = new List<X509Certificate2>();
             X509ChainElementEnumerator chainEnum = chain.ChainElements.GetEnumerator();
-            List<BC::X509.X509Certificate> senderChainCollection = new List<BC::X509.X509Certificate>();
-            while (chainEnum.MoveNext())
+            if (chainEnum.MoveNext()) // skip the leaf certificate, to make it common for both auth and sign cert.
             {
-                senderChainList.Add(chainEnum.Current.Certificate);
-                senderChainCollection.Add(DotNetUtilities.FromX509Certificate(chainEnum.Current.Certificate));
+                while (chainEnum.MoveNext())
+                {
+                    senderChainList.Add(chainEnum.Current.Certificate);
+                }
             }
-            senderChainStore = X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(senderChainCollection));
         }
 
         #region DataSealer Members
@@ -243,40 +272,53 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
             }
         }
 
-        protected void Sign(Stream signed, Stream unsigned, bool includeSigner)
+        protected void Sign(Stream signed, Stream unsigned, bool outerSignature)
         {
-            BC::X509.X509Certificate bcSender = DotNetUtilities.FromX509Certificate(sender);
-            trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", bcSender.SubjectDN.ToString());
+            //Select the correct certificate, for inclusion and for usage
+            X509Certificate2 selectedCert = !HasMultipleCertificates || outerSignature ? authentication : signature;
+
+            BC::X509.X509Certificate bcSelectedCert = DotNetUtilities.FromX509Certificate(selectedCert);
+            trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", bcSelectedCert.SubjectDN.ToString());
 
             //Signing time
             DateTime signingTime = DateTime.UtcNow;
 
-            //Get the certs, crls and ocsps
+            //Get the certs  chain, crls and ocsps
+            //Not done for the inner signature if siging certificate was not provided (and thus the auth cert is used)
             IX509Store certStore = null;
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
-            if (includeSigner)
+            if (HasMultipleCertificates || outerSignature)
             {
-                //add the cached certificates
-                certStore = senderChainStore;
+                //Construct the chain of certificates
+                List<BC::X509.X509Certificate> senderChainCollection = new List<BC::X509.X509Certificate>();
 
-                //add the CRLs & OCSPs if online
-                if ((Offline != null && !Offline.Value) || (Offline == null && !Settings.Default.Offline))
+                //First level, the leaf level
+                BC::X509.X509Certificate cert = bcSelectedCert;
+                BC::X509.X509Certificate issuer = senderChainList.Count == 0 ? null : DotNetUtilities.FromX509Certificate(senderChainList[0]);
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Adding leaf cert {0} to chain", cert.SubjectDN.ToString());
+                senderChainCollection.Add(cert);
+                if (MustRetrieveValidationInfo)
                 {
-                    ICollection certs = senderChainStore.GetMatches(null);
-                    for (int i = 0; i < senderChainList.Count; i++)
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Retreiving OCSP for cert {0}", cert.SubjectDN.ToString());
+                    RetreiveOcsps(ocsps, signingTime, cert, issuer); //We only check for OCPS values for the leaf level, we don't want to risk downloading 20 MB
+                }
+
+                //The rest of the chain
+                for (int i = 1; i < senderChainList.Count; i++)
+                {
+                    cert = issuer;
+                    issuer = i >= senderChainList.Count ? null : DotNetUtilities.FromX509Certificate(senderChainList[i]);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Adding leaf cert {0} to chain", cert.SubjectDN.ToString());
+                    senderChainCollection.Add(cert);
+                    if (MustRetrieveValidationInfo)
                     {
-                        BC::X509.X509Certificate cert = DotNetUtilities.FromX509Certificate(senderChainList[i]);
-                        BC::X509.X509Certificate issuer = i + 1 >= senderChainList.Count ? null : DotNetUtilities.FromX509Certificate(senderChainList[i + 1]);
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "Adding OCSP or CRL for cert {0}", cert.SubjectDN.ToString());
-
-                        //Lets start with the OCSP, which is smaller and more up to data
-                        bool ocspPresent = RetreiveOcsps(ocsps, signingTime, cert, issuer);
-
-                        //lets look for an CRL and use it if we did not find an OCPS
-                        if (!ocspPresent) RetreiveCrls(crls, signingTime, cert, issuer);
+                        trace.TraceEvent(TraceEventType.Verbose, 0, "Retreiving OCSP, and if not found CRL, for cert {0}", cert.SubjectDN.ToString());
+                        if (!RetreiveOcsps(ocsps, signingTime, cert, issuer)) RetreiveCrls(crls, signingTime, cert, issuer); //Retrieve OCSP, and if not found try CRL
                     }
                 }
+
+                certStore = X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(senderChainCollection));
             }
 
             CmsSignedDataStreamGenerator signedGenerator = new CmsSignedDataStreamGenerator();
@@ -291,7 +333,7 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
             //add signed attributes to the signature (own signig time)
             IDictionary signedAttrDictionary = new Hashtable();
             BC::Asn1.Cms.Attribute signTimeattr = new BC::Asn1.Cms.Attribute(CmsAttributes.SigningTime,
-                    new DerSet(new BC::Asn1.Cms.Time(DateTime.UtcNow)));
+                    new DerSet(new BC::Asn1.Cms.Time(signingTime)));
             signedAttrDictionary.Add(signTimeattr.AttrType, signTimeattr);
             BC::Asn1.Cms.AttributeTable signedAttrTable = new BC.Asn1.Cms.AttributeTable(signedAttrDictionary);
 
@@ -309,15 +351,15 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
 
             //Add the signatures (moved below so it is easier to add unsigned attributes)
             SignatureAlgorithm signAlgo;
-            if (((RSACryptoServiceProvider) sender.PrivateKey).CspKeyContainerInfo.Exportable) {
+            if (((RSACryptoServiceProvider)selectedCert.PrivateKey).CspKeyContainerInfo.Exportable) {
                 signAlgo =  EteeActiveConfig.Seal.NativeSignatureAlgorithm;
-                signedGenerator.AddSigner(DotNetUtilities.GetKeyPair(sender.PrivateKey).Private,
-                    bcSender, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value,
+                signedGenerator.AddSigner(DotNetUtilities.GetKeyPair(selectedCert.PrivateKey).Private,
+                    bcSelectedCert, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value,
                     signedAttrTable, unsignedAttrTable);
             } else {
                 signAlgo = EteeActiveConfig.Seal.WindowsSignatureAlgorithm;
-                signedGenerator.AddSigner(new ProxyRsaKeyParameters((RSACryptoServiceProvider) sender.PrivateKey),
-                    bcSender, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value,
+                signedGenerator.AddSigner(new ProxyRsaKeyParameters((RSACryptoServiceProvider)selectedCert.PrivateKey),
+                    bcSelectedCert, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value,
                     signedAttrTable, unsignedAttrTable);
             }
             trace.TraceEvent(TraceEventType.Verbose, 0, "Added Signer [EncAlgo={0} ({1}), DigestAlgo={2} ({3})",

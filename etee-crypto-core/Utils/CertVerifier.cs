@@ -277,7 +277,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                 Process(dest.IssuerInfo, srcChain, crls, ocsps, on, partial);
                 issuer = DotNetUtilities.FromX509Certificate(dest.IssuerInfo.Certificate);
 
-                //don't do if checked by 
+                //don't do if checked by windows already
                 if ((ocsps.Count > 0 || crls.Count > 0) 
                     && !OcspVerifier.Verify(ocsps, on, cert, issuer, "embedded")
                     && !CrlVerifier.Verify(crls, on, cert, issuer, "embedded"))

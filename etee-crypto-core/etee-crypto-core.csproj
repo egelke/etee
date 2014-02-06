@@ -89,6 +89,7 @@
     <Compile Include="Decrypt\IDataUnsealer.cs" />
     <Compile Include="Status\SecurityResult.cs" />
     <Compile Include="Status\SecurityInformation.cs" />
+    <Compile Include="Status\SignatureSecurityInformation.cs" />
     <Compile Include="Status\UnsealSecurityInformation.cs" />
     <Compile Include="Decrypt\TripleUnwrapper.cs" />
     <Compile Include="Status\UnsealResult.cs" />
