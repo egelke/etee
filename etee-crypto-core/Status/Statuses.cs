@@ -398,6 +398,42 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         [TrustLevel(TrustStatus.Unsure)]
         [ValidationResult(ValidationStatus.Valid)]
         SubjectTrustUnknown,
+
+        /// <summary>
+        /// <para>
+        /// The time indicated by the message at which it is sealed could not be validated.
+        /// </para>
+        /// <para>
+        /// The sealing time indicated in the message is to old to be trusted by itself
+        /// and can't be validated via a timestamp because it isn't present.  This can be
+        /// exploited by a malicous person.
+        /// </para>
+        /// </summary>
+        [TrustLevel(TrustStatus.Unsure)]
+        [ValidationResult(ValidationStatus.Valid)]
+        SealingTimeNotValidated,
+
+        /// <summary>
+        /// <para>
+        /// The time indicated by the message at which it is sealed is not valid.
+        /// </para>
+        /// <para>
+        /// The message includes a timestamp which which contains a time that doesn't
+        /// correspond with the sealing time indicated by the message.  This voids the
+        /// trust because the sender is validated on the sealing time that is (incorrectly)
+        /// indicated.
+        /// </para>
+        /// </summary>
+        [TrustLevel(TrustStatus.None)]
+        [ValidationResult(ValidationStatus.Valid)]
+        SealingTimeInvalid,
+
+        /// <summary>
+        /// The included timestamp was invalid or could not be trusted.
+        /// </summary>
+        [TrustLevel(TrustStatus.Unsure)]
+        [ValidationResult(ValidationStatus.Invalid)]
+        InvalidTimestamp
     }
 
     /// <summary>

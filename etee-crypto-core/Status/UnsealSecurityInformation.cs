@@ -41,13 +41,33 @@ namespace Egelke.EHealth.Etee.Crypto.Status
     /// </remarks>
     public class UnsealSecurityInformation : SecurityResult<UnsealSecurityViolation>
     {
-        private DateTime? sealedOn;
+        /// <summary>
+        /// Security information about the outer signature.
+        /// </summary>
+        /// <value>
+        /// Contains information if the encrypted messages was correctly
+        /// signed an by who.
+        /// </value>
+        public SignatureSecurityInformation OuterSignature { get; internal set; }
 
-        private SecurityInformation outerSignature;
+        /// <summary>
+        /// Security information about the encryption/decryption.
+        /// </summary>
+        /// <value>
+        /// Contains information if the encryption was done
+        /// up to spec and the certificate that was used
+        /// to decrypt.
+        /// </value>
+        public SecurityInformation Encryption { get; internal set; }
 
-        private SecurityInformation encryption;
-
-        private SecurityInformation innerSignature;
+        /// <summary>
+        /// Security information about the inner signature.
+        /// </summary>
+        /// <value>
+        /// Contains information if the was correctly signed
+        /// and by who.
+        /// </value>
+        public SignatureSecurityInformation InnerSignature { get; internal set; }
 
         /// <summary>
         /// Detailed list of all the security violations for this object.
@@ -78,7 +98,6 @@ namespace Egelke.EHealth.Etee.Crypto.Status
                             break;
                         case ValidationStatus.Unsure:
                             throw new InvalidOperationException("The signature validation status should not be unsure");
-                            break;
                         default:
                             break;
                     }
@@ -140,79 +159,6 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         }
 
         /// <summary>
-        /// The time the message was sealed, if available.
-        /// </summary>
-        public DateTime? SealedOn
-        {
-            get
-            {
-                return sealedOn;
-            }
-            internal set
-            {
-                sealedOn = value;
-            }
-        }
-
-        /// <summary>
-        /// Security information about the outer signature.
-        /// </summary>
-        /// <value>
-        /// Contains information if the encrypted messages was correctly
-        /// signed an by who.
-        /// </value>
-        public SecurityInformation OuterSignature
-        {
-            get
-            {
-                return outerSignature;
-            }
-            internal set
-            {
-                outerSignature = value;
-            }
-        }
-
-        /// <summary>
-        /// Security information about the encryption/decryption.
-        /// </summary>
-        /// <value>
-        /// Contains information if the encryption was done
-        /// up to spec and the certificate that was used
-        /// to decrypt.
-        /// </value>
-        public SecurityInformation Encryption
-        {
-            get
-            {
-                return encryption;
-            }
-            internal set
-            {
-                encryption = value;
-            }
-        }
-
-        /// <summary>
-        /// Security information about the inner signature.
-        /// </summary>
-        /// <value>
-        /// Contains information if the was correctly signed
-        /// and by who.
-        /// </value>
-        public SecurityInformation InnerSignature
-        {
-            get
-            {
-                return innerSignature;
-            }
-            internal set
-            {
-                innerSignature = value;
-            }
-        }
-
-        /// <summary>
         /// Detail printout to incopreate in the parent printout.
         /// </summary>
         /// <param name="level">The number of parent</param>
@@ -226,10 +172,6 @@ namespace Egelke.EHealth.Etee.Crypto.Status
             StringBuilder builder = new StringBuilder();
 
             builder.Append(base.ToString(level));
-
-            builder.Append(lv1);
-            builder.Append("Sealed on: ");
-            builder.AppendLine(SealedOn == null ? "<<Not Available>>" : SealedOn.ToString());
 
             builder.Append(lv1);
             builder.AppendLine("Outer Signature:");

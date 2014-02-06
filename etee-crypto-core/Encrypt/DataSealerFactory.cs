@@ -43,17 +43,17 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
         /// threads.
         /// </para>
         /// <para>
-        /// Each instances has an authentication certficiate with it.  This is normaly issued by eHealth, but any 
-        /// <see cref="X509Certificate2"/> will do as long as it is compliant with the eHealth End-To-End Encyption standards.
-        /// The IDataSealer instance does not verify if the certificate is compliant, only the IDataUnsealer instance does that.
-        /// If using a non eHealth authentication certificate, make sure it is compliant and trusted by the recieving parties.
+        /// Each instances has an authentication and optionally a signing certficiate.  Which can either be eID or eHealth certficiates.
+        /// In case of eHealth certificates, only the authentication certificate must be provided, it will double as signing certificate.
+        /// In case of eID certificates, both the authentication and siging certificate of the same person should be provided, the PIN will
+        /// only be requested once.
         /// </para>
         /// <para>
-        /// The certificate can be eighter loaded from the standard windows certificate store, for this the eHealth .p12 must
-        /// be imported into the windows certificate store.  It is also possible to open a .p12 or .pfx file directly, but this
-        /// does not work with the standard eHealth .p12 file.  The reason is that <see cref="X509Certificate2.X509Certificate2(System.Byte[], System.String)"/>
-        /// only supports files with one private key, the standard eHealth .p12 files have two.  You must split the eHealth .p12
-        /// into two seperate .p12 files, one for the authantication key and none for the encryption key.
+        /// eHealth certificate can only be loaded from the standard windows certificate store, the eHealth provided .p12 must
+        /// be imported into the windows certificate store with <strong>exportable</strong> key.  It isn't possible to use the eHealth .p12 directly, because
+        /// <see cref="X509Certificate2.X509Certificate2(System.Byte[], System.String)"/>
+        /// only supports files with one private key, the standard eHealth .p12 files have two.  For compatibility with the .Net Xades
+        /// library, the eHealth .p12 library should be imported via the <c>EHealthP12</c>-class of the eH-I library.
         /// </para>
         /// </remarks>
         /// <example>
@@ -67,15 +67,15 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
         /// try
         /// {
         ///     //Filter out all non signature certificates.
-        ///     X509Certificate2Collection mySignCerts = myStore.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.DigitalSignature, true);
+        ///     X509Certificate2Collection myEhCerts = myStore.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, true);
         ///     
         ///     //Allow the user to select its own certificate
-        ///     X509Certificate2Collection selected = X509Certificate2UI.SelectFromCollection(mySignCerts, "Sender Certificate", "Select your eHealth authentication certificate", X509SelectionFlag.SingleSelection);
+        ///     X509Certificate2Collection selected = X509Certificate2UI.SelectFromCollection(myEhCerts, "Sender Certificate", "Select your eHealth certificate", X509SelectionFlag.SingleSelection);
         /// 
         ///     //if user did not select a certificate, nofify him he should
         ///     if (selected.Count != 1) throw new Exception("You must select a certificate");
         ///    
-        ///     sealer = DataSealerFactory.Create(selected[0]);
+        ///     sealer = DataSealerFactory.Create(selected[0], null);
         /// }
         /// finally
         /// {
@@ -83,16 +83,17 @@ namespace Egelke.EHealth.Etee.Crypto.Encrypt
         /// }
         /// </code>
         /// </example>
-        /// <param name="sender">The (eHealth) certificate to use for signing the protected messages</param>
-        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
-        public static IDataSealer Create(X509Certificate2 sender)
+        /// <param name="authentication">The eHealth or eID Authentication certificate to use for proving the origin of the message.  For eHealth certiifcates the key must be <strong>exportable</strong>!</param>
+        /// <param name="signature">The eID Signature certificate to protect the content of the message, <c>null</c> in case of eHealth certficate</param>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender (i.e. authantication and signature certificate)</returns>
+        public static IDataSealer Create(X509Certificate2 authentication, X509Certificate2 signature)
         {
-            return new TripleWrapper(sender);
+            return new TripleWrapper(authentication, signature, null);
         }
 
-        public static IDataSealer Create(X509Certificate2 sender, X509Certificate2Collection extraStore)
+        public static IDataSealer Create(X509Certificate2 authentication, X509Certificate2 signature, X509Certificate2Collection extraStore)
         {
-            return new TripleWrapper(sender, extraStore);
+            return new TripleWrapper(authentication, signature, extraStore);
         }
     }
 }
