@@ -79,6 +79,7 @@ namespace Egelke.Fedict.Eid
         private CardContextSafeHandler instanceContext;
         private CardSafeHandler handler;
         private Thread deviceActionListenerThread;
+        private bool disposed;
 
         public event EventHandler<DeviceEventArgs> ReaderAction;
         public event EventHandler<DeviceEventArgs> CardAction;
@@ -102,6 +103,7 @@ namespace Egelke.Fedict.Eid
 
 
             //create a listener for this card
+            disposed = false;
             deviceActionListenerThread = new Thread(DeviceActionListener);
             deviceActionListenerThread.IsBackground = true;
             deviceActionListenerThread.Start(readerStates);
@@ -151,7 +153,7 @@ namespace Egelke.Fedict.Eid
                             OnReaderAction(new DeviceEventArgs(readerName, DeviceState.Present, DeviceState.Missing));
                         }
                     }
-                } while ((retVal == 0 && (readerStates[0].dwEventState & ReaderState.SCARD_STATE_IGNORE) != ReaderState.SCARD_STATE_IGNORE) || retVal == 0x8010000A);
+                } while (!disposed && (retVal == 0 && (readerStates[0].dwEventState & ReaderState.SCARD_STATE_IGNORE) != ReaderState.SCARD_STATE_IGNORE) || retVal == 0x8010000A);
             }
             finally
             {
@@ -307,6 +309,7 @@ namespace Egelke.Fedict.Eid
 
         public void Dispose()
         {
+            disposed = true;
             if (IsConnected) this.Disconnect();
             instanceContext.Close();
         }

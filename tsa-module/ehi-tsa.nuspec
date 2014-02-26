@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <projectUrl>http://ehi.codeplex.com/</projectUrl>
+    <iconUrl>https://egelke-web.sharepoint.com/SiteImages/Health-care-shield-icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>
+Initial version, migrated from ETEE library.
+    </releaseNotes>
+    <copyright>Copyright © Egelke BVBA 2014</copyright>
+    <tags>eHealth eSigning TimeStamp</tags>
+  </metadata>
+</package>
