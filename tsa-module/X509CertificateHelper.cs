@@ -1,0 +1,407 @@
+﻿/*
+ *  This file is part of eH-I.
+ *  Copyright (C) 2014 Egelke BVBA
+ *
+ *  eH-I is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published by
+ *  the Free Software Foundation, either version 2.1 of the License, or
+ *  (at your option) any later version.
+ *
+ *  eH-I is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with eH-I.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+using Org.BouncyCastle.Ocsp;
+using Org.BouncyCastle.X509;
+using BC=Org.BouncyCastle.X509;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using Org.BouncyCastle.Security;
+using System.Collections;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.X509.Extension;
+using System.Net;
+using System.IO;
+using Org.BouncyCastle.Asn1.Ocsp;
+using Org.BouncyCastle.X509.Store;
+
+namespace Egelke.EHealth.Client.Tsa
+{
+    public static class X509CertificateHelper
+    {
+
+        private static CertificateList RetreiveCrl(BC::X509Certificate cert)
+        {
+            Asn1OctetString crlDPsBytes = cert.GetExtensionValue(X509Extensions.CrlDistributionPoints);
+            if (crlDPsBytes != null)
+            {
+                CrlDistPoint crlDPs = CrlDistPoint.GetInstance(X509ExtensionUtilities.FromExtensionValue(crlDPsBytes));
+                foreach (DistributionPoint dp in crlDPs.GetDistributionPoints())
+                {
+                    DistributionPointName dpn = dp.DistributionPointName;
+                    if (dpn != null && dpn.PointType == DistributionPointName.FullName)
+                    {
+                        GeneralName[] genNames = GeneralNames.GetInstance(dpn.Name).GetNames();
+                        foreach (GeneralName genName in genNames)
+                        {
+                            if (genName.TagNo == GeneralName.UniformResourceIdentifier)
+                            {
+                                //Found a CRL URL, lets get it.
+                                string location = DerIA5String.GetInstance(genName.Name).GetString();
+
+                                //Make the Web request
+                                WebRequest crlRequest = WebRequest.Create(location);
+                                WebResponse crlResponse = crlRequest.GetResponse();
+
+                                //Parse the result
+                                using (crlResponse)
+                                {
+                                    Asn1Sequence crlAns1 = (Asn1Sequence)Asn1Sequence.FromStream(crlResponse.GetResponseStream());
+                                    return CertificateList.GetInstance(crlAns1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static BasicOcspResponse RetreiveOcsps(BC::X509Certificate cert, BC::X509Certificate issuer)
+        {
+            Asn1OctetString ocspDPsBytes = cert.GetExtensionValue(X509Extensions.AuthorityInfoAccess);
+            if (ocspDPsBytes != null)
+            {
+                AuthorityInformationAccess ocspAki = AuthorityInformationAccess.GetInstance(X509ExtensionUtilities.FromExtensionValue(ocspDPsBytes));
+                foreach (AccessDescription ad in ocspAki.GetAccessDescriptions())
+                {
+                    if (AccessDescription.IdADOcsp.Equals(ad.AccessMethod)
+                        && ad.AccessLocation.TagNo == GeneralName.UniformResourceIdentifier)
+                    {
+                        //Found an OCSP URL, lets call it.
+                        string location = DerIA5String.GetInstance(ad.AccessLocation.Name).GetString();
+
+                        //Prepare the request
+                        OcspReqGenerator ocspReqGen = new OcspReqGenerator();
+                        ocspReqGen.AddRequest(new CertificateID(CertificateID.HashSha1, issuer, cert.SerialNumber));
+
+                        //Make the request & sending it.
+                        OcspReq ocspReq = ocspReqGen.Generate();
+                        WebRequest ocspWebReq = WebRequest.Create(location);
+                        ocspWebReq.Method = "POST";
+                        ocspWebReq.ContentType = "application/ocsp-request";
+                        Stream ocspWebReqStream = ocspWebReq.GetRequestStream();
+                        ocspWebReqStream.Write(ocspReq.GetEncoded(), 0, ocspReq.GetEncoded().Length);
+                        WebResponse ocspWebResp = ocspWebReq.GetResponse();
+
+                        //Get the response
+                        OcspResponse ocspResponse;
+                        using (ocspWebResp)
+                        {
+                            ocspResponse = OcspResponse.GetInstance(new Asn1InputStream(ocspWebResp.GetResponseStream()).ReadObject());
+                        }
+
+                        //Check the responder status
+                        var ocspResp = new OcspResp(ocspResponse);
+                        if (ocspResp.Status == 0)
+                        {
+                            return BasicOcspResponse.GetInstance(Asn1Object.FromByteArray(ocspResponse.ResponseBytes.Response.GetOctets()));
+                        } 
+                        else
+                        {
+                            throw new InvalidOperationException("The OCSP Responder did not return a valid response");
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        
+
+        public static X509ChainStatus CheckRevocation(this X509Certificate2 cert, X509Certificate2 issuer, DateTime time, ref IList<CertificateList> certLists, ref IList<BasicOcspResponse> ocspResponses, DateTime revocationInfoTime, bool checkSuspend, TimeSpan maxDelay)
+        {
+            X509ChainStatus status = new X509ChainStatus();
+            status.Status = X509ChainStatusFlags.NoError;
+
+            BC::X509Certificate certBc = DotNetUtilities.FromX509Certificate(cert);
+            BC::X509Certificate issuerBc = DotNetUtilities.FromX509Certificate(issuer);
+
+            //If no (OCSP) revocation check is allowed
+            if (certBc.GetNonCriticalExtensionOids().Contains(OcspObjectIdentifiers.PkixOcspNocheck.Id))
+            {
+                return status;
+            }
+
+            //Find the OCSP in the list
+            BasicOcspResp bestOcspResp = null;
+            SingleResp bestSingleOcspResp = null;
+            foreach (BasicOcspResponse ocspResponse in ocspResponses)
+            {
+               BasicOcspResp ocspResp = new BasicOcspResp(ocspResponse);
+               //producedAt vs thisUpdate seem to be the same
+               //TODO::verify with expired certificate
+
+               IEnumerable<SingleResp> matchingSingleResps = ocspResp.Responses.Where(x => x.GetCertID().SerialNumber.Equals(certBc.SerialNumber) && x.GetCertID().MatchesIssuer(issuerBc) 
+                    && ((x.NextUpdate != null && x.NextUpdate.Value > time) || x.ThisUpdate > time));
+
+               foreach (SingleResp sinlgeResp in matchingSingleResps)
+               {
+                   if (bestSingleOcspResp == null)
+                    {
+                        bestOcspResp = ocspResp;
+                        bestSingleOcspResp = sinlgeResp;
+                    }
+                    else
+                    {
+                        //check whatever is closed to the requested time
+                        TimeSpan currentDiff = time - bestSingleOcspResp.ThisUpdate;
+                        TimeSpan newDiff = time - sinlgeResp.ThisUpdate;
+                        if (newDiff.Duration() < currentDiff.Duration())
+                        {
+                            bestOcspResp = ocspResp;
+                            bestSingleOcspResp = sinlgeResp;
+                        }
+                    }
+               }
+            }
+
+            //No OCSP found, looking for CRL in the provided list.
+            X509Crl bestCrl = null;
+            foreach (CertificateList certList in certLists)
+            {
+                X509Crl crl = new X509Crl(certList);
+                if (crl.IssuerDN.Equals(certBc.IssuerDN)
+                    && ((crl.NextUpdate != null && crl.NextUpdate.Value > time) || crl.ThisUpdate > time))
+                {
+                    if (bestCrl == null)
+                    {
+                        bestCrl = crl;
+                    }
+                    else
+                    {
+                        //check whatever is closed to the requested time
+                        TimeSpan currentDiff = time - bestCrl.ThisUpdate;
+                        TimeSpan newDiff = time - crl.ThisUpdate;
+                        if (newDiff.Duration() < currentDiff.Duration()) bestCrl = crl;
+                    }
+                }
+            }
+
+            //Found neither OCSP or CRL, retreiving OCSP
+            if (bestOcspResp == null && bestCrl == null)
+            {
+                BasicOcspResponse ocspResponse = RetreiveOcsps(certBc, issuerBc);
+                if (ocspResponse != null)
+                {
+                    ocspResponses.Add(ocspResponse);
+
+                    //we know there is only one, so it is easier to extract
+                    bestOcspResp = new BasicOcspResp(ocspResponse);
+                    bestSingleOcspResp = bestOcspResp.Responses[0];
+                }
+            }
+
+            //No OCSP to retrieve, retreiving CRL
+            if (bestOcspResp == null && bestCrl == null)
+            {
+                CertificateList crl = RetreiveCrl(certBc);
+                if (crl != null)
+                {
+                    certLists.Add(crl);
+                    bestCrl = new X509Crl(crl);
+                }
+            }
+
+            //Didn't find any CRL or OCSP anywhere
+            if (bestOcspResp == null && bestCrl == null)
+            {
+                status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
+                status.StatusInformation = "No revocation information available for the certificate";
+                return status;
+            }
+
+            //found OCSP, validating it
+            if (bestSingleOcspResp != null)
+            {
+                //check signature
+                BC::X509Certificate ocspSignerBc;
+                var id = (DerTaggedObject) bestOcspResp.ResponderId.ToAsn1Object().ToAsn1Object();
+                switch (id.TagNo)
+                {
+                    case 1:
+                        X509CertStoreSelector selector = new X509CertStoreSelector();
+                        selector.Subject = X509Name.GetInstance(id.GetObject());
+                        IEnumerator selected = bestOcspResp.GetCertificates("Collection").GetMatches(selector).GetEnumerator();
+                        if (!selected.MoveNext())
+                        {
+                            status.Status = X509ChainStatusFlags.CtlNotSignatureValid;
+                            status.StatusInformation = "The OCSP is signed by a known certificate";
+                            return status;
+                        }
+                        ocspSignerBc = (BC::X509Certificate)selected.Current;
+                        break;
+                    default:
+                        throw new NotSupportedException("This library only support ResponderID's by name");
+                }
+                if (!bestOcspResp.Verify(ocspSignerBc.GetPublicKey()))
+                {
+                    status.Status = X509ChainStatusFlags.CtlNotSignatureValid;
+                    status.StatusInformation = "The OCSP has an invalid signature";
+                    return status;
+                }
+
+                //check the signers chain.
+                X509Certificate2 ocspSigner = new X509Certificate2(ocspSignerBc.GetEncoded());
+                X509Certificate2Collection ocspExtraStore = new X509Certificate2Collection();
+                foreach(BC::X509Certificate ocspCert in bestOcspResp.GetCertificates("Collection").GetMatches(null))
+                {
+                    ocspExtraStore.Add(new X509Certificate2(ocspCert.GetEncoded()));
+                }
+                Chain ocspChain = ocspSigner.BuildChain(revocationInfoTime, ocspExtraStore, ref certLists, ref ocspResponses, revocationInfoTime, checkSuspend, maxDelay);
+                if (ocspChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
+                {
+                    status.Status = X509ChainStatusFlags.CtlNotTimeValid;
+                    status.StatusInformation = "The OCSP is signed by a certificate that hasn't a valid chain";
+                    return status;
+                }
+                foreach(ChainElement ocspChainElement in ocspChain.ChainElements)
+                {
+                    if (ocspChainElement.ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
+                    {
+                        status.Status = X509ChainStatusFlags.CtlNotTimeValid;
+                        status.StatusInformation = "The OCSP is signed by a certificate that hasn't a valid chain";
+                        return status;
+                    }
+                }
+
+                //check the signer (only the part relevant for OCSP)
+                IList ocspSignerExtKeyUsage = ocspSignerBc.GetExtendedKeyUsage();
+                if (!ocspSignerExtKeyUsage.Contains("1.3.6.1.5.5.7.3.9"))
+                {
+                    status.Status = X509ChainStatusFlags.CtlNotValidForUsage;
+                    status.StatusInformation = "The OCSP is signed by a certificate that isn't allowed to sign OCSP";
+                    return status;
+                }
+
+                //check if the certificate is revoced
+                if (bestSingleOcspResp.GetCertStatus() != null)
+                {
+                    status.Status = X509ChainStatusFlags.Revoked;
+                    status.StatusInformation = "The OCSP response marks the certificate as revoked";
+                    return status;
+                }
+
+                //check if status is still up to date
+                if (checkSuspend && bestSingleOcspResp.ThisUpdate > (time + maxDelay))
+                {
+                    status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
+                    status.StatusInformation = "The revocation information is outdated which means the certificate could have been suspended when used";
+                    return status;
+                }
+            }
+
+            //Found CRL, validating it.
+            if (bestCrl != null)
+            {
+                //check the signature (no need the check the issuer here)
+                try
+                {
+                    bestCrl.Verify(issuerBc.GetPublicKey());
+                }
+                catch
+                {
+                    status.Status = X509ChainStatusFlags.CtlNotSignatureValid;
+                    status.StatusInformation = "The CRL has an invalid signature";
+                    return status;
+                }
+
+                //chech the signer (only the part relevant for CRL)
+                if (!issuerBc.GetKeyUsage()[6])
+                {
+                    status.Status = X509ChainStatusFlags.CtlNotValidForUsage;
+                    status.StatusInformation = "The CRL was signed with a certificate that isn't allowed to sign CRLs";
+                    return status;
+                }
+
+                //check if the certificate is revoked
+                if (bestCrl.IsRevoked(certBc))
+                {
+                    status.Status = X509ChainStatusFlags.Revoked;
+                    status.StatusInformation = "The CRL marks the certificate as revoked";
+                    return status;
+                }
+
+                //check if status is still up to date
+                if (checkSuspend && bestCrl.ThisUpdate > (time + maxDelay))
+                {
+                    status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
+                    status.StatusInformation = "The revocation information is outdated which means the certificate could have been suspended when used";
+                    return status;
+                }
+            }
+
+            return status;
+        }
+
+        public static Chain BuildChain(this X509Certificate2 cert, DateTime time, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
+        {
+            return cert.BuildChain(time, extraStore, ref crls, ref ocsps, DateTime.UtcNow);
+        }
+
+        public static Chain BuildChain(this X509Certificate2 cert, DateTime time, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime revocationInfoTime)
+        {
+            return cert.BuildChain(time, extraStore, ref crls, ref ocsps, DateTime.UtcNow, false, new TimeSpan(0, 5, 0));
+        }
+
+        public static Chain BuildChain(this X509Certificate2 cert, DateTime time, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime revocationInfoTime, bool checkSuspend, TimeSpan maxDelay)
+        {
+            //create the X509 chain
+            X509Chain x509Chain = new X509Chain();
+            if (extraStore != null) x509Chain.ChainPolicy.ExtraStore.AddRange(extraStore);
+            x509Chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            x509Chain.ChainPolicy.VerificationTime = time;
+            x509Chain.Build(cert);
+
+            //create the chain using the information from the X509 Chain
+            Chain chain = new Chain();
+            chain.ChainStatus = new List<X509ChainStatus>();
+            chain.ChainStatus.AddRange(x509Chain.ChainStatus);
+            chain.ChainElements = new List<ChainElement>();
+            X509ChainElementEnumerator x509Elements = x509Chain.ChainElements.GetEnumerator();
+            if (x509Elements.MoveNext())
+            {
+                X509ChainElement currentElement = x509Elements.Current;
+                while (x509Elements.MoveNext())
+                {
+                    X509ChainElement issuerElement = x509Elements.Current;
+
+                    //copy that element status from the X509 Chain
+                    ChainElement element = new ChainElement(currentElement);
+                    
+                    //Add revocation status info that is manually retrieved.
+                    X509ChainStatus status = currentElement.Certificate.CheckRevocation(issuerElement.Certificate, time, ref crls, ref ocsps, revocationInfoTime, checkSuspend, maxDelay);
+                    if (status.Status != X509ChainStatusFlags.NoError)
+                    {
+                        element.ChainElementStatus.Add(status);
+                    }
+
+                    chain.ChainElements.Add(element);
+                    currentElement = issuerElement;
+                }
+                chain.ChainElements.Add(new ChainElement(currentElement));
+            }
+
+            return chain;
+        }
+    }
+}

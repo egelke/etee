@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Chain.cs" />
+    <Compile Include="ChainElement.cs" />
     <Compile Include="DssTimestampProvider.cs" />
     <Compile Include="EHealthTimestampProvider.cs" />
     <Compile Include="InvalidTokenException.cs" />
@@ -58,6 +60,7 @@
     <Compile Include="Rfc3161TimestampProvider.cs" />
     <Compile Include="TimeStampAuthority.cs" />
     <Compile Include="TimeStampTokenHelper.cs" />
+    <Compile Include="X509CertificateHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ehi-tsa.nuspec" />

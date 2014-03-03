@@ -8,7 +8,7 @@
  *  the Free Software Foundation, either version 2.1 of the License, or
  *  (at your option) any later version.
  *
- *  Foobar is distributed in the hope that it will be useful,
+ *  eH-I is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
@@ -28,67 +28,28 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using BC=Org.BouncyCastle.X509;
+using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Ocsp;
 
 namespace Egelke.EHealth.Client.Tsa
 {
     /// <summary>
     /// Helper methods of TimeStampTokens.
     /// </summary>
-    public class TimeStampTokenHelper
+    public static class TimeStampTokenHelper
     {
         /// <summary>
         /// Parses a TimeStampToken from binary format to BouncyCastle object format.
         /// </summary>
         /// <param name="tst">The timestamptoken (the token itself, not the response)</param>
         /// <returns>The BouncyCastle object</returns>
-        public TimeStampToken Parse(byte[] tst)
+        public static TimeStampToken Parse(byte[] tst)
         {
             return new TimeStampToken(new Org.BouncyCastle.Cms.CmsSignedData(tst));
         }
 
-        /// <summary>
-        /// Checks if the timestamp agains the provided data.
-        /// </summary>
-        /// <remarks>
-        /// The caller must prepare the data depending on the specs (e.g. Xades, eHealth ETEE)
-        /// </remarks>
-        /// <param name="data">The data that is timestamped</param>
-        /// <param name="tst">The timestamp</param>
-        /// <param name="revocationModus">If and how revocation information realted to the timestamp should be checked</param>
-        /// <returns>The time of the timestamp, normally UTC</returns>
-        public DateTime Verify(Stream data, TimeStampToken tst, X509RevocationMode revocationModus)
-        {
-            CheckMatch(data, tst);
-            CheckTrust(tst, revocationModus);
-
-            return tst.TimeStampInfo.GenTime;
-        }
-
-        /// <summary>
-        /// Checks if the timestamp agains the provided data.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// The caller must prepare the data depending on the specs (e.g. Xades, eHealth ETEE).
-        /// </para>
-        /// <para>
-        /// The method does not do any verification on the provided certificates, this is the 
-        /// responsability of the caller.
-        /// </para>
-        /// </remarks>
-        /// <param name="data">The data that is timestamped</param>
-        /// <param name="tst">The timestamp</param>
-        /// <param name="trustedTsaCerts">A set of timestamp certificates that are trusted</param>
-        /// <returns>The time of the timestamp, normally UTC</returns>
-        public DateTime Verify(Stream data, TimeStampToken tst, List<X509Certificate2> trustedTsaCerts)
-        {
-            CheckMatch(data, tst);
-            CheckTrust(tst, trustedTsaCerts);
-
-            return tst.TimeStampInfo.GenTime;
-        }
-
-        private void CheckMatch(Stream data, TimeStampToken tst)
+        public static void IsMatch(this TimeStampToken tst, Stream data)
         {
             //check if we can verify the timestamp
             if (tst.TimeStampInfo.HashAlgorithm.Parameters != DerNull.Instance)
@@ -107,22 +68,66 @@ namespace Egelke.EHealth.Client.Tsa
                 throw new InvalidTokenException("The timestamp doesn't match the signature value");
         }
 
-        private void CheckTrust(TimeStampToken tst, X509RevocationMode revocationModus)
+        public static DateTime GetRenewalTime(this TimeStampToken tst)
+        {
+            //Build the chain
+            X509Chain tsaChain = new X509Chain();
+            foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates("Collection").GetMatches(null))
+            {
+                tsaChain.ChainPolicy.ExtraStore.Add(new X509Certificate2(cert.GetEncoded()));
+            }
+            tsaChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            tsaChain.Build(new X509Certificate2(tst.GetSigner().GetEncoded()));
+
+            //get the shortest expire time
+            DateTime renewalTime = DateTime.MaxValue;
+            foreach (X509ChainElement chainE in tsaChain.ChainElements)
+            {
+                if (chainE.Certificate.NotAfter < renewalTime)
+                {
+                    renewalTime = chainE.Certificate.NotAfter;
+                }
+            }
+            return renewalTime;
+        }
+
+        public static BC::X509Certificate GetSigner(this TimeStampToken tst)
         {
             //Get the info from the token
+            BC::X509Certificate signer;
             IX509Store store = tst.GetCertificates("Collection");
-            ICollection signerCollection = store.GetMatches(tst.SignerID);
-            Org.BouncyCastle.X509.X509Certificate[] signers = new Org.BouncyCastle.X509.X509Certificate[signerCollection.Count];
-            signerCollection.CopyTo(signers, 0);
+            IEnumerator signers = store.GetMatches(tst.SignerID).GetEnumerator();
+            
+            //Get the one and only one signer
+            if (!signers.MoveNext()) throw new InvalidTokenException("No certificates present in the timestamp");
+            signer = (BC::X509Certificate)signers.Current;
+            if (signers.MoveNext()) throw new InvalidTokenException("Multiple matching certificates present in the timstamp");
 
-            //Check if the have correct info
-            if (signers.Length == 0) throw new InvalidOperationException("No certificates present in the timestamp and not trusted TSA certificate provided, please provide a trusted TSA certificate");
-            if (signers.Length > 1) throw new InvalidOperationException("Multiple matching certificates present in the timstamp");
+            return signer;
+        }
+
+
+        public static void Validate(this TimeStampToken tst)
+        {
+            tst.Validate(null, null);
+        }
+
+        public static void Validate(this TimeStampToken tst, IList<X509Crl> crls, IList<BasicOcspResp> ocsps)
+        {
+            tst.Validate(crls, ocsps, false);
+        }
+
+        public static void Validate(this TimeStampToken tst, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, bool forArbitration, params TimeStampToken[] archiveTsts)
+        {
+            if (archiveTsts != null && archiveTsts.Length > 0) throw new NotSupportedException("The library currently doesn't support archiving timestamps");
+            
+            bool revocationProvided = crls != null || ocsps != null;
+            BC::X509Certificate signer = tst.GetSigner();
 
             //check if the indicated certificate is the signer
             try
             {
-                tst.Validate(signers[0]);
+                tst.Validate(signer);
             }
             catch (Exception e)
             {
@@ -130,32 +135,52 @@ namespace Egelke.EHealth.Client.Tsa
             }
 
             //check if the certificate may be used for timestamping
-            IList signerExtKeyUsage = signers[0].GetExtendedKeyUsage();
+            IList signerExtKeyUsage = signer.GetExtendedKeyUsage();
             if (!signerExtKeyUsage.Contains("1.3.6.1.5.5.7.3.8"))
             {
-                throw new InvalidTokenException("The certificate used to sign the time stamp token isn't authorized to do so");
+                throw new InvalidTokenException("The certificate used to sign the timestamp token isn't authorized to do so");
             }
 
             //Check the chain
             X509Chain tsaChain = new X509Chain();
-            foreach (Org.BouncyCastle.X509.X509Certificate cert in store.GetMatches(null))
+            foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates("Collection").GetMatches(null))
             {
                 tsaChain.ChainPolicy.ExtraStore.Add(new X509Certificate2(cert.GetEncoded()));
             }
-            tsaChain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
-            tsaChain.ChainPolicy.RevocationMode = revocationModus;
-            tsaChain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
-            tsaChain.Build(new X509Certificate2(signers[0].GetEncoded()));
+            tsaChain.ChainPolicy.RevocationMode = revocationProvided ? X509RevocationMode.NoCheck : X509RevocationMode.Online;
+            tsaChain.ChainPolicy.VerificationTime = tst.TimeStampInfo.GenTime;
+            tsaChain.Build(new X509Certificate2(signer.GetEncoded()));
+
+            if (tsaChain.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.PartialChain) > 0)
+            {
+                throw new InvalidTokenException("The timestamp TSA chain is incomplete, signer");
+            }
 
             foreach (X509ChainElement chainE in tsaChain.ChainElements)
             {
-                if (chainE.ChainElementStatus.Length > 0 && chainE.ChainElementStatus[0].Status != X509ChainStatusFlags.NoError)
+                if (chainE.ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
                     throw new InvalidTokenException(String.Format("The timestamp TSA chain contains an invalid certificate '{0}' ({1}: {2})",
                         chainE.Certificate.Subject, chainE.ChainElementStatus[0].Status, chainE.ChainElementStatus[0].StatusInformation));
             }
+
+            //Check the revocation with the provided info
+            if (revocationProvided)
+            {
+
+            }
+
+            //
+            if (forArbitration && revocationProvided)
+            {
+                
+            }
         }
 
-        private void CheckTrust(TimeStampToken tst, List<X509Certificate2> trustedTsaCerts)
+        
+
+
+
+        public static void Validate(this TimeStampToken tst, List<X509Certificate2> trustedTsaCerts)
         {
             //Convert the provided certificates and retrieve the indicated signer
             Org.BouncyCastle.X509.X509CertificateParser bcCertParser = new Org.BouncyCastle.X509.X509CertificateParser();
