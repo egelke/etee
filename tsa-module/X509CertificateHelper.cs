@@ -128,7 +128,7 @@ namespace Egelke.EHealth.Client.Tsa
 
         
 
-        public static X509ChainStatus CheckRevocation(this X509Certificate2 cert, X509Certificate2 issuer, DateTime time, ref IList<CertificateList> certLists, ref IList<BasicOcspResponse> ocspResponses, DateTime revocationInfoTime, bool checkSuspend, TimeSpan maxDelay)
+        public static X509ChainStatus CheckRevocation(this X509Certificate2 cert, X509Certificate2 issuer, DateTime time, ref IList<CertificateList> certLists, ref IList<BasicOcspResponse> ocspResponses, bool checkSuspend, TimeSpan maxDelay)
         {
             X509ChainStatus status = new X509ChainStatus();
             status.Status = X509ChainStatusFlags.NoError;
@@ -154,22 +154,22 @@ namespace Egelke.EHealth.Client.Tsa
                IEnumerable<SingleResp> matchingSingleResps = ocspResp.Responses.Where(x => x.GetCertID().SerialNumber.Equals(certBc.SerialNumber) && x.GetCertID().MatchesIssuer(issuerBc) 
                     && ((x.NextUpdate != null && x.NextUpdate.Value > time) || x.ThisUpdate > time));
 
-               foreach (SingleResp sinlgeResp in matchingSingleResps)
+               foreach (SingleResp singleResp in matchingSingleResps)
                {
                    if (bestSingleOcspResp == null)
                     {
                         bestOcspResp = ocspResp;
-                        bestSingleOcspResp = sinlgeResp;
+                        bestSingleOcspResp = singleResp;
                     }
                     else
                     {
                         //check whatever is closed to the requested time
                         TimeSpan currentDiff = time - bestSingleOcspResp.ThisUpdate;
-                        TimeSpan newDiff = time - sinlgeResp.ThisUpdate;
+                        TimeSpan newDiff = time - singleResp.ThisUpdate;
                         if (newDiff.Duration() < currentDiff.Duration())
                         {
                             bestOcspResp = ocspResp;
-                            bestSingleOcspResp = sinlgeResp;
+                            bestSingleOcspResp = singleResp;
                         }
                     }
                }
@@ -217,8 +217,9 @@ namespace Egelke.EHealth.Client.Tsa
                 CertificateList crl = RetreiveCrl(certBc);
                 if (crl != null)
                 {
-                    certLists.Add(crl);
                     bestCrl = new X509Crl(crl);
+                    certLists.Add(crl);
+                    
                 }
             }
 
@@ -245,7 +246,7 @@ namespace Egelke.EHealth.Client.Tsa
                         if (!selected.MoveNext())
                         {
                             status.Status = X509ChainStatusFlags.CtlNotSignatureValid;
-                            status.StatusInformation = "The OCSP is signed by a known certificate";
+                            status.StatusInformation = "The OCSP is signed by a unknown certificate";
                             return status;
                         }
                         ocspSignerBc = (BC::X509Certificate)selected.Current;
@@ -267,7 +268,7 @@ namespace Egelke.EHealth.Client.Tsa
                 {
                     ocspExtraStore.Add(new X509Certificate2(ocspCert.GetEncoded()));
                 }
-                Chain ocspChain = ocspSigner.BuildChain(revocationInfoTime, ocspExtraStore, ref certLists, ref ocspResponses, revocationInfoTime, checkSuspend, maxDelay);
+                Chain ocspChain = ocspSigner.BuildChain(bestOcspResp.ProducedAt.AddMinutes(-5) /*5 minutes clock-skewness*/, ocspExtraStore, ref certLists, ref ocspResponses, time, checkSuspend, maxDelay);
                 if (ocspChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
                 {
                     status.Status = X509ChainStatusFlags.CtlNotTimeValid;
@@ -355,16 +356,19 @@ namespace Egelke.EHealth.Client.Tsa
 
         public static Chain BuildChain(this X509Certificate2 cert, DateTime time, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
         {
-            return cert.BuildChain(time, extraStore, ref crls, ref ocsps, DateTime.UtcNow);
+            return cert.BuildChain(time, extraStore, ref crls, ref ocsps, time);
         }
 
-        public static Chain BuildChain(this X509Certificate2 cert, DateTime time, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime revocationInfoTime)
+        public static Chain BuildChain(this X509Certificate2 cert, DateTime time, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime trustedTime)
         {
-            return cert.BuildChain(time, extraStore, ref crls, ref ocsps, DateTime.UtcNow, false, new TimeSpan(0, 5, 0));
+            return cert.BuildChain(time, extraStore, ref crls, ref ocsps, trustedTime, false, new TimeSpan(0, 5, 0));
         }
 
-        public static Chain BuildChain(this X509Certificate2 cert, DateTime time, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime revocationInfoTime, bool checkSuspend, TimeSpan maxDelay)
+        public static Chain BuildChain(this X509Certificate2 cert, DateTime time, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime trustedTime, bool checkHistoricalSuspend, TimeSpan maxDelay)
         {
+            if (time > DateTime.UtcNow) throw new ArgumentException("The time can't be in the future", "time");
+            if (trustedTime > DateTime.UtcNow) throw new ArgumentException("The time can't be in the future", "trustedTime");
+
             //create the X509 chain
             X509Chain x509Chain = new X509Chain();
             if (extraStore != null) x509Chain.ChainPolicy.ExtraStore.AddRange(extraStore);
@@ -389,10 +393,20 @@ namespace Egelke.EHealth.Client.Tsa
                     ChainElement element = new ChainElement(currentElement);
                     
                     //Add revocation status info that is manually retrieved.
-                    X509ChainStatus status = currentElement.Certificate.CheckRevocation(issuerElement.Certificate, time, ref crls, ref ocsps, revocationInfoTime, checkSuspend, maxDelay);
+                    X509ChainStatus status = currentElement.Certificate.CheckRevocation(issuerElement.Certificate, time, ref crls, ref ocsps, checkHistoricalSuspend, maxDelay);
                     if (status.Status != X509ChainStatusFlags.NoError)
                     {
+                        chain.ChainStatus.Add(status);
                         element.ChainElementStatus.Add(status);
+                    }
+                    if (time != trustedTime)
+                    {
+                        status = currentElement.Certificate.CheckRevocation(issuerElement.Certificate, trustedTime, ref crls, ref ocsps, checkHistoricalSuspend, maxDelay);
+                        if (status.Status != X509ChainStatusFlags.NoError)
+                        {
+                            chain.ChainStatus.Add(status);
+                            element.ChainElementStatus.Add(status);
+                        }
                     }
 
                     chain.ChainElements.Add(element);

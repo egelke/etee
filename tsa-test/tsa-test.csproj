@@ -63,6 +63,21 @@
     <Compile Include="CertificateTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="files\eid79021802145-2.ocsp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="files\eid79021802145.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="files\Citizen201204.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="files\Citizen201204.crl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="files\eid79021802145.ocsp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="tsa.nunit" />
     <None Include="packages.config" />
   </ItemGroup>
