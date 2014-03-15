@@ -198,35 +198,32 @@ namespace Egelke.EHealth.Client.Tsa
                 }
             }
 
-            //check if we should try to obtain revocation info
-            if (!checkSuspend || validationTime > (DateTime.UtcNow - maxDelay - ClockSkewness))
+            //Found neither OCSP or CRL, retreiving OCSP
+            if (bestOcspResp == null && bestCrl == null)
             {
-                //Found neither OCSP or CRL, retreiving OCSP
-                if (bestOcspResp == null && bestCrl == null)
+                BasicOcspResponse ocspResponse = RetreiveOcsps(certBc, issuerBc);
+                if (ocspResponse != null)
                 {
-                    BasicOcspResponse ocspResponse = RetreiveOcsps(certBc, issuerBc);
-                    if (ocspResponse != null)
-                    {
-                        ocspResponses.Add(ocspResponse);
+                    ocspResponses.Add(ocspResponse);
 
-                        //we know there is only one, so it is easier to extract
-                        bestOcspResp = new BasicOcspResp(ocspResponse);
-                        bestSingleOcspResp = bestOcspResp.Responses[0];
-                    }
-                }
-
-                //No OCSP to retrieve, retreiving CRL
-                if (bestOcspResp == null && bestCrl == null)
-                {
-                    CertificateList crl = RetreiveCrl(certBc);
-                    if (crl != null)
-                    {
-                        bestCrl = new X509Crl(crl);
-                        certLists.Add(crl);
-
-                    }
+                    //we know there is only one, so it is easier to extract
+                    bestOcspResp = new BasicOcspResp(ocspResponse);
+                    bestSingleOcspResp = bestOcspResp.Responses[0];
                 }
             }
+
+            //No OCSP to retrieve, retreiving CRL, crl can still be useful
+            if (bestOcspResp == null && bestCrl == null)
+            {
+                CertificateList crl = RetreiveCrl(certBc);
+                if (crl != null)
+                {
+                    bestCrl = new X509Crl(crl);
+                    certLists.Add(crl);
+
+                }
+            }
+            
 
             //Didn't find any CRL or OCSP anywhere
             if (bestOcspResp == null && bestCrl == null)
@@ -274,8 +271,9 @@ namespace Egelke.EHealth.Client.Tsa
                     ocspExtraStore.Add(new X509Certificate2(ocspCert.GetEncoded()));
                 }
                 
+                DateTime now = DateTime.UtcNow;
                 //allow for some clock skewness
-                DateTime signingTime = bestOcspResp.ProducedAt - ClockSkewness;
+                DateTime signingTime = bestOcspResp.ProducedAt > now && (bestOcspResp.ProducedAt - ClockSkewness) < now  ? now : bestOcspResp.ProducedAt;
                 //The signing time of ocsp responses can be trusted if it is later then the provided validation time (since we assume there is not suspention for OCSP responses)
                 DateTime trustedTime = signingTime > validationTime ? signingTime : validationTime;
                 Chain ocspChain = ocspSigner.BuildChain(signingTime, ocspExtraStore, ref certLists, ref ocspResponses, trustedTime);  //again we assume there is not suspention for OCSP responses
@@ -376,8 +374,6 @@ namespace Egelke.EHealth.Client.Tsa
 
         public static Chain BuildChain(this X509Certificate2 cert, DateTime signingTime, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime trustedTime, bool checkHistoricalSuspend, TimeSpan maxDelay)
         {
-            if (signingTime > DateTime.UtcNow) throw new ArgumentException("The time can't be in the future", "signingTime");
-            if (trustedTime > DateTime.UtcNow) throw new ArgumentException("The time can't be in the future", "trustedTime");
             if (signingTime > trustedTime) throw new ArgumentException("The trusted time must be greater or equal then the signing time", "trustedTime");
 
             //create the X509 chain
@@ -407,16 +403,16 @@ namespace Egelke.EHealth.Client.Tsa
                     X509ChainStatus status = currentElement.Certificate.CheckRevocation(issuerElement.Certificate, trustedTime, ref crls, ref ocsps, checkHistoricalSuspend, maxDelay);
                     if (status.Status != X509ChainStatusFlags.NoError)
                     {
-                        if (chain.ChainStatus.Count(x => x.Status == status.Status) == 0) chain.ChainStatus.Add(status);
-                        element.ChainElementStatus.Add(status);
+                        AddErrorStatus(chain.ChainStatus, status);
+                        AddErrorStatus(element.ChainElementStatus, status);
                     }
                     if (signingTime != trustedTime && checkHistoricalSuspend)
                     {
                         status = currentElement.Certificate.CheckRevocation(issuerElement.Certificate, signingTime, ref crls, ref ocsps, checkHistoricalSuspend, maxDelay);
                         if (status.Status != X509ChainStatusFlags.NoError)
                         {
-                            if (chain.ChainStatus.Count(x => x.Status == status.Status) == 0) chain.ChainStatus.Add(status);
-                            element.ChainElementStatus.Add(status);
+                            AddErrorStatus(chain.ChainStatus, status);
+                            AddErrorStatus(element.ChainElementStatus, status);
                         }
                     }
 
@@ -427,6 +423,15 @@ namespace Egelke.EHealth.Client.Tsa
             }
 
             return chain;
+        }
+
+        internal static void AddErrorStatus(List<X509ChainStatus> statusList, X509ChainStatus extraStatus)
+        {
+            foreach (X509ChainStatus noErrorStatus in statusList.Where(x => x.Status == X509ChainStatusFlags.NoError))
+            {
+                statusList.Remove(noErrorStatus);
+            }
+            if (statusList.Count(x => x.Status == extraStatus.Status) == 0) statusList.Add(extraStatus);
         }
     }
 }
