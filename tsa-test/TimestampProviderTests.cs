@@ -47,28 +47,6 @@ namespace Egelke.EHealth.Client.TsaTest
             TimeStampToken ts = tsBytes.ToTimeSTampToken();
 
             Assert.IsTrue(ts.IsMatch(new MemoryStream(msg)));
-
-            IList<CertificateList> crls = new List<CertificateList>();
-            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
-            Chain chain = ts.Validate(ref crls, ref ocsps);
-            Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.NoError));
-
-            File.WriteAllBytes("fedictTs.ts", tsBytes);
-            int i = 1;
-            foreach (ChainElement element in chain.ChainElements)
-            {
-                File.WriteAllBytes("fedictTs" + i++ + ".crt", element.Certificate.GetRawCertData());
-            }
-            i = 1;
-            foreach (CertificateList crl in crls)
-            {
-                File.WriteAllBytes("fedictTs" + i++ + ".crl", crl.GetEncoded());
-            }
-            i = 1;
-            foreach (BasicOcspResponse ocsp in ocsps)
-            {
-                File.WriteAllBytes("fedictTs" + i++ + ".ocsp", ocsp.GetEncoded());
-            }
         }
 
         [Test]
@@ -86,28 +64,6 @@ namespace Egelke.EHealth.Client.TsaTest
             TimeStampToken ts = tsBytes.ToTimeSTampToken();
 
             Assert.IsTrue(ts.IsMatch(new MemoryStream(msg)));
-
-            IList<CertificateList> crls = new List<CertificateList>();
-            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
-            Chain chain = ts.Validate(ref crls, ref ocsps);
-            Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.NoError));
-
-            File.WriteAllBytes("ehTs.ts", tsBytes);
-            int i = 1;
-            foreach (ChainElement element in chain.ChainElements)
-            {
-                File.WriteAllBytes("ehTs" + i++ + ".crt", element.Certificate.GetRawCertData());
-            }
-            i = 1;
-            foreach (CertificateList crl in crls)
-            {
-                File.WriteAllBytes("ehTs" + i++ + ".crl", crl.GetEncoded());
-            }
-            i = 1;
-            foreach (BasicOcspResponse ocsp in ocsps)
-            {
-                File.WriteAllBytes("ehTs" + i++ + ".ocsp", ocsp.GetEncoded());
-            }
         }
     }
 }

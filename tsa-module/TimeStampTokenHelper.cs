@@ -69,53 +69,29 @@ namespace Egelke.EHealth.Client.Tsa
             return ((IStructuralEquatable)signatureValueHashed).Equals(timestampHash, StructuralComparisons.StructuralEqualityComparer);
         }
 
-        public static DateTime GetRenewalTime(this TimeStampToken tst)
-        {
-            //Build the chain
-            X509Chain tsaChain = new X509Chain();
-            foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates("Collection").GetMatches(null))
-            {
-                tsaChain.ChainPolicy.ExtraStore.Add(new X509Certificate2(cert.GetEncoded()));
-            }
-            tsaChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
-            tsaChain.Build(new X509Certificate2(tst.GetSigner().GetEncoded()));
-
-            //get the shortest expire time
-            DateTime renewalTime = DateTime.MaxValue;
-            foreach (X509ChainElement chainE in tsaChain.ChainElements)
-            {
-                if (chainE.Certificate.NotAfter < renewalTime)
-                {
-                    renewalTime = chainE.Certificate.NotAfter;
-                }
-            }
-            return renewalTime;
-        }
-
-        public static BC::X509Certificate GetSigner(this TimeStampToken tst)
+        private static BC::X509Certificate GetSigner(this TimeStampToken tst)
         {
             //Get the info from the token
             BC::X509Certificate signer;
             IEnumerator signers = tst.GetCertificates("Collection").GetMatches(tst.SignerID).GetEnumerator();
             
             //Get the one and only one signer
-            if (!signers.MoveNext()) throw new InvalidTokenException("No certificates present in the timestamp");
+            if (!signers.MoveNext()) return null;
             signer = (BC::X509Certificate)signers.Current;
-            if (signers.MoveNext()) throw new InvalidTokenException("Multiple matching certificates present in the timstamp");
 
             return signer;
         }
 
-        public static Chain Validate(this TimeStampToken tst)
+        public static Timestamp Validate(this TimeStampToken tst)
         {
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
             return tst.Validate(ref crls, ref ocsps);
         }
 
-        public static Chain Validate(this TimeStampToken tst, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
+        public static Timestamp Validate(this TimeStampToken tst, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
         {
-            return tst.Validate(ref crls, ref ocsps, false);
+            return tst.Validate(ref crls, ref ocsps, null);
         }
 
         /// <summary>
@@ -124,30 +100,41 @@ namespace Egelke.EHealth.Client.Tsa
         /// <param name="tst"></param>
         /// <param name="crls"></param>
         /// <param name="ocsps"></param>
-        /// <param name="forArbitration"></param>
-        /// <param name="archiveTsts"></param>
+        /// <param name="trustedTime">The trusted time in case of arbitration, <c>null</c> to trust the indicated time (not arbitration)</param>
         /// <returns>The validation chain of the signing certificate</returns>
         /// <exception cref="InvalidTokenException">When the token isn't signed by the indicated certificate</exception>
-        public static Chain Validate(this TimeStampToken tst, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, bool forArbitration, params TimeStampToken[] archiveTsts)
+        public static Timestamp Validate(this TimeStampToken tst, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
         {
-            if (archiveTsts != null && archiveTsts.Length > 0) throw new NotSupportedException("The library currently doesn't support archiving timestamps");
-            
-            bool revocationProvided = crls != null || ocsps != null;
-            BC::X509Certificate signerBc = tst.GetSigner();
+            var value = new Timestamp();
+            value.TimestampStatus = new List<X509ChainStatus>();
 
             //check if the indicated certificate is the signer
-            try
+            BC::X509Certificate signerBc = tst.GetSigner();
+            if (signerBc == null)
             {
-                tst.Validate(signerBc);
+                X509ChainStatus status = new X509ChainStatus();
+                status.Status = X509ChainStatusFlags.NotSignatureValid;
+                status.StatusInformation = "Signer not found";
+                X509CertificateHelper.AddErrorStatus(value.TimestampStatus, status);
             }
-            catch (Exception e)
+            else
             {
-                throw new InvalidTokenException("The timestamp isn't issued by the TSA provided in the timestamp", e);
+                try
+                {
+                    tst.Validate(signerBc);
+                }
+                catch (Exception e)
+                {
+                    X509ChainStatus status = new X509ChainStatus();
+                    status.Status = X509ChainStatusFlags.NotSignatureValid;
+                    status.StatusInformation = "Timestamp not signed by indicated certificate: " + e.Message;
+                    X509CertificateHelper.AddErrorStatus(value.TimestampStatus, status);
+                }
             }
 
             //Get some info
-            DateTime signingTime = tst.TimeStampInfo.GenTime;
-            DateTime trustedTime = forArbitration ? DateTime.UtcNow : signingTime; //you should not trust the time indicated in the timestamp in case of arbitration.
+            value.Time = tst.TimeStampInfo.GenTime;
+            DateTime validationTime = trustedTime != null ? trustedTime.Value : value.Time;
             var extraStore = new X509Certificate2Collection();
             foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates("Collection").GetMatches(null))
             {
@@ -155,7 +142,17 @@ namespace Egelke.EHealth.Client.Tsa
             }
 
             //Check the chain
-            Chain tsaChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(signingTime, extraStore, ref crls, ref ocsps, trustedTime); //we assume 'timestamp signers aren't suspended, only permanently revoked
+            value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(value.Time, extraStore, ref crls, ref ocsps, validationTime); //we assume 'timestamp signers aren't suspended, only permanently revoked
+
+            //get the renewal time
+            value.RenewalTime = DateTime.MaxValue;
+            foreach (ChainElement chainE in value.CertificateChain.ChainElements)
+            {
+                if (chainE.Certificate.NotAfter < value.RenewalTime)
+                {
+                    value.RenewalTime = chainE.Certificate.NotAfter;
+                }
+            }
 
             //check if the certificate may be used for timestamping
             IList signerExtKeyUsage = signerBc.GetExtendedKeyUsage();
@@ -165,11 +162,15 @@ namespace Egelke.EHealth.Client.Tsa
                 status.Status = X509ChainStatusFlags.NotValidForUsage;
                 status.StatusInformation = "The certificate may not be used for timestamps";
 
-                X509CertificateHelper.AddErrorStatus(tsaChain.ChainStatus, status);
-                X509CertificateHelper.AddErrorStatus(tsaChain.ChainElements[0].ChainElementStatus, status);
+                X509CertificateHelper.AddErrorStatus(value.TimestampStatus, status);
             }
 
-            return tsaChain;
+            if (value.TimestampStatus.Count == 0) {
+                X509ChainStatus status = new X509ChainStatus();
+                status.Status = X509ChainStatusFlags.NoError;
+                value.TimestampStatus.Add(status);
+            }
+            return value;
         }
     }
 }

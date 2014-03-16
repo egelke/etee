@@ -54,10 +54,10 @@
     <Compile Include="ChainElement.cs" />
     <Compile Include="DssTimestampProvider.cs" />
     <Compile Include="EHealthTimestampProvider.cs" />
-    <Compile Include="InvalidTokenException.cs" />
     <Compile Include="ITimestampProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rfc3161TimestampProvider.cs" />
+    <Compile Include="Timestamp.cs" />
     <Compile Include="TimeStampAuthority.cs" />
     <Compile Include="TimeStampTokenHelper.cs" />
     <Compile Include="X509CertificateHelper.cs" />
