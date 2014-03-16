@@ -362,6 +362,29 @@ namespace Egelke.EHealth.Client.Tsa
             return status;
         }
 
+        public static Chain BuildBasicChain(this X509Certificate2 cert, DateTime signingTime, X509Certificate2Collection extraStore)
+        {
+            //create the X509 chain
+            X509Chain x509Chain = new X509Chain();
+            if (extraStore != null) x509Chain.ChainPolicy.ExtraStore.AddRange(extraStore);
+            x509Chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            x509Chain.ChainPolicy.VerificationTime = signingTime;
+            x509Chain.Build(cert);
+
+            //create the chain using the information from the X509 Chain
+            Chain chain = new Chain();
+            chain.ChainStatus = new List<X509ChainStatus>();
+            chain.ChainStatus.AddRange(x509Chain.ChainStatus);
+            chain.ChainElements = new List<ChainElement>();
+            X509ChainElementEnumerator x509Elements = x509Chain.ChainElements.GetEnumerator();
+            while (x509Elements.MoveNext())
+            {
+                chain.ChainElements.Add(new ChainElement(x509Elements.Current));
+            }
+
+            return chain;
+        }
+
         public static Chain BuildChain(this X509Certificate2 cert, DateTime signingTime, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
         {
             return cert.BuildChain(signingTime, extraStore, ref crls, ref ocsps, signingTime);
@@ -376,35 +399,21 @@ namespace Egelke.EHealth.Client.Tsa
         {
             if (signingTime > trustedTime) throw new ArgumentException("The trusted time must be greater or equal then the signing time", "trustedTime");
 
-            //create the X509 chain
-            X509Chain x509Chain = new X509Chain();
-            if (extraStore != null) x509Chain.ChainPolicy.ExtraStore.AddRange(extraStore);
-            x509Chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
-            x509Chain.ChainPolicy.VerificationTime = signingTime;
-            x509Chain.Build(cert);
-
-            //create the chain using the information from the X509 Chain
-            Chain chain = new Chain();
-            chain.ChainStatus = new List<X509ChainStatus>();
-            chain.ChainStatus.AddRange(x509Chain.ChainStatus);
-            chain.ChainElements = new List<ChainElement>();
-            X509ChainElementEnumerator x509Elements = x509Chain.ChainElements.GetEnumerator();
-            if (x509Elements.MoveNext())
+            Chain chain = cert.BuildBasicChain(signingTime, extraStore);
+            List<ChainElement>.Enumerator elements = chain.ChainElements.GetEnumerator();
+            if (elements.MoveNext())
             {
-                X509ChainElement currentElement = x509Elements.Current;
-                while (x509Elements.MoveNext())
+                ChainElement currentElement = elements.Current;
+                while (elements.MoveNext())
                 {
-                    X509ChainElement issuerElement = x509Elements.Current;
+                    ChainElement issuerElement = elements.Current;
 
-                    //copy that element status from the X509 Chain
-                    ChainElement element = new ChainElement(currentElement);
-                    
                     //Add revocation status info that is manually retrieved.
                     X509ChainStatus status = currentElement.Certificate.CheckRevocation(issuerElement.Certificate, trustedTime, ref crls, ref ocsps, checkHistoricalSuspend, maxDelay);
                     if (status.Status != X509ChainStatusFlags.NoError)
                     {
                         AddErrorStatus(chain.ChainStatus, status);
-                        AddErrorStatus(element.ChainElementStatus, status);
+                        AddErrorStatus(currentElement.ChainElementStatus, status);
                     }
                     if (signingTime != trustedTime && checkHistoricalSuspend)
                     {
@@ -412,16 +421,12 @@ namespace Egelke.EHealth.Client.Tsa
                         if (status.Status != X509ChainStatusFlags.NoError)
                         {
                             AddErrorStatus(chain.ChainStatus, status);
-                            AddErrorStatus(element.ChainElementStatus, status);
+                            AddErrorStatus(currentElement.ChainElementStatus, status);
                         }
                     }
-
-                    chain.ChainElements.Add(element);
                     currentElement = issuerElement;
                 }
-                chain.ChainElements.Add(new ChainElement(currentElement));
             }
-
             return chain;
         }
 
