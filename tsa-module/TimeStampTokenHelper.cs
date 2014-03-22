@@ -46,7 +46,7 @@ namespace Egelke.EHealth.Client.Tsa
         /// </summary>
         /// <param name="tst">The timestamptoken (the token itself, not the response)</param>
         /// <returns>The BouncyCastle object</returns>
-        public static TimeStampToken ToTimeSTampToken(this byte[] tst)
+        public static TimeStampToken ToTimeStampToken(this byte[] tst)
         {
             return new TimeStampToken(new Org.BouncyCastle.Cms.CmsSignedData(tst));
         }

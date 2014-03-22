@@ -44,7 +44,7 @@ namespace Egelke.EHealth.Client.TsaTest
 
             byte[] tsBytes = provider.GetTimestampFromDocumentHash(hash, "http://www.w3.org/2001/04/xmlenc#sha256");
 
-            TimeStampToken ts = tsBytes.ToTimeSTampToken();
+            TimeStampToken ts = tsBytes.ToTimeStampToken();
 
             Assert.IsTrue(ts.IsMatch(new MemoryStream(msg)));
         }
@@ -61,7 +61,7 @@ namespace Egelke.EHealth.Client.TsaTest
 
             byte[] tsBytes = provider.GetTimestampFromDocumentHash(hash, "http://www.w3.org/2001/04/xmlenc#sha256");
 
-            TimeStampToken ts = tsBytes.ToTimeSTampToken();
+            TimeStampToken ts = tsBytes.ToTimeStampToken();
 
             Assert.IsTrue(ts.IsMatch(new MemoryStream(msg)));
         }

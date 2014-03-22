@@ -29,7 +29,7 @@ namespace Egelke.EHealth.Client.TsaTest
 
             IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { });
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] {  });
-            TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeSTampToken();
+            TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeStampToken();
 
             Timestamp ts = tst.Validate(ref crls, ref ocps);
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49), ts.Time);
@@ -56,7 +56,7 @@ namespace Egelke.EHealth.Client.TsaTest
             CertificateList crl2 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs2.crl"));
             IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { crl1, crl2 });
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] {  });
-            TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeSTampToken();
+            TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeStampToken();
 
             Timestamp ts = tst.Validate(ref crls, ref ocps);
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49), ts.Time);
@@ -83,7 +83,7 @@ namespace Egelke.EHealth.Client.TsaTest
             CertificateList crl2 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs2.crl"));
             IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { crl1, crl2 });
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { });
-            TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeSTampToken();
+            TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeStampToken();
 
             Timestamp ts = tst.Validate(ref crls, ref ocps, new DateTime(2014, 3, 16, 11, 0, 0, DateTimeKind.Utc));
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49), ts.Time);
@@ -99,7 +99,7 @@ namespace Egelke.EHealth.Client.TsaTest
         {
             if (DateTime.UtcNow > new DateTime(2016, 3, 17, 11, 25, 11, DateTimeKind.Utc)) Assert.Inconclusive("The timestamp should have been renewed");
 
-            TimeStampToken tst = File.ReadAllBytes("files/ehTs.ts").ToTimeSTampToken();
+            TimeStampToken tst = File.ReadAllBytes("files/ehTs.ts").ToTimeStampToken();
 
             Timestamp ts = tst.Validate();
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 48, 128), ts.Time);

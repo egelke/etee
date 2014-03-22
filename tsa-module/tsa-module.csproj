@@ -54,6 +54,7 @@
     <Compile Include="ChainElement.cs" />
     <Compile Include="DssTimestampProvider.cs" />
     <Compile Include="EHealthTimestampProvider.cs" />
+    <Compile Include="ITimemarkProvider.cs" />
     <Compile Include="ITimestampProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rfc3161TimestampProvider.cs" />
