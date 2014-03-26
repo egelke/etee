@@ -16,6 +16,7 @@
  * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -52,7 +53,9 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0")]
 [assembly: AssemblyFileVersion("1.0.0")]
-[assembly: AssemblyInformationalVersion("1.0.0-Beta5")]
+[assembly: AssemblyInformationalVersion("1.0.0-Beta7")]
+
+[assembly: CLSCompliant(true)]
 
 #if DEBUG
 [assembly: AssemblyKeyFile(@"../debug.snk")]

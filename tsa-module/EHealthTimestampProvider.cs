@@ -47,7 +47,7 @@ namespace Egelke.EHealth.Client.Tsa
         public EHealthTimestampProvider()
             : base()
         {
-            profile = "urn:ehealth:profiles:timestamping:2.1-cert";
+            Profile = "urn:ehealth:profiles:timestamping:2.1-cert";
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Egelke.EHealth.Client.Tsa
         public EHealthTimestampProvider(String config)
             : base(config)
         {
-            profile = "urn:ehealth:profiles:timestamping:2.1-cert";
+            Profile = "urn:ehealth:profiles:timestamping:2.1-cert";
         }
 
         /// <summary>
@@ -92,41 +92,7 @@ namespace Egelke.EHealth.Client.Tsa
         public EHealthTimestampProvider(DSS.TimeStampAuthorityClient client)
             : base(client)
         {
-            profile = "urn:ehealth:profiles:timestamping:2.1-cert";
+            Profile = "urn:ehealth:profiles:timestamping:2.1-cert";
         }
-
-        /// <summary>
-        /// Method used by the library, not not call youself.
-        /// </summary>
-        /// <param name="hash">The hash on which the digesht must be calculated</param>
-        /// <param name="digestMethod">The digest method with which the hash was calculated</param>
-        /// <returns>The RFC3161 Timestamp token</returns>
-        /*
-        public override byte[] GetTimestampFromDocumentHash(byte[] hash, string digestMethod)
-        {
-            //Translate the digest method name
-            string dsMethod;
-            switch (digestMethod)
-            {
-                case "http://www.w3.org/2000/09/xmldsig#sha1":
-                    dsMethod = "SHA-1";
-                    break;
-                case "http://www.w3.org/2001/04/xmlenc#sha256":
-                    dsMethod = "SHA-256";
-                    break;
-                default:
-                    throw new ArgumentException("Requested unsupported digest method \"" + digestMethod + "\"", "digestMethod");
-            }
-
-            byte[] base64EncodedBytes = base.GetTimestampFromDocumentHash(hash, dsMethod);
-
-            //eHealth double encodes, so we need to decode
-            byte[] bytes = Convert.FromBase64String(Encoding.ASCII.GetString(base64EncodedBytes));
-
-            //eHealth returns an TimeStampResp instead of an TimeStampToken 
-            TimeStampResponse tsp = new TimeStampResponse(bytes);
-            return tsp.TimeStampToken.GetEncoded();
-        }
-         */
     }
 }

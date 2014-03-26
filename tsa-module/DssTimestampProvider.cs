@@ -47,7 +47,7 @@ namespace Egelke.EHealth.Client.Tsa
         /// <value>
         /// The profile identifier, defaults to the standard value <literal>urn:oasis:names:tc:dss:1.0:profiles:timestamping</literal>.
         /// </value>
-        protected String profile = "urn:oasis:names:tc:dss:1.0:profiles:timestamping";
+        private String profile = "urn:oasis:names:tc:dss:1.0:profiles:timestamping";
 
         /// <summary>
         /// The profile identifier to send to the TSA to request a timestamp.
