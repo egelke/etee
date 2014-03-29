@@ -41,11 +41,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto">
-      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+    <Reference Include="crypto">
+      <HintPath>..\packages\BouncyCastle-Patch.1.7.0\lib\net40\crypto.dll</HintPath>
     </Reference>
-    <Reference Include="Egelke.EHealth.Client">
-      <HintPath>..\packages\Egelke.EHealth.Client.2.0.0\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
+    <Reference Include="Egelke.EHealth.Client, Version=2.0.1.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.EHealth.Client.2.0.1\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -69,7 +70,6 @@
     <Compile Include="TimestampTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="COPYING" />
     <None Include="files\ehTs1.crl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -131,12 +131,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Contributors.html" />
     <Content Include="files\ehTs.ts">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="files\fedictTs.ts">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="License.html" />
+    <Content Include="Readme.html" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

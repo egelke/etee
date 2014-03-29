@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>BouncyCastle-Patch</id>
+    <version>1.7.0</version>
+    <title>Patched version of Bouncy Castle</title>
+    <authors>Egelke BVBA</authors>
+    <owners>Bouncy Castle Project Contributors</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <projectUrl>http://ehi.codeplex.com/</projectUrl>
+    <iconUrl>https://egelke-web.sharepoint.com/SiteImages/Health-care-shield-icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>BouncyCastle 1.7.0 with support for eID by removing the need to export keys</description>
+    <releaseNotes>
+Added eID support to BouncyCastle 1.7.0
+    </releaseNotes>
+    <copyright>Copyright © Egelke BVBA 2014</copyright>
+    <tags>bouncycastle cryptography encryption security eID</tags>
+  </metadata>
+</package>

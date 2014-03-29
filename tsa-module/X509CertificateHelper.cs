@@ -58,9 +58,13 @@ namespace Egelke.EHealth.Client.Tsa
                             {
                                 //Found a CRL URL, lets get it.
                                 string location = DerIA5String.GetInstance(genName.Name).GetString();
+                                Uri locationUri = new Uri(location);
+
+                                if (locationUri.Scheme != "http")
+                                    return null;
 
                                 //Make the Web request
-                                WebRequest crlRequest = WebRequest.Create(location);
+                                WebRequest crlRequest = WebRequest.Create(locationUri);
                                 WebResponse crlResponse = crlRequest.GetResponse();
 
                                 //Parse the result
@@ -90,6 +94,10 @@ namespace Egelke.EHealth.Client.Tsa
                     {
                         //Found an OCSP URL, lets call it.
                         string location = DerIA5String.GetInstance(ad.AccessLocation.Name).GetString();
+                        Uri locationUri = new Uri(location);
+
+                        if (locationUri.Scheme != "http")
+                            return null;
 
                         //Prepare the request
                         OcspReqGenerator ocspReqGen = new OcspReqGenerator();
@@ -97,7 +105,7 @@ namespace Egelke.EHealth.Client.Tsa
 
                         //Make the request & sending it.
                         OcspReq ocspReq = ocspReqGen.Generate();
-                        WebRequest ocspWebReq = WebRequest.Create(location);
+                        WebRequest ocspWebReq = WebRequest.Create(locationUri);
                         ocspWebReq.Method = "POST";
                         ocspWebReq.ContentType = "application/ocsp-request";
                         Stream ocspWebReqStream = ocspWebReq.GetRequestStream();
