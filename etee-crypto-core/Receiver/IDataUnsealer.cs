@@ -1,5 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
+ * Copyright (C) 2014 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,15 +23,15 @@ using System.IO;
 using System.Security.Permissions;
 using Egelke.EHealth.Etee.Crypto.Status;
 
-namespace Egelke.EHealth.Etee.Crypto.Decrypt
+namespace Egelke.EHealth.Etee.Crypto.Receiver
 {
     /// <summary>
     /// Interface to read messages that are protected according to the eHealth End-To-End encryption.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// When you have a protected message you want to read only unknown (non-addressed) messages, 
-    /// you should use an instance that implements this
+    /// When you have a protected message you want to read, both identified (addressed messages) 
+    /// and unknown (non-addressed messages), you should use an instance that implements this
     /// interface.
     /// </para>
     /// <para>
@@ -38,8 +39,8 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
     /// this interface.
     /// </para>
     /// <para>
-    /// This interface assumes you have access to the required artififacts: a KGSS generated key.  
-    /// Retreiving the artifact isn't part of this assembly, but this
+    /// This interface assumes you have access to the required artififacts: your decryption certificate
+    /// with private key or a KGSS generated key.  Retreiving the artifacts isn't part of this assembly, but this
     /// assembly is bundleled with source code that show how it can be done.
     /// </para>
     /// <para>
@@ -52,13 +53,8 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
     /// <seealso cref="SecretKey"/>
     /// <seealso cref="UnsealResult"/>
     /// </remarks>
-    public interface IAnonymousDataUnsealer
+    public interface IDataUnsealer
     {
-        /// <summary>
-        /// Override global Offline setting if provided.
-        /// </summary>
-        bool? Offline { get; set; }
-
         /// <summary>
         /// Unseals a protected message of which you have the secret (but shared) key.
         /// </summary>
@@ -144,24 +140,23 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
         /// ImportMessage(result.UnsealedData)
         /// </code>
         /// </example>
-        [PermissionSet(SecurityAction.LinkDemand, Name = "FullTrust")]
         UnsealResult Unseal(Stream sealedData, SecretKey key);
 
         /// <summary>
-        /// Unseals a protected in memory message of which you have the secret (but shared) key.
+        /// Unseals a protected message addressed to you.
         /// </summary>
+        /// <remarks>
         /// <para>
-        /// This method takes a sealed/protected message in the form of a byte array and unseals it so it
-        /// can be read.  It uses the key provided in the <paramref name="key"/> parameter for decryption,
-        /// even if the instance contains a personal private key.  In other words, the secret key
-        /// take precendence over the private key.
+        /// This method takes a sealed/protected message in the form of a stream and unseals it so it
+        /// can be read.  It uses the personal private key to decrypt, see <see cref="DataUnsealerFactory"/> 
+        /// how this private key should be provided.
         /// </para>
+        /// </remarks>
         /// <param name="sealedData">The protected message that must be unsealed</param>
-        /// <param name="key">The secret (but shared) key retrieved from the KGSS</param>
         /// <returns>
         /// <list type="bullet">
         /// <item>
-        /// <description>The clear message as an in memory stream</description>
+        /// <description>The clear message as a temporary file stream that is deleted when the stream is closed</description>
         /// </item>
         /// <item>
         /// <description>The sender information, if known</description>
@@ -171,9 +166,54 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
         /// </item>
         /// </list>
         /// </returns>
-        /// <exception cref="ArgumentNullException">When sealedData and/or key is null</exception>
-        /// <exception cref="InvalidMessageException">When the protected message isn't an correctly constructed or when secret key does't correspond with message</exception>
+        /// <exception cref="ArgumentNullException">When sealedData is null</exception>
+        /// <exception cref="InvalidMessageException">When the protected message isn't an correctly constructed or when the message isn't intended for you</exception>
+        /// <exception cref="InvalidOperationException">When the instance of the object does not have a private key</exception>
         /// <exception cref="NotSupportedException">When the message contains multiple signatures</exception>
-        UnsealResult Unseal(byte[] sealedData, SecretKey key);
+        /// <example>
+        /// Unseal an addressed message
+        /// <code lang="cs">
+        /// //Create a IDataSealer instance
+        /// IDataUnsealer unsealer = DataUnsealerFactory.Create(SelfEnc, SelfAuth);
+        /// 
+        /// UnsealResult result;
+        /// FileStream file = new FileStream("protectedForMe.msg", FileMode.Open);
+        /// using(file)
+        /// {
+        ///     result = unsealer.Unseal(file);
+        /// }
+        /// //Check if the content is in order
+        /// if (result.SecurityInformation.ValidationStatus != ValidationStatus.Valid) throw new Exception(result.SecurityInformation.ToString());
+        /// //Check if sender and receiver used valid and up to spec certificates
+        /// if (result.SecurityInformation.TrustStatus != TrustStatus.Full) throw new Exception(result.SecurityInformation.ToString());
+        /// //Check if the sender is allowed to send a message (application specific)
+        /// VerifySender(result.Sender);
+        /// //Use the message (application specific)
+        /// ImportMessage(result.UnsealedData);
+        /// </code>
+        /// <code lang="vbnet">
+        /// 'Create a IDataSealer instance
+        /// Dim unsealer As IDataUnsealer = DataUnsealerFactory.Create(Utils.SelfEnc, Utils.SelfAuth)
+        ///
+        /// Dim result As UnsealResult
+        /// Dim file As New FileStream("protectedForMe.msg", FileMode.Open)
+        /// Using file
+        ///     result = unsealer.Unseal(file)
+        /// End Using
+        /// 'Check if the content is in order
+        /// If result.SecurityInformation.ValidationStatus &lt;&gt; ValidationStatus.Valid Then
+        ///     Throw New Exception(result.SecurityInformation.ToString())
+        /// End If
+        /// 'Check if sender and receiver used valid and up to spec certificates
+        /// If result.SecurityInformation.TrustStatus &lt;&gt; TrustStatus.Full Then
+        ///     Throw New Exception(result.SecurityInformation.ToString())
+        /// End If
+        /// 'Check if the sender is allowed to send a message (application specific)
+        /// VerifySender(result.Sender)
+        /// 'Use the message (application specific)
+        /// ImportMessage(result.UnsealedData)
+        /// </code>
+        /// </example>
+        UnsealResult Unseal(Stream sealedData);
     }
 }

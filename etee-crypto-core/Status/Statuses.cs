@@ -1,5 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
+ * Copyright (C) 2014 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -211,7 +212,14 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
         [ValidationResult(ValidationStatus.Invalid)]
-        InvalidData
+        InvalidData,
+
+        /// <summary>
+        /// It is unkown if the data is valid or not, most likely because of missig signature information.
+        /// </summary>
+        [TrustLevel(TrustStatus.Full)]
+        [ValidationResult(ValidationStatus.Unsure)]
+        DataValidityUnkown
     }
 
     /// <summary>
@@ -298,7 +306,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// </para>
         /// </summary>
         [TrustLevel(TrustStatus.None)]
-        [ValidationResult(ValidationStatus.Invalid)]
+        [ValidationResult(ValidationStatus.Unsure)]
         NotSigned, //only in case of a cms-signed-message without signature
 
         /// <summary>
@@ -312,7 +320,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// </para>
         /// </summary>
         [TrustLevel(TrustStatus.None)]
-        [ValidationResult(ValidationStatus.Invalid)]
+        [ValidationResult(ValidationStatus.Unsure)]
         NotFoundSigner,
 
         /// <summary>
@@ -398,20 +406,6 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         [TrustLevel(TrustStatus.Unsure)]
         [ValidationResult(ValidationStatus.Valid)]
         SubjectTrustUnknown,
-
-        /// <summary>
-        /// <para>
-        /// The time indicated by the message at which it is sealed could not be validated.
-        /// </para>
-        /// <para>
-        /// The sealing time indicated in the message is to old to be trusted by itself
-        /// and can't be validated via a timestamp because it isn't present.  This can be
-        /// exploited by a malicous person.
-        /// </para>
-        /// </summary>
-        [TrustLevel(TrustStatus.Unsure)]
-        [ValidationResult(ValidationStatus.Valid)]
-        SealingTimeNotValidated,
 
         /// <summary>
         /// <para>
@@ -643,6 +637,27 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         [TrustLevel(TrustStatus.Full)]
         [ValidationResult(ValidationStatus.Invalid)]
         NoIssuanceChainPolicy,
+
+        /// <summary>
+        /// Specifies that the CRL or OCSP has an invalid signature.
+        /// </summary>
+        [TrustLevel(TrustStatus.None)]
+        [ValidationResult(ValidationStatus.Valid)]
+        CtlNotSignatureValid,
+
+        /// <summary>
+        /// Specifies that the CRL or OCSP is of the wrong time.
+        /// </summary>
+        [TrustLevel(TrustStatus.None)]
+        [ValidationResult(ValidationStatus.Valid)]
+        CtlNotTimeValid,
+
+        /// <summary>
+        /// Specifies that the CRL or OCSP is invalid.
+        /// </summary>
+        [TrustLevel(TrustStatus.None)]
+        [ValidationResult(ValidationStatus.Valid)]
+        CtlNotValidForUsage
 
     }
 

@@ -59,8 +59,15 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto">
-      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+    <Reference Include="crypto">
+      <HintPath>..\packages\BouncyCastle-Patch.1.7.0\lib\net40\crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Egelke.EHealth.Client">
+      <HintPath>..\packages\Egelke.EHealth.Client.2.0.1\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Egelke.EHealth.Client.Tsa, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC4\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -80,14 +87,19 @@
     <Compile Include="SelectCert.cs" />
     <Compile Include="EncryptionTokenTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="EndToEnd.cs" />
+    <Compile Include="Alice.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Contributors.html" />
+    <Content Include="License.html" />
+    <Content Include="Readme.html" />
     <None Include="..\debug.snk">
       <Link>debug.snk</Link>
     </None>
     <Content Include="alice\alices_public_key.etk" />
+    <None Include="alice\alices_private_key_store.p12" />
+    <None Include="bob\bobs_private_key_store.p12" />
     <None Include="Etee.config" />
     <Content Include="bob\bobs_public_key.etk" />
     <Content Include="etk\auth_and_encr_not_same_DN.etk" />
@@ -155,6 +167,10 @@
     <Content Include="msg\triple_wrapped_wrong_encryption_key.msg" />
     <Content Include="COPYING" />
     <None Include="Etee.nunit" />
+    <None Include="etk\Bob2_public_key.etk" />
+    <None Include="etk\Bob3_public_key.etk" />
+    <None Include="etk\kgss.etk" />
+    <None Include="etk\myself.etk" />
     <None Include="imports\CA.cer" />
     <None Include="packages.config" />
   </ItemGroup>

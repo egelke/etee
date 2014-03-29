@@ -20,7 +20,6 @@ using System.Text;
 using System.Collections.Generic;
 
 using Egelke.EHealth.Etee.Crypto;
-using Egelke.EHealth.Etee.Crypto.Decrypt;
 using Org.BouncyCastle.Cms;
 using NUnit.Framework;
 using ETEE = Egelke.EHealth.Etee.Crypto;
@@ -85,11 +84,53 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 store.Add(cert);
             }
         }
+
+        [Test]
+        public void kgss()
+        {
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/kgss.etk"));
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
+
+            Assert.IsNotNull(info.ToString());
+            Assert.AreEqual(ETEE::Status.TrustStatus.Full, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
+        }
         
         [Test]
         public void Bob()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
+
+            Assert.IsNotNull(info.ToString());
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
+
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
+        }
+
+        [Test]
+        public void Bob2()
+        {
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/Bob2_public_key.etk"));
+            CertificateSecurityInformation info = receiver.Verify();
+            Console.WriteLine(info.ToString());
+
+            Assert.IsNotNull(info.ToString());
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
+
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
+        }
+
+        [Test]
+        public void Bob3()
+        {
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/Bob3_public_key.etk"));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -124,11 +165,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
             Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
-            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
-            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.RevocationStatusUnknown));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
         }
 
         [Test]
@@ -146,7 +187,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
             Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
 
             Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.HasNotPermittedNameConstraint));
@@ -204,7 +245,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
             Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
 
             Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
@@ -219,7 +260,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             Assert.IsNotNull(info.ToString());
             Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus); //due to the name, otherwise valid
+            Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
             Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
             Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
@@ -233,7 +274,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Console.WriteLine(info.ToString());
 
             Assert.IsNotNull(info.ToString());
-            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, info.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
             Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
 
             Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.NotValidKeySize));

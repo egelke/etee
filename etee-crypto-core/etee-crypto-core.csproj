@@ -74,6 +74,13 @@
     <AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="crypto">
+      <HintPath>..\packages\BouncyCastle-Patch.1.7.0\lib\net40\crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Egelke.EHealth.Client.Tsa, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC4\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
@@ -83,27 +90,33 @@
     <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Configuration\SignatureAlgorithm.cs" />
     <Compile Include="Configuration\UnsealActiveConfig.cs" />
+    <Compile Include="Store\DataCompleterFactory.cs" />
+    <Compile Include="Store\ITmaDataCompleter.cs" />
+    <Compile Include="Store\IDataCompleter.cs" />
+    <Compile Include="Level.cs" />
     <Compile Include="Status\CertificateSecurityInformation.cs" />
-    <Compile Include="Decrypt\IAnonymousDataUnsealer.cs" />
-    <Compile Include="Decrypt\DataUnsealerFactory.cs" />
-    <Compile Include="Decrypt\IDataUnsealer.cs" />
+    <Compile Include="Receiver\DataUnsealerFactory.cs" />
+    <Compile Include="Receiver\IDataUnsealer.cs" />
     <Compile Include="Status\SecurityResult.cs" />
     <Compile Include="Status\SecurityInformation.cs" />
     <Compile Include="Status\SignatureSecurityInformation.cs" />
     <Compile Include="Status\UnsealSecurityInformation.cs" />
-    <Compile Include="Decrypt\TripleUnwrapper.cs" />
+    <Compile Include="Store\ITmaDataVerifier.cs" />
+    <Compile Include="TripleUnwrapper.cs" />
     <Compile Include="Status\UnsealResult.cs" />
     <Compile Include="Status\Statuses.cs" />
     <Compile Include="EncryptionToken.cs" />
-    <Compile Include="Encrypt\IDataSealer.cs" />
-    <Compile Include="Encrypt\DataSealerFactory.cs" />
-    <Compile Include="Encrypt\TripleWrapper.cs" />
+    <Compile Include="Sender\IDataSealer.cs" />
+    <Compile Include="Sender\DataSealerFactory.cs" />
+    <Compile Include="TripleWrapper.cs" />
     <Compile Include="InvalidMessageException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecretKey.cs" />
+    <Compile Include="Store\IDataVerifier.cs" />
+    <Compile Include="Store\DataVerifierFactory.cs" />
+    <Compile Include="Store\TimemarkKey.cs" />
     <Compile Include="Utils\CertVerifier.cs" />
-    <Compile Include="Utils\CrlVerifier.cs" />
-    <Compile Include="Utils\OcspVerifier.cs" />
+    <Compile Include="Utils\NullStream.cs" />
     <Compile Include="Utils\TempFileStreamFactory.cs" />
     <Compile Include="Utils\MemoryStreamFactory.cs" />
     <Compile Include="Utils\ITempStreamFactory.cs" />
@@ -111,8 +124,8 @@
     <Compile Include="Utils\WindowsTempFileStream.cs" />
   </ItemGroup>
   <ItemGroup>
-    <CodeAnalysisDictionary Include="CustomDictionary.xml" />
     <None Include="COPYING" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -137,10 +150,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\bc-patch\crypto.csproj">
-      <Project>{38872a5f-e87e-4fad-b109-8eb7b2e6a4a0}</Project>
-      <Name>crypto</Name>
-    </ProjectReference>
+    <Content Include="License.html" />
+    <Content Include="Readme.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

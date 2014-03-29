@@ -1,5 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
+ * Copyright (C) 2014 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,12 +28,13 @@ using System.Security.Cryptography;
 using Org.BouncyCastle.X509.Store;
 using Org.BouncyCastle.Security;
 using System.Collections;
-using Egelke.EHealth.Etee.Crypto.Decrypt;
+using Egelke.EHealth.Etee.Crypto.Receiver;
 using System.Diagnostics;
-using Egelke.EHealth.Etee.Crypto.Utils;
 using Egelke.EHealth.Etee.Crypto.Status;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Ocsp;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
@@ -93,10 +95,9 @@ namespace Egelke.EHealth.Etee.Crypto
             raw = new CmsSignedData(data);
         }
 
-        internal BC::X509Certificate ToBCCertificate()
+        internal X509Certificate2 ToCertificate()
         {
-            BC::X509CertificateParser parser = new BC::X509CertificateParser();
-            return parser.ReadCertificate(Content);
+            return new X509Certificate2(Content);
         }
 
         /// <summary>
@@ -136,6 +137,21 @@ namespace Egelke.EHealth.Etee.Crypto
         /// Verifies if the ETK contains a token that is still valid and can be trusted.
         /// </summary>
         /// <remarks>
+        /// Does check the revocation information of the certificates used to issue the
+        /// certificate.
+        /// </remarks>
+        /// <seealso cref="Verify(bool)"/>
+        /// <returns>Detailed information about the encryption certificate status</returns>
+        public CertificateSecurityInformation Verify()
+        {
+            return Verify(true);
+
+        }
+
+        /// <summary>
+        /// Verifies if the ETK contains a token that is still valid and can be trusted.
+        /// </summary>
+        /// <remarks>
         /// <para>
         /// This method checks if the certificate in the ETK is issued by a trusted party.  Tust means
         /// the root certificate is trusted by the computer it is running on and all
@@ -149,36 +165,37 @@ namespace Egelke.EHealth.Etee.Crypto
         /// security compared to the previous implementation.
         /// </para>
         /// </remarks>
+        /// <param name="checkRevocation">Checks if the certificates that issued the encryption cert aren't revoked</param>
         /// <returns>Detailed information about the encryption certificate status</returns>
-        public CertificateSecurityInformation Verify()
+        public CertificateSecurityInformation Verify(bool checkRevocation)
         {
-            trace.TraceEvent(TraceEventType.Information, 0, "Verifying ETK: {0}", ToBCCertificate().SubjectDN.ToString());
-
             BC::X509Certificate encCert;
             BC::X509Certificate authCert = null;
 
             //Get encryption cert
-            encCert = ToBCCertificate();
+            encCert = DotNetUtilities.FromX509Certificate(ToCertificate());
+            trace.TraceEvent(TraceEventType.Information, 0, "Verifying ETK: {0}", encCert.SubjectDN.ToString());
 
             //Get authentication cert
             IX509Store certs = raw.GetCertificates("COLLECTION");
             SignerID authCertSelector = new SignerID();
             authCertSelector.Subject = encCert.IssuerDN;
             ICollection authCertMatch = certs.GetMatches(authCertSelector);
-            if (authCertMatch.Count != 1)
+            IEnumerator iterator = authCertMatch.GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                if (authCert == null || ((BC::X509Certificate)iterator.Current).IsValid(DateTime.UtcNow))
+                {
+                    authCert = (BC::X509Certificate)iterator.Current;
+                }
+            }
+            if (authCert == null)
             {
                 trace.TraceEvent(TraceEventType.Warning, 0, "Authentication certificate not found in ETK");
                 throw new InvalidMessageException("The ETK does not contain the authentication certificate");
             }
-            IEnumerator iterator = authCertMatch.GetEnumerator();
-            if (!iterator.MoveNext())
-            {
-                trace.TraceEvent(TraceEventType.Error, 0, "Certificate present but could not be retrieved");
-                throw new InvalidOperationException("Could not retrieve certificate, please report issue");
-            }
-            authCert = (BC::X509Certificate)iterator.Current;
 
-            return CertVerifier.VerifyEnc(encCert, authCert, certs, new List<X509Crl>(0) , new List<BasicOcspResp>(0), null, DateTime.UtcNow);
+            return CertVerifier.VerifyEnc(encCert, authCert, DateTime.UtcNow, certs, checkRevocation);
         }
 
     }
