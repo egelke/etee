@@ -58,7 +58,16 @@ namespace Egelke.EHealth.Client.Tsa
                             {
                                 //Found a CRL URL, lets get it.
                                 string location = DerIA5String.GetInstance(genName.Name).GetString();
-                                Uri locationUri = new Uri(location);
+                                Uri locationUri;
+
+                                try
+                                {
+                                    locationUri = new Uri(location);
+                                }
+                                catch
+                                {
+                                    return null;
+                                }
 
                                 if (locationUri.Scheme != "http")
                                     return null;
@@ -94,7 +103,16 @@ namespace Egelke.EHealth.Client.Tsa
                     {
                         //Found an OCSP URL, lets call it.
                         string location = DerIA5String.GetInstance(ad.AccessLocation.Name).GetString();
-                        Uri locationUri = new Uri(location);
+                        Uri locationUri;
+
+                        try
+                        {
+                            locationUri = new Uri(location);
+                        }
+                        catch
+                        {
+                            return null;
+                        }
 
                         if (locationUri.Scheme != "http")
                             return null;
@@ -127,7 +145,7 @@ namespace Egelke.EHealth.Client.Tsa
                         } 
                         else
                         {
-                            throw new InvalidOperationException("The OCSP Responder did not return a valid response");
+                            return null;
                         }
                     }
                 }
