@@ -44,9 +44,15 @@ namespace Egelke.EHealth.Client.TsaTest
 
             byte[] tsBytes = provider.GetTimestampFromDocumentHash(hash, "http://www.w3.org/2001/04/xmlenc#sha256");
 
-            TimeStampToken ts = tsBytes.ToTimeStampToken();
+            TimeStampToken tst = tsBytes.ToTimeStampToken();
 
-            Assert.IsTrue(ts.IsMatch(new MemoryStream(msg)));
+            Assert.IsTrue(tst.IsMatch(new MemoryStream(msg)));
+
+            //Validate
+            IList<CertificateList> crls = new List<CertificateList>();
+            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
+            tst.Validate(ref crls, ref ocps);
+            tst.Validate(ref crls, ref ocps, null); //check clock skewness
         }
 
         [Test]
@@ -61,9 +67,14 @@ namespace Egelke.EHealth.Client.TsaTest
 
             byte[] tsBytes = provider.GetTimestampFromDocumentHash(hash, "http://www.w3.org/2001/04/xmlenc#sha256");
 
-            TimeStampToken ts = tsBytes.ToTimeStampToken();
+            TimeStampToken tst = tsBytes.ToTimeStampToken();
 
-            Assert.IsTrue(ts.IsMatch(new MemoryStream(msg)));
+            Assert.IsTrue(tst.IsMatch(new MemoryStream(msg)));
+
+            IList<CertificateList> crls = new List<CertificateList>();
+            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
+            tst.Validate(ref crls, ref ocps);
+            tst.Validate(ref crls, ref ocps, null);
         }
     }
 }

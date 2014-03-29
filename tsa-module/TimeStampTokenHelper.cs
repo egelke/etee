@@ -41,6 +41,8 @@ namespace Egelke.EHealth.Client.Tsa
     /// </summary>
     public static class TimeStampTokenHelper
     {
+        private static readonly TimeSpan ClockSkewness = new TimeSpan(0, 5, 0);
+
         /// <summary>
         /// Parses a TimeStampToken from binary format to BouncyCastle object format.
         /// </summary>
@@ -89,18 +91,25 @@ namespace Egelke.EHealth.Client.Tsa
             return tst.Validate(ref crls, ref ocsps);
         }
 
-        public static Timestamp Validate(this TimeStampToken tst, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
-        {
-            return tst.Validate(ref crls, ref ocsps, null);
-        }
-
         /// <summary>
-        /// 
+        /// Validates the time-stamp token in normal case, not for abtriation.
         /// </summary>
         /// <param name="tst"></param>
         /// <param name="crls"></param>
         /// <param name="ocsps"></param>
-        /// <param name="trustedTime">The trusted time in case of arbitration, <c>null</c> to trust the indicated time (not arbitration)</param>
+        /// <returns></returns>
+        public static Timestamp Validate(this TimeStampToken tst, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
+        {
+            return tst.Validate(ref crls, ref ocsps, tst.TimeStampInfo.GenTime);
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token in case of arbitration or with a specified trusted time.
+        /// </summary>
+        /// <param name="tst"></param>
+        /// <param name="crls"></param>
+        /// <param name="ocsps"></param>
+        /// <param name="trustedTime">The trusted time, <c>null</c> for the current time in case of Arbitration</param>
         /// <returns>The validation chain of the signing certificate</returns>
         /// <exception cref="InvalidTokenException">When the token isn't signed by the indicated certificate</exception>
         public static Timestamp Validate(this TimeStampToken tst, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
@@ -133,8 +142,11 @@ namespace Egelke.EHealth.Client.Tsa
             }
 
             //Get some info
+            DateTime now = DateTime.UtcNow;
             value.Time = tst.TimeStampInfo.GenTime;
-            DateTime validationTime = trustedTime != null ? trustedTime.Value : value.Time;
+            //allow for some clock skewness
+            DateTime signingTime = value.Time > now && (value.Time - ClockSkewness) < now  ? now : value.Time;
+            DateTime validationTime = trustedTime != null ? trustedTime.Value : signingTime;
             var extraStore = new X509Certificate2Collection();
             foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates("Collection").GetMatches(null))
             {
@@ -142,7 +154,7 @@ namespace Egelke.EHealth.Client.Tsa
             }
 
             //Check the chain
-            value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(value.Time, extraStore, ref crls, ref ocsps, validationTime); //we assume 'timestamp signers aren't suspended, only permanently revoked
+            value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(signingTime, extraStore, ref crls, ref ocsps, validationTime); //we assume 'timestamp signers aren't suspended, only permanently revoked
 
             //get the renewal time
             value.RenewalTime = DateTime.MaxValue;

@@ -49,9 +49,6 @@ namespace Egelke.EHealth.Client.TsaTest
         [Test]
         public void Fedict2()
         {
-            if (DateTime.UtcNow > new DateTime(2019, 1, 23, 12, 0, 0, DateTimeKind.Utc)) Assert.Inconclusive("The timestamp should have been renewed");
-
-            
             CertificateList crl1  = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs1.crl"));
             CertificateList crl2 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs2.crl"));
             IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { crl1, crl2 });
@@ -70,12 +67,37 @@ namespace Egelke.EHealth.Client.TsaTest
         /*
          * Test: Success
          * TS status: OK
-         * Provided revocation info: partial
-         * For arbitratition: yes
+         * Provided revocation info: all
+         * For arbitratition: yes, with trusted time
          */
         [Test]
         public void Fedict3()
         {
+            CertificateList crl1 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs1.crl"));
+            CertificateList crl2 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs2.crl"));
+            IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { crl1, crl2 });
+            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { });
+            TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeStampToken();
+
+            Timestamp ts = tst.Validate(ref crls, ref ocps, new DateTime(2014, 3, 16, 11, 0, 0, DateTimeKind.Utc));
+            Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49), ts.Time);
+            Assert.AreEqual(new DateTime(2019, 1, 23, 12, 0, 0), ts.RenewalTime);
+            Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(2, crls.Count);
+            Assert.AreEqual(0, ocps.Count);
+        }
+
+        /*
+         * Test: Success
+         * TS status: OK
+         * Provided revocation info: partial
+         * For arbitratition: yes, with current time
+         */
+        [Test]
+        public void Fedict4()
+        {
+            if (DateTime.UtcNow > new DateTime(2019, 1, 23, 12, 0, 0, DateTimeKind.Utc)) Assert.Inconclusive("The timestamp should have been renewed");
             if (DateTime.UtcNow > new DateTime(2014, 4, 15, 15, 0, 0, DateTimeKind.Utc)) Assert.Inconclusive("The CRL-1 has expired, the crls count should become 3");
             if (DateTime.UtcNow > new DateTime(2014, 7, 31, 11, 0, 0, DateTimeKind.Utc)) Assert.Inconclusive("The CRL-2 has expired, the crls count should become 4");
 
@@ -85,7 +107,7 @@ namespace Egelke.EHealth.Client.TsaTest
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { });
             TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeStampToken();
 
-            Timestamp ts = tst.Validate(ref crls, ref ocps, new DateTime(2014, 3, 16, 11, 0, 0, DateTimeKind.Utc));
+            Timestamp ts = tst.Validate(ref crls, ref ocps, null);
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49), ts.Time);
             Assert.AreEqual(new DateTime(2019, 1, 23, 12, 0, 0), ts.RenewalTime);
             Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
