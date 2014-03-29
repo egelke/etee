@@ -1,5 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
+ * Copyright (C) 2014 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,16 +30,12 @@ namespace Egelke.EHealth.Etee.Crypto.Status
     /// </summary>
     public class UnsealResult
     {
-        private Stream unsealedData;
-
-        private UnsealSecurityInformation securityInformation;
-
         /// <summary>
         /// The unsealed/clear data.
         /// </summary>
         /// <value>
         /// <para>
-        /// The unsealed data is never null, if any of the Unseal method of <see cref="IDataUnsealer"/> fail
+        /// The unsealed data is never null, if any of the Unseal method of <see cref="Egelke.EHealth.Etee.Crypto.Receiver.IDataUnsealer"/> fail
         /// to extract the clear data an exception is thrown. <strong>Warning:</strong> the clear data is always
         /// provided, even if the security verification detected major violations.  Make sure you check
         ///  <see cref="SecurityInformation"/> is the data is valid and can be trusted or not.
@@ -48,40 +45,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// on the Unseal method that was invoked.  The FileStream does clean up the temporaly file on closing.
         /// </para>
         /// </value>
-        public Stream UnsealedData
-        {
-            get
-            {
-                return unsealedData;
-            }
-            internal set
-            {
-                unsealedData = value;
-            }
-        }
-
-        /// <summary>
-        /// The issuer/sender of the message.
-        /// </summary>
-        /// <value>
-        /// <para>
-        /// The application is supposed to verify that the sender is actualy
-        /// allowed to send this type of messages, the libray only validate
-        /// that the sender information can be used (=trusted) or not.  The rules for validation
-        /// is outside the scope of this project, as is the definition of the list
-        /// of allowed senders.
-        /// </para>
-        /// <para>
-        /// The same information can be retrieved from the <see cref="SecurityInformation"/> property.
-        /// </para>
-        /// </value>
-        public X509Certificate2 Sender
-        {
-            get
-            {
-                return securityInformation.OuterSignature.Subject.Certificate;
-            }
-        }
+        public Stream UnsealedData { get; internal set; }
 
         /// <summary>
         /// The results of the security checks.
@@ -92,18 +56,91 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// validation status different from <see cref="ValidationStatus.Valid"/> or a truststatus
         /// different from <see cref="TrustStatus.Full"/>.
         /// </value>
-        public UnsealSecurityInformation SecurityInformation
+        public UnsealSecurityInformation SecurityInformation { get; internal set; }
+
+        /// <summary>
+        /// The sender of the message, i.e. the signer of the outer message.
+        /// </summary>
+        /// <value>
+        /// <para>
+        /// This provides information about the entity that sent the message, without vouching for the content.
+        /// The information about the entity that vouches for the content can be found in <see cref="SigningCertificate"/>
+        /// In general these represent the same entity, but aren't nesesary the same certificate.
+        /// </para>
+        /// <para>
+        /// The application is supposed to verify that the sender is actualy
+        /// allowed, the libray only validate
+        /// that the sender information can be used (=trusted) or not.  The definition 
+        /// an validation against the list of allowed senders is out of scope
+        /// for this library.
+        /// </para>
+        /// </value>
+        public X509Certificate2 AuthenticationCertificate
         {
             get
             {
-                return securityInformation;
-            }
-            internal set
-            {
-                securityInformation = value;
+                return SecurityInformation.OuterSignature.Signer;
             }
         }
 
+        /// <summary>
+        /// The issuer of the message, i.e. the signer of the inner message.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This provides information about the entity that voiching for the content of the message message, without indicating who sent it.
+        /// The information about the entity that send the message can be found in <see cref="AuthenticationCertificate"/>
+        /// In general these represent the same entity, but aren't nesesary the same certificate.
+        /// </para>
+        /// </remarks>
+        public X509Certificate2 SigningCertificate
+        {
+            get
+            {
+                return SecurityInformation.InnerSignature.Signer;
+            }
+        }
+
+        /// <summary>
+        /// The value of the authentication (outer) signature.
+        /// </summary>
+        /// <remarks>
+        /// This value is used for the time-mark authority.
+        /// </remarks>
+        public byte[] SignatureValue
+        {
+            get
+            {
+                return SecurityInformation.OuterSignature.SignatureValue;
+            }
+        }
+
+        /// <summary>
+        /// The time the message was sealed on.
+        /// </summary>
+        public DateTime? SealedOn
+        {
+            get
+            {
+                return SecurityInformation.OuterSignature.SigningTime;
+            }
+        }
+
+        /// <summary>
+        /// The time until the current message can be validated.
+        /// </summary>
+        /// <remarks>
+        /// This only applies to LTA-Level where an embedded time-stamp
+        /// can only be trusted as long as it can be validated with
+        /// absolute certainly.
+        /// </remarks>
+        public DateTime? SealValidUntil
+        {
+            get
+            {
+                return SecurityInformation.OuterSignature.TimestampRenewalTime;
+            }
+        }
 
     }
 }

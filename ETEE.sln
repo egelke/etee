@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{86091B0D-E957-4CE8-AE6F-A58338CF6120}"
 	ProjectSection(SolutionItems) = preProject
 		api.shfbproj = api.shfbproj
@@ -14,19 +16,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-library", "etee
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-itest", "etee-crypto-itest\etee-crypto-itest.csproj", "{2FD0ACDF-5220-4E15-AAD7-D75F7F48120E}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "etee-examples", "etee-examples\etee-examples.vbproj", "{A272CD7E-53CF-4D2B-80DF-60219148D47A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-examples2", "etee-examples2\etee-examples2.csproj", "{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-core", "etee-crypto-core\etee-crypto-core.csproj", "{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-demo-console", "etee-demo-console\etee-demo-console.csproj", "{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto", "bc-patch\crypto.csproj", "{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 9
+		SccNumberOfProjects = 5
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccLocalPath0 = .
@@ -42,21 +36,6 @@ Global
 		SccProjectUniqueName4 = etee-crypto-test\\etee-crypto-test.csproj
 		SccProjectName4 = etee-crypto-test
 		SccLocalPath4 = etee-crypto-test
-		SccProjectUniqueName5 = etee-examples2\\etee-examples2.csproj
-		SccProjectName5 = etee-examples2
-		SccLocalPath5 = etee-examples2
-		SccProjectUniqueName6 = etee-examples\\etee-examples.vbproj
-		SccProjectName6 = etee-examples
-		SccLocalPath6 = etee-examples
-		SccProjectUniqueName7 = etee-demo-console\\etee-demo-console.csproj
-		SccProjectName7 = etee-demo-console
-		SccLocalPath7 = etee-demo-console
-		SccProjectUniqueName8 = bc-patch\\crypto.csproj
-		SccProjectName8 = bc-patch
-		SccLocalPath8 = bc-patch
-	EndGlobalSection
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = ETEE.vsmdi
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,30 +82,6 @@ Global
 		{2FD0ACDF-5220-4E15-AAD7-D75F7F48120E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{2FD0ACDF-5220-4E15-AAD7-D75F7F48120E}.Release|Win32.ActiveCfg = Release|Any CPU
 		{2FD0ACDF-5220-4E15-AAD7-D75F7F48120E}.Release|x86.ActiveCfg = Release|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Release|Win32.ActiveCfg = Release|Any CPU
-		{A272CD7E-53CF-4D2B-80DF-60219148D47A}.Release|x86.ActiveCfg = Release|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Release|Win32.ActiveCfg = Release|Any CPU
-		{282CC6FA-A5FD-4FCC-BA71-37A2D02EB66C}.Release|x86.ActiveCfg = Release|Any CPU
 		{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -139,32 +94,11 @@ Global
 		{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}.Release|Win32.ActiveCfg = Release|Any CPU
 		{CDD132D9-1DCB-49C4-B6D7-BD5C52620C64}.Release|x86.ActiveCfg = Release|Any CPU
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|Win32.ActiveCfg = Debug|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|x86.ActiveCfg = Debug|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Debug|x86.Build.0 = Debug|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|Any CPU.ActiveCfg = Release|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|Mixed Platforms.Build.0 = Release|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|Win32.ActiveCfg = Release|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|x86.ActiveCfg = Release|x86
-		{589E73B5-1D1C-4898-B77C-F9A5BE91F0FC}.Release|x86.Build.0 = Release|x86
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|Win32.ActiveCfg = Release|Any CPU
-		{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = ETEE.vsmdi
 	EndGlobalSection
 EndGlobal

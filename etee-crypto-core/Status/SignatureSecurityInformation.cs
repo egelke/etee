@@ -1,5 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
+ * Copyright (C) 2014 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Egelke.EHealth.Etee.Crypto.Status
@@ -30,13 +32,34 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// <summary>
         /// The (UTC) time the message was sealed on.
         /// </summary>
-        public DateTime? SealedOn { get; internal set; }
+        public DateTime? SigningTime { get; internal set; }
 
         /// <summary>
-        /// 
+        /// The value of the signature (for Time Marker Authority)
         /// </summary>
-        /// <param name="level"></param>
-        /// <returns></returns>
+        public byte[] SignatureValue { get; internal set; }
+
+        /// <summary>
+        /// The certificate of the signer.
+        /// </summary>
+        public X509Certificate2 Signer
+        {
+            get
+            {
+                return this.Subject.Certificate;
+            }
+        }
+
+        /// <summary>
+        /// The (UTC) time the timestamp should be renewed (if applicable).
+        /// </summary>
+        public DateTime? TimestampRenewalTime { get; internal set; }
+        
+        /// <summary>
+        /// Used in the ToString method
+        /// </summary>
+        /// <param name="level">The identation level</param>
+        /// <returns>The string representation of the object</returns>
         internal protected override string ToString(int level)
         {
             if (level == int.MaxValue) throw new ArgumentOutOfRangeException("level");
@@ -46,10 +69,32 @@ namespace Egelke.EHealth.Etee.Crypto.Status
             StringBuilder builder = new StringBuilder();
 
             builder.Append(lv1);
-            builder.Append("Sealed On: ");
-            if (SealedOn != null)
+            builder.Append("Signing Time: ");
+            if (SigningTime != null)
             {
-                builder.Append(SealedOn);
+                builder.Append(SigningTime);
+                builder.AppendLine();
+            }
+            else
+            {
+                builder.AppendLine("<<Not Provided>>");
+            }
+            builder.Append(lv1);
+            builder.Append("Timestamp Renewal Time: ");
+            if (TimestampRenewalTime != null)
+            {
+                builder.Append(TimestampRenewalTime);
+                builder.AppendLine();
+            }
+            else
+            {
+                builder.AppendLine("<<Not Provided>>");
+            }
+            builder.Append(lv1);
+            builder.Append("Signature Value: ");
+            if (SignatureValue != null)
+            {
+                builder.Append(Convert.ToBase64String(SignatureValue));
                 builder.AppendLine();
             }
             else

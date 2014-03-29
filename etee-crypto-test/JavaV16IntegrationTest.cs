@@ -21,9 +21,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
-using Egelke.EHealth.Etee.Crypto.Decrypt;
+using Egelke.EHealth.Etee.Crypto.Receiver;
 using System.IO;
-using Egelke.EHealth.Etee.Crypto.Encrypt;
+using Egelke.EHealth.Etee.Crypto.Sender;
 using Egelke.EHealth.Etee.Crypto;
 using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
@@ -39,7 +39,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         private IDataUnsealer bobUnsealer;
 
-        private IAnonymousDataUnsealer anonUnsealer;
+        private IDataUnsealer anonUnsealer;
 
         [TestFixtureSetUp]
         public void MyClassInitialize()
@@ -47,9 +47,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             X509Certificate2 aliceAuth = new X509Certificate2("../../alice/alice_auth.p12", "test", X509KeyStorageFlags.Exportable);
             X509Certificate2 bobEnc = new X509Certificate2("../../bob/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
 
-            aliceSealer = DataSealerFactory.Create(aliceAuth);
-            bobUnsealer = DataUnsealerFactory.Create(false, new X509Certificate2Collection(new X509Certificate2[] { bobEnc }));
-            anonUnsealer = DataUnsealerFactory.Create(false);
+            aliceSealer = DataSealerFactory.Create(aliceAuth, null, Level.B_Level);
+            bobUnsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(new X509Certificate2[] { bobEnc }), null);
+            anonUnsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(), null);
         }
 
         private String RunJava(String program)
@@ -91,7 +91,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
 
-            Assert.IsTrue(result.Sender.Subject.Contains("NIHII=00000000101"));
+            Assert.IsTrue(result.AuthenticationCertificate.Subject.Contains("NIHII=00000000101"));
 
             byte[] bytes = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(bytes, 0, bytes.Length);
@@ -105,13 +105,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
-            byte[] msg = aliceSealer.Seal(new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")), Encoding.UTF8.GetBytes(text));
+            Stream msg = aliceSealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
 
             FileStream msgFile = new FileStream("message_from_alice_for_bob.msg", FileMode.OpenOrCreate);
-            using(msgFile)
-            {
-                msgFile.Write(msg, 0, msg.Length);
-            } 
+            msg.CopyTo(msgFile);
            
             String output = RunJava("be.smals.ehealth.etee.crypto.examples.Unseal");
 
@@ -136,7 +133,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
 
-            Assert.IsTrue(result.Sender.Subject.Contains("NIHII=00000000101"));
+            Assert.IsTrue(result.AuthenticationCertificate.Subject.Contains("NIHII=00000000101"));
 
             byte[] bytes = new byte[result.UnsealedData.Length];
             result.UnsealedData.Read(bytes, 0, bytes.Length);
@@ -151,14 +148,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String text = "This is a secret message from Alice for an unknown addressee written at " + DateTime.Now.ToString();
 
             SecretKey kek = new SecretKey(Convert.FromBase64String("btSefztkXjZmlZyHQIumLA=="), Convert.FromBase64String("aaUnRynIwd3GFQmhXfW+VQ=="));
-
-            byte[] msg = aliceSealer.Seal(Encoding.UTF8.GetBytes(text), kek);
+            
+            Stream msg = aliceSealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), kek);
 
             FileStream msgFile = new FileStream("message_from_alice_for_unknown.msg", FileMode.OpenOrCreate);
-            using(msgFile) 
-            {
-                msgFile.Write(msg, 0, msg.Length);
-            }
+            msg.CopyTo(msgFile);
 
             String output = RunJava("be.smals.ehealth.etee.crypto.examples.UnsealByUnknown");
 

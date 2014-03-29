@@ -13,8 +13,7 @@
 ' You should have received a copy of the GNU Lesser General Public License
 ' along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 
-Imports Siemens.EHealth.Etee.Crypto.Encrypt
-Imports Siemens.EHealth.Etee.Crypto
+
 Imports System.Collections.ObjectModel
 Imports System.Text
 Imports System.IO

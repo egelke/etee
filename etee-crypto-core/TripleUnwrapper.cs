@@ -1,5 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
+ * Copyright (C) 2014 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +25,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Egelke.EHealth.Etee.Crypto.Utils;
-using BC = Org.BouncyCastle.X509;
 using System.Security.Permissions;
 using System.Threading;
 using System.Diagnostics;
@@ -40,10 +40,16 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.Esf;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Ocsp;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Egelke.EHealth.Client.Tsa;
+using Org.BouncyCastle.Tsp;
+using System.Linq;
+using Egelke.EHealth.Etee.Crypto.Store;
+using Egelke.EHealth.Etee.Crypto.Receiver;
 
-namespace Egelke.EHealth.Etee.Crypto.Decrypt
+namespace Egelke.EHealth.Etee.Crypto
 {
-    internal class TripleUnwrapper : IDataUnsealer
+    internal class TripleUnwrapper : IDataUnsealer, IDataVerifier, ITmaDataVerifier
     {
         private class WinX509CollectionStore : IX509Store
         {
@@ -53,7 +59,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
             public WinX509CollectionStore(X509Certificate2Collection collection)
             {
                 win = collection;
-                bc = new List<BC::X509Certificate>();
+                bc = new List<Org.BouncyCastle.X509.X509Certificate>();
                 for (int i = 0; i < collection.Count; i++ )
                 {
                     bc.Add(DotNetUtilities.FromX509Certificate(collection[i]));
@@ -79,19 +85,22 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
 
         private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
+        private Level? level;
         private IX509Store encCertStore;
+        private ITimemarkProvider timemarkauthority;
 
-        public bool? Offline { get; set; }
-
-        internal TripleUnwrapper(X509Certificate2Collection encCerts)
+        internal TripleUnwrapper(Level? level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts)
         {
-            ///Wrap it inside a IX509Store to (incorrectly) returns an windows x509Certificate2
+            if (level == Level.L_Level || level == Level.A_level ) throw new ArgumentException("level", "Only null or levels B, T, LT and LTA are allowed");
+
+            this.level = level;
+            this.timemarkauthority = timemarkauthority;
+            //Wrap it inside a IX509Store to (incorrectly) returns an windows x509Certificate2
             encCertStore = encCerts == null || encCerts.Count == 0 ? null : new WinX509CollectionStore(encCerts);
         }
 
         #region DataUnsealer Members
 
-        [PermissionSet(SecurityAction.LinkDemand, Name = "FullTrust")]
         public UnsealResult Unseal(Stream sealedData)
         {
             if (sealedData == null) throw new ArgumentNullException("sealedData");
@@ -108,19 +117,10 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
             }
         }
 
-        public UnsealResult Unseal(byte[] sealedData)
-        {
-            if (sealedData == null) throw new ArgumentNullException("sealedData");
+        #endregion
 
-            //No need to optimize for small files that fit in the memory
-            MemoryStream tmp = new MemoryStream(sealedData);
-            using (tmp)
-            {
-                return Unseal(tmp, null, false);
-            }
-        }
+        #region Anonymous Data Unsealer Members
 
-        [PermissionSet(SecurityAction.LinkDemand, Name = "FullTrust")]
         public UnsealResult Unseal(Stream sealedData, SecretKey key)
         {
             if (sealedData == null) throw new ArgumentNullException("sealedData");
@@ -138,15 +138,66 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
             }
         }
 
-        public UnsealResult Unseal(byte[] sealedData, SecretKey key)
-        {
-            if (sealedData == null) throw new ArgumentNullException("sealedData");
-            if (key == null) throw new ArgumentNullException("key");
+        #endregion
 
-            MemoryStream tmp = new MemoryStream(sealedData);
-            using (tmp)
+        #region Data Verifier Members
+
+        public SignatureSecurityInformation Verify(Stream sealedData)
+        {
+            try
             {
-                return Unseal(tmp, key);
+                return VerifyStreaming(new NullStream(), sealedData, null);
+            }
+            catch (NotSupportedException)
+            {
+                //Start over, non optimize
+                sealedData.Position = 0;
+                return VerifyInMem(null, sealedData, null);
+            }
+        }
+
+        public SignatureSecurityInformation Verify(Stream sealedData, out TimemarkKey timemarkKey)
+        {
+            SignatureSecurityInformation info = Verify(sealedData);
+            if (info.SigningTime == null) throw new InvalidMessageException("Verification with timemarking can't be done on Java v1 messages, only on v2 messages and .Net v1 messages");
+
+            timemarkKey = new TimemarkKey();
+            timemarkKey.Signer = info.Signer;
+            timemarkKey.SigningTime = info.SigningTime.Value;
+            timemarkKey.SignatureValue = info.SignatureValue;
+
+            return info;
+        }
+
+        #endregion
+
+        #region Tma Data Verifier Members
+
+        public SignatureSecurityInformation Verify(Stream sealedData, DateTime date)
+        {
+            ITimemarkProvider provider = this.timemarkauthority;
+            try
+            {
+                this.timemarkauthority = new FixedTimemarkProvider(date);
+                return Verify(sealedData);
+            }
+            finally
+            {
+                this.timemarkauthority = provider;
+            }
+        }
+
+        public SignatureSecurityInformation Verify(Stream sealedData, DateTime date, out TimemarkKey timemarkKey)
+        {
+            ITimemarkProvider provider = this.timemarkauthority;
+            try
+            {
+                this.timemarkauthority = new FixedTimemarkProvider(date);
+                return Verify(sealedData, out timemarkKey);
+            }
+            finally
+            {
+                this.timemarkauthority = provider;
             }
         }
 
@@ -158,7 +209,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
 
             UnsealResult result = new UnsealResult();
             result.SecurityInformation = new UnsealSecurityInformation();
-            ITempStreamFactory factory = streaming ? (ITempStreamFactory) new TempFileStreamFactory() : (ITempStreamFactory) new MemoryStreamFactory();
+            ITempStreamFactory factory = streaming && sealedData.Length > Settings.Default.InMemorySize ? (ITempStreamFactory) new TempFileStreamFactory() : (ITempStreamFactory) new MemoryStreamFactory();
 
             Stream verified = factory.CreateNew();
             using(verified)
@@ -166,7 +217,6 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                 result.SecurityInformation.OuterSignature = streaming ?
                     VerifyStreaming(verified, sealedData, null) : 
                     VerifyInMem(verified, sealedData, null);
-                CertificateSecurityInformation origine = result.SecurityInformation.OuterSignature.Subject;
                 trace.TraceEvent(TraceEventType.Information, 0, "Verified the outer signature");
 
                 verified.Position = 0; //reset the stream
@@ -174,15 +224,15 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                 Stream decryptedVerified = factory.CreateNew();
                 using (decryptedVerified)
                 {
-                    result.SecurityInformation.Encryption = Decrypt(decryptedVerified, verified, key, result.SecurityInformation.OuterSignature.SealedOn); //always via stream, it works
+                    result.SecurityInformation.Encryption = Decrypt(decryptedVerified, verified, key, result.SecurityInformation.OuterSignature.SigningTime); //always via stream, it works
                     trace.TraceEvent(TraceEventType.Information, 0, "Decrypted the message");
 
                     decryptedVerified.Position = 0; //reset the stream
 
                     result.UnsealedData = factory.CreateNew();
                     result.SecurityInformation.InnerSignature = streaming ?
-                        VerifyStreaming(result.UnsealedData, decryptedVerified, origine) : 
-                        VerifyInMem(result.UnsealedData, decryptedVerified, origine);
+                        VerifyStreaming(result.UnsealedData, decryptedVerified, result.SecurityInformation.OuterSignature) :
+                        VerifyInMem(result.UnsealedData, decryptedVerified, result.SecurityInformation.OuterSignature);
                     trace.TraceEvent(TraceEventType.Information, 0, "Verified the inner signature, finished");
 
                     result.UnsealedData.Position = 0; //reset the stream
@@ -192,8 +242,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "wait")]
-        private SignatureSecurityInformation VerifyStreaming(Stream verifiedContent, Stream signed, CertificateSecurityInformation origine)
+        private SignatureSecurityInformation VerifyStreaming(Stream verifiedContent, Stream signed, SignatureSecurityInformation outer)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying the signature");
             try
@@ -215,7 +264,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                 IX509Store certs = signedData.GetCertificates("COLLECTION");
                 SignerInformationStore signerInfos = signedData.GetSignerInfos();
 
-                return Verify(signerInfos, certs, origine);
+                return Verify(signerInfos, certs, outer);
             }
             catch (CmsException cmse)
             {
@@ -227,8 +276,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "wait")]
-        private SignatureSecurityInformation VerifyInMem(Stream verifiedContent, Stream signed, CertificateSecurityInformation origine)
+        private SignatureSecurityInformation VerifyInMem(Stream verifiedContent, Stream signed, SignatureSecurityInformation outer)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying the signature");
             try
@@ -243,12 +291,16 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                 {
                     throw new InvalidMessageException("The message isn't a tripple wrapped message", e);
                 }
-                signedData.SignedContent.Write(verifiedContent);
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Copied the signed data");
+
+                if (verifiedContent != null)
+                {
+                    signedData.SignedContent.Write(verifiedContent);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Copied the signed data");
+                }
 
                 IX509Store certs = signedData.GetCertificates("COLLECTION");
                 SignerInformationStore signerInfos = signedData.GetSignerInfos();
-                return Verify(signerInfos, certs, origine);
+                return Verify(signerInfos, certs, outer);
             }
             catch(CmsException cmse)
             {
@@ -256,7 +308,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
             }
         }
 
-        private SignatureSecurityInformation Verify(SignerInformationStore signerInfos, IX509Store certs, CertificateSecurityInformation origine)
+        private SignatureSecurityInformation Verify(SignerInformationStore signerInfos, IX509Store certs, SignatureSecurityInformation outer)
         {
             SignatureSecurityInformation result = new SignatureSecurityInformation();
 
@@ -299,111 +351,48 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
             trace.TraceEvent(TraceEventType.Verbose, 0, "Verified the signature digest and encryption algorithm");
 
             //Find the singing certificate and relevant info
-            BC::X509Certificate signerCert = null;
-            ICollection signerCerts = certs.GetMatches(signerInfo.SignerID);
-            switch (signerCerts.Count)
+            Org.BouncyCastle.X509.X509Certificate signerCert = null;
+            if (certs.GetMatches(null).Count > 0)
             {
-                case 0:
-                    //No certificate found, did we get a default from the outer signature?
-                    if (origine == null)
-                    {
-                        result.securityViolations.Add(SecurityViolation.NotFoundSigner);
-                        trace.TraceEvent(TraceEventType.Warning, 0, "Could not find the signer certificate");
-                        return result;
-                    }
-                    else
-                    {
-                        result.Subject = origine;
-                        signerCert = DotNetUtilities.FromX509Certificate(origine.Certificate);
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "An already validated certificates was provided: {0}", signerCert.SubjectDN.ToString());
-                    }
-                    break;
-                case 1:
-                    //found single certificate, extracting it.
-                    IEnumerator iterator = signerCerts.GetEnumerator();
-                    if (!iterator.MoveNext())
-                    {
-                        trace.TraceEvent(TraceEventType.Error, 0, "Found the signer certificate, but the enumeration was emtpy");
-                        throw new InvalidOperationException("Signer certificate found, but could not be retrieved");
-                    }
-                    signerCert = (BC::X509Certificate)iterator.Current;
+                //We got certificates, so lets find the signer
+                IEnumerator signerCerts = certs.GetMatches(signerInfo.SignerID).GetEnumerator();
 
-                    //get the signing time if present
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "Found the signer certificate: {0}", signerCert.SubjectDN.ToString());
-                    if (signerInfo != null && signerInfo.SignedAttributes != null)
-                    {
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains signed attributes");
-                        Org.BouncyCastle.Asn1.Cms.Attribute time = signerInfo.SignedAttributes[CmsAttributes.SigningTime];
-                        if (time != null && time.AttrValues.Count > 0)
-                        {
-                            DateTime sealedOn = Org.BouncyCastle.Asn1.Cms.Time.GetInstance(time.AttrValues[0]).Date;
-                            trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains a signing time: {0}", sealedOn);
+                if (!signerCerts.MoveNext())
+                {
+                    //found no certificate
+                    result.securityViolations.Add(SecurityViolation.NotFoundSigner);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "Could not find the signer certificate");
+                    return result;
+                }
 
-                            //check if valid
-                            //TODO::look for timestamp in message
-                            DateTime currentTime = DateTime.UtcNow;
-                            if (sealedOn < (currentTime - Settings.Default.TrustPeriod) || sealedOn > (currentTime + new TimeSpan(0, 5, 0)))
-                            {
-                                trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message signing time {0} isn't in line ({2}) with the trusted time: {1}", sealedOn, currentTime, Settings.Default.TrustPeriod);
-                                result.securityViolations.Add(SecurityViolation.SealingTimeNotValidated);
-                            }
+                //Geting the first certificate
+                signerCert = (Org.BouncyCastle.X509.X509Certificate)signerCerts.Current;
 
-                            result.SealedOn = sealedOn;
-                        }
-                    }
-
-                    //Get the CRLs and OCSPs
-                    CertificateList[] rawCrls = new CertificateList[0];
-                    BasicOcspResponse[] rawOcsps = new BasicOcspResponse[0];
-                    if (signerInfo != null && signerInfo.UnsignedAttributes != null)
-                    {
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
-                        Org.BouncyCastle.Asn1.Cms.Attribute revocationValuesList = signerInfo.UnsignedAttributes[EsfAttributes.RevocationValues];
-                        if (revocationValuesList != null && revocationValuesList.AttrValues.Count > 0)
-                        {
-                            trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains Revocation Values");
-                            RevocationValues revocationValues = RevocationValues.GetInstance(revocationValuesList.AttrValues[0]);
-                            if (revocationValues.GetCrlVals() != null) rawCrls = revocationValues.GetCrlVals();
-                            if (revocationValues.GetOcspVals() != null) rawOcsps = revocationValues.GetOcspVals();
-                        }
-                    }
-                    else
-                    {
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message does not contain any unsigned attributes");
-                    }
-
-                    //convert the CRLs in something useful
-                    IList<X509Crl> crls = new List<X509Crl>();
-                    foreach (CertificateList rawCrl in rawCrls)
-                    {
-                        X509Crl crl = new X509Crl(rawCrl);
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "Found CRL:\r\n" + crl.ToString());
-                        crls.Add(crl);
-                    }
-
-                    //conver the OCSPs in something useful
-                    IList<BasicOcspResp> ocsps = new List<BasicOcspResp>();
-                    foreach (BasicOcspResponse rawOcsp in rawOcsps)
-                    {
-                        BasicOcspResp ocsp = new BasicOcspResp(rawOcsp);
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "Found OCSP for:\r\n" + ocsp.GetCerts()[0].ToString());
-                        foreach (BC.X509Certificate cert in ocsp.GetCerts())
-                        {
-                            trace.TraceEvent(TraceEventType.Verbose, 0, "\tCertificate:\r\n" + cert.ToString());
-                        }
-                        ocsps.Add(new BasicOcspResp(rawOcsp));
-                    }
-
-                    //Validating everything
-                    result.Subject = CertVerifier.VerifyAuth(signerCert, origine != null, certs, crls, ocsps, this.Offline, result.SealedOn == null ? DateTime.UtcNow : result.SealedOn.Value);
-                    break;
-                default:
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Found the signer certificate: {0}", signerCert.SubjectDN.ToString());
+                if (signerCerts.MoveNext())
+                {
                     //found several certificates...
                     trace.TraceEvent(TraceEventType.Error, 0, "Several certificates correspond to the signer");
                     throw new NotSupportedException("More then one certificate found that corresponds to the sender information in the message, this isn't supported by the library");
+                }
+            }
+            else
+            {
+                //The subject is the same as the outer
+                result.Subject = outer.Subject;
+                signerCert = DotNetUtilities.FromX509Certificate(result.Subject.Certificate);
+                trace.TraceEvent(TraceEventType.Verbose, 0, "An already validated certificates was provided: {0}", signerCert.SubjectDN.ToString());
+
+                //Additional check, is the authentication certificate also valid for signatures?
+                if (!DotNetUtilities.FromX509Certificate(result.Subject.Certificate).GetKeyUsage()[1])
+                {
+                    result.Subject.securityViolations.Add(CertSecurityViolation.NotValidForUsage);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "The key usage did not have the correct usage flag set");
+                }
             }
 
-            //verify the signature
+            //verify the signature itself
+            result.SignatureValue = signerInfo.GetSignature();
             if (!signerInfo.Verify(signerCert.GetPublicKey()))
             {
                 result.securityViolations.Add(SecurityViolation.NotSignatureValid);
@@ -411,10 +400,130 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
             }
             trace.TraceEvent(TraceEventType.Verbose, 0, "Signature value verification finished");
 
+            //Get the signing time
+            DateTime signingTime = DateTime.UtcNow;
+            if (signerInfo != null && signerInfo.SignedAttributes != null)
+            {
+                Org.BouncyCastle.Asn1.Cms.Attribute time = signerInfo.SignedAttributes[CmsAttributes.SigningTime];
+                if (time != null && time.AttrValues.Count > 0)
+                {
+                    result.SigningTime = Org.BouncyCastle.Asn1.Cms.Time.GetInstance(time.AttrValues[0]).Date;
+                    signingTime = result.SigningTime.Value;
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains a signing time: {0}", result.SigningTime);
+                }
+            }
+
+            //Validating signature info
+            if (this.level == null)
+            {
+                if (outer == null)
+                    result.Subject = CertVerifier.VerifyAuth(signerCert, signingTime, certs, null, null, false, false);
+                else
+                    result.Subject = CertVerifier.VerifySign(signerCert, signingTime, certs, null, null, false, false);
+                return result;
+            }
+
+            //Get the embedded CRLs and OCSPs
+            IList<CertificateList> crls = new List<CertificateList>();
+            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
+            if (signerInfo != null && signerInfo.UnsignedAttributes != null)
+            {
+                trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
+                Org.BouncyCastle.Asn1.Cms.Attribute revocationValuesList = signerInfo.UnsignedAttributes[PkcsObjectIdentifiers.IdAAEtsRevocationValues];
+                if (revocationValuesList != null && revocationValuesList.AttrValues.Count > 0)
+                {
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains Revocation Values");
+                    RevocationValues revocationValues = RevocationValues.GetInstance(revocationValuesList.AttrValues[0]);
+                    if (revocationValues.GetCrlVals() != null) crls = new List<CertificateList>(revocationValues.GetCrlVals());
+                    if (revocationValues.GetOcspVals() != null) ocsps = new List<BasicOcspResponse>(revocationValues.GetOcspVals());
+                }
+            }
+
+            //check for a timestamp, even if not required
+            DateTime validationTime;
+            TimeStampToken tst = null;
+            bool isSigingTimeValidated;
+            if (signerInfo != null && signerInfo.UnsignedAttributes != null)
+            {
+                trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
+                Org.BouncyCastle.Asn1.Cms.Attribute tstList = signerInfo.UnsignedAttributes[PkcsObjectIdentifiers.IdAASignatureTimeStampToken];
+                if (tstList != null && tstList.AttrValues.Count > 0)
+                {
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains Signature Time Stamp Token");
+                    tst = tstList.AttrValues[0].GetEncoded().ToTimeStampToken();
+                }
+            }
+            if (tst == null)
+            {
+                //Retrieve the timemark if needed by the level only
+                if ((this.level & Level.T_Level) == Level.T_Level)
+                {
+                    if (outer == null)
+                    {
+                        //we are in the outer signature, so we need a time-mark (or time-stamp, but we checked that already)
+                        if (timemarkauthority == null) throw new InvalidMessageException("The message does not contain a timestamp and there is not timemarkauthority provided while T-Level is required");
+                        validationTime = timemarkauthority.GetTimemark(new X509Certificate2(signerCert.GetEncoded()), signingTime, signerInfo.GetSignature());
+                    }
+                    else
+                    {
+                        //we are in the inner signature, we check the signing time agains the outer signatures signing time
+                        validationTime = outer.SigningTime.Value;
+                    }
+                }
+                else
+                {
+                    isSigingTimeValidated = false;
+                    validationTime = signingTime;
+                }
+            }
+            else
+            {
+                //Check the timestamp
+                Timestamp stamp;
+                if ((this.level & Level.A_level) == Level.A_level)
+                {
+                    //TODO::follow the chain of A-timestamps until the root (now we assume the signature timestamp is the root)
+                    stamp = tst.Validate(ref crls, ref ocsps, null);
+                } 
+                else {
+                    stamp = tst.Validate(ref crls, ref ocsps);
+                }
+                result.TimestampRenewalTime = stamp.RenewalTime;
+
+                //we get the time from the timestamp
+                validationTime = stamp.Time;
+
+                if (stamp.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0) {
+                    isSigingTimeValidated = false;
+                    result.securityViolations.Add(SecurityViolation.InvalidTimestamp);
+                }
+            }
+
+            //lest check if the signing time is in line with the validation time (obtained from time-mark, outer signature or time-stamp)
+            if (validationTime > (signingTime + EteeActiveConfig.ClockSkewness + Settings.Default.TimestampGracePeriod)
+                || validationTime < (signingTime - EteeActiveConfig.ClockSkewness))
+            {
+                isSigingTimeValidated = false;
+                result.securityViolations.Add(SecurityViolation.SealingTimeInvalid);
+            }
+            else
+            {
+                isSigingTimeValidated = true;
+            }
+
+            //If the subject is already provided, so we don't have to do the next check
+            if (result.Subject != null) return result;
+            
+            //check the status on the available info, for unseal it does not matter if it is B-Level or LT-Level.
+            if (outer == null)
+                result.Subject = CertVerifier.VerifyAuth(signerCert, signingTime, certs, crls, ocsps, true, isSigingTimeValidated);
+            else
+                result.Subject = CertVerifier.VerifySign(signerCert, signingTime, certs, crls, ocsps, true, isSigingTimeValidated);
+
             return result;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
+      
         private SecurityInformation Decrypt(Stream clear, Stream cypher, SecretKey key, DateTime? sealedOn)
         {
             int i;
@@ -457,7 +566,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                 }
                 trace.TraceEvent(TraceEventType.Verbose, 0, "The encryption algorithm is verified: {0}", encryptionAlgOid);
 
-                //EXTEND: check key size of message (TODO)
+                //Key size of the message should not be checked, size is determined by the algorithm
 
                 //Get recipient, should be receiver.
                 RecipientInformation recipientInfo;
@@ -495,7 +604,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                             foreach (X509Certificate2 cert in match.Value)
                             {
                                 //Validate the decription cert, providing minimal info to force minimal validation.
-                                CertificateSecurityInformation certVerRes = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(cert), null, null, null, null, this.Offline, date);
+                                CertificateSecurityInformation certVerRes = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(cert), null, date, null, false);
                                 trace.TraceEvent(TraceEventType.Verbose, 0, "Validated potential decryption certificate ({0}) : {1}", cert.Subject, certVerRes);
                                 if (certVerRes.SecurityViolations.Count == 0)
                                 {
@@ -526,7 +635,7 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                         recipientKey = DotNetUtilities.GetKeyPair(selectedCert.PrivateKey).Private;
 
                         //we validate the selected certificate again to inform the caller
-                        result.Subject = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(selectedCert), null, null, null, null, this.Offline, date);
+                        result.Subject = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(selectedCert),  null, date, null, false);
                     }
                     else
                     {
@@ -582,8 +691,15 @@ namespace Egelke.EHealth.Etee.Crypto.Decrypt
                 CmsTypedStream clearStream = recipientInfo.GetContentStream(recipientKey);
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Accessed the encrypted content");
 
-                clearStream.ContentStream.CopyTo(clear);
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Decrypted the content");
+                try
+                {
+                    clearStream.ContentStream.CopyTo(clear);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Decrypted the content");
+                }
+                finally
+                {
+                    clearStream.ContentStream.Close();
+                }
 
                 return result;
             }

@@ -19,19 +19,20 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 
-using Egelke.EHealth.Etee.Crypto.Encrypt;
+using Egelke.EHealth.Etee.Crypto.Sender;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Resources;
 using Egelke.EHealth.Etee.Crypto;
 using ETEE = Egelke.EHealth.Etee.Crypto;
 using System.IO;
-using Egelke.EHealth.Etee.Crypto.Decrypt;
+using Egelke.EHealth.Etee.Crypto.Receiver;
 using System.Security.Cryptography;
 using System.Collections.ObjectModel;
 using Egelke.EHealth.Etee.Crypto.Utils;
 using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
+using Egelke.EHealth.Client.Tool;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
@@ -39,14 +40,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     /// Summary description for Seal
     /// </summary>
     [TestFixture]
-    public class EndToEnd
+    public class Alice
     {
 
-        static X509Certificate2 alice;
+        static EHealthP12 alice;
 
-        static X509Certificate2 aliceEnc;
-
-        static X509Certificate2 bobEnc;
+        static EHealthP12 bob;
 
         static X509Certificate2Collection both;
         static X509Certificate2Collection aliceOnly;
@@ -56,20 +55,20 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public static void InitializeClass()
         {
             //Alice, used as sender
-            alice = new X509Certificate2("../../alice/alice_auth.p12", "test", X509KeyStorageFlags.Exportable);
+            alice = new EHealthP12("../../alice/alices_private_key_store.p12", "test");
+            bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
 
             //Bob, used as receiver
-            bobEnc = new X509Certificate2("../../bob/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
-            aliceEnc = new X509Certificate2("../../alice/alice_enc.p12", "test", X509KeyStorageFlags.Exportable);
-            both = new X509Certificate2Collection(new X509Certificate2[] { bobEnc, aliceEnc });
-            aliceOnly = new X509Certificate2Collection(new X509Certificate2[] { aliceEnc });
-            bobOnly = new X509Certificate2Collection(new X509Certificate2[] { bobEnc });
+
+            both = new X509Certificate2Collection(new X509Certificate2[] { alice["1204544406096826217265"], bob["825373489"] });
+            aliceOnly = new X509Certificate2Collection(new X509Certificate2[] { alice["1204544406096826217265"] });
+            bobOnly = new X509Certificate2Collection(new X509Certificate2[] { bob["825373489"] });
         }
 
         [Test]
         public void Addressed()
         {
-            Addressed(DataSealerFactory.Create(alice), DataUnsealerFactory.Create(false, both));
+            Addressed(DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level), DataUnsealerFactory.Create(both, null));
         }
 
         private void Addressed(IDataSealer sealer, IDataUnsealer unsealer)
@@ -80,7 +79,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
             //receiver.Verify();
 
-            Stream output = sealer.Seal(receiver, new MemoryStream(Encoding.UTF8.GetBytes(str)));
+            Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), receiver);
 
             UnsealResult result = unsealer.Unseal(output);
             Console.WriteLine(result.SecurityInformation.ToString());
@@ -93,8 +92,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
-            Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
+            Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
@@ -106,17 +106,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             //Get ETK
             EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
-            //receiver1.Verify();
             EncryptionToken receiver2 = new EncryptionToken(Utils.ReadFully("../../alice/alices_public_key.etk"));
-            //receiver2.Verify();
 
-            IDataSealer sealer = DataSealerFactory.Create(alice);
-            List<EncryptionToken> receivers = new List<EncryptionToken>();
-            receivers.Add(receiver1);
-            receivers.Add(receiver2);
-            Stream output = sealer.Seal(new ReadOnlyCollection<EncryptionToken>(receivers), new MemoryStream(Encoding.UTF8.GetBytes(str)));
+            IDataSealer sealer = DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level);
+            Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), receiver1, receiver2);
 
-            IDataUnsealer unsealer = DataUnsealerFactory.Create(false, both);
+            IDataUnsealer unsealer = DataUnsealerFactory.Create(both, null);
             UnsealResult result = unsealer.Unseal(output);
             Console.WriteLine(result.SecurityInformation.ToString());
 
@@ -125,16 +120,15 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             MemoryStream stream = new MemoryStream();
             Utils.Copy(result.UnsealedData, stream);
 
-            //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
-            //Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
 
 
-            unsealer = DataUnsealerFactory.Create(false, aliceOnly);
+            unsealer = DataUnsealerFactory.Create(aliceOnly, null);
             result = unsealer.Unseal(output);
             Console.WriteLine(result.SecurityInformation.ToString());
 
@@ -147,12 +141,13 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
-            Assert.AreEqual(aliceEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
+            Assert.AreEqual(alice["1204544406096826217265"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
 
-            unsealer = DataUnsealerFactory.Create(false, bobOnly);
+            unsealer = DataUnsealerFactory.Create(bobOnly, null);
             result = unsealer.Unseal(output);
             Console.WriteLine(result.SecurityInformation.ToString());
 
@@ -166,8 +161,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
-            Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
+            Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
@@ -175,10 +171,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void NonAddressed()
         {
-            NonAddressed(DataSealerFactory.Create(alice), DataUnsealerFactory.Create(false));
+            NonAddressed(DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level), DataUnsealerFactory.Create(new X509Certificate2Collection(), null));
         }
 
-        private void NonAddressed(IDataSealer sealer, IAnonymousDataUnsealer unsealer)
+        private void NonAddressed(IDataSealer sealer, IDataUnsealer unsealer)
         {
             String str = "This is a secret message from Alice";
 
@@ -196,7 +192,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.IsNull(result.SecurityInformation.Encryption.Subject);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
@@ -205,49 +202,45 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void Mixed()
         {
-            Mixed(DataSealerFactory.Create(alice), DataUnsealerFactory.Create(false, both), DataUnsealerFactory.Create(false));
+            Mixed(DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level), DataUnsealerFactory.Create(both, null));
         }
 
-        private void Mixed(IDataSealer sealer, IDataUnsealer unsealer, IAnonymousDataUnsealer unsealerAnon)
+        private void Mixed(IDataSealer sealer, IDataUnsealer unsealer)
         {
             String str = "This is a secret message from Alice to everybody";
 
             SecretKey key = new SecretKey("btSefztkXjZmlZyHQIumLA==", "aaUnRynIwd3GFQmhXfW+VQ==");
 
             EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
-            //receiver1.Verify();
 
-            List<EncryptionToken> receivers = new List<EncryptionToken>();
-            receivers.Add(receiver1);
+            Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), key, receiver1);
 
-            byte[] output = sealer.Seal(new ReadOnlyCollection<EncryptionToken>(receivers), Encoding.UTF8.GetBytes(str), key);
-
-            UnsealResult result = unsealerAnon.Unseal(output, key);
+            UnsealResult result = unsealer.Unseal(output, key);
             Console.WriteLine(result.SecurityInformation.ToString());
 
             MemoryStream stream = new MemoryStream();
             Utils.Copy(result.UnsealedData, stream);
 
-            //Assert.IsInstanceOfType(result.UnsealedData, typeof(MemoryStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.IsNull(result.SecurityInformation.Encryption.Subject);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
 
-
+            output.Position = 0;
             result = unsealer.Unseal(output);
             Console.WriteLine(result.SecurityInformation.ToString());
 
             stream = new MemoryStream();
             Utils.Copy(result.UnsealedData, stream);
 
-            //Assert.IsInstanceOfType(result.UnsealedData, typeof(MemoryStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(alice.Thumbprint, result.Sender.Thumbprint);
-            Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
+            Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
+            Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
@@ -255,14 +248,14 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void ReuseOfSealerAndUnsealer()
         {
-            IDataSealer sealer = DataSealerFactory.Create(alice);
-            IDataUnsealer unsealer = DataUnsealerFactory.Create(false, bobOnly);
-            IDataUnsealer unsealerAlice = DataUnsealerFactory.Create(false, aliceOnly);
+            IDataSealer sealer = DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level);
+            IDataUnsealer unsealer = DataUnsealerFactory.Create(bobOnly, null);
+            IDataUnsealer unsealerAlice = DataUnsealerFactory.Create(aliceOnly, null);
 
             Addressed(sealer, unsealer);
             NonAddressed(sealer, unsealer);
-            Mixed(sealer, unsealer, unsealerAlice);
-            Mixed(sealer, unsealer, unsealerAlice);
+            Mixed(sealer, unsealer);
+            Mixed(sealer, unsealer);
             NonAddressed(sealer, unsealer);
             Addressed(sealer, unsealer);
         }
@@ -287,18 +280,17 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
                 //Get ETK
                 EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
-                //receiver.Verify();
 
                 //Seal
-                IDataSealer sealer = DataSealerFactory.Create(alice);
-                Stream output = sealer.Seal(receiver, hudgeFile);
+                IDataSealer sealer = DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level);
+                Stream output = sealer.Seal(hudgeFile, receiver);
                 hudgeFile.Position = 0;
 
                 UnsealResult result;
                 using (output)
                 {
                     //Unseal again
-                    IDataUnsealer unsealer = DataUnsealerFactory.Create(false, both);
+                    IDataUnsealer unsealer = DataUnsealerFactory.Create(both, null);
                     result = unsealer.Unseal(output);
                 }
                 Console.WriteLine(result.SecurityInformation.ToString());

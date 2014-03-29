@@ -1,5 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
+ * Copyright (C) 2014 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +35,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using BC = Org.BouncyCastle.X509;
+using Egelke.EHealth.Client.Tsa;
 
 namespace Egelke.EHealth.Etee.Crypto.Utils
 {
@@ -42,12 +43,51 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
     {
         private static TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
-        public static CertificateSecurityInformation VerifyAuth(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, bool? offline, DateTime date)
+        public static CertificateSecurityInformation VerifyAuth(Org.BouncyCastle.X509.X509Certificate cert, DateTime date, IX509Store certs, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, bool checkRevocation, bool checkTime)
         {
-            return Verify(cert, nonRepudiation, certs, crls, ocsps, offline, date);
+            CertificateSecurityInformation result = Verify(cert, date, certs, crls, ocsps, checkRevocation, checkTime);
+
+            if (!cert.GetKeyUsage()[0])
+            {
+                result.securityViolations.Add(CertSecurityViolation.NotValidForUsage);
+                trace.TraceEvent(TraceEventType.Warning, 0, "The key usage did not have the correct usage flag set");
+            }
+
+            return result;
         }
 
-        public static CertificateSecurityInformation VerifyEnc(BC::X509Certificate encCert, BC::X509Certificate authCert, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, bool? offline, DateTime date)
+        public static CertificateSecurityInformation VerifySign(Org.BouncyCastle.X509.X509Certificate cert, DateTime date, IX509Store certs, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, bool checkRevocation, bool checkTime)
+        {
+            CertificateSecurityInformation result = Verify(cert, date, certs, crls, ocsps, checkRevocation, checkTime);
+
+            if (!cert.GetKeyUsage()[1])
+            {
+                result.securityViolations.Add(CertSecurityViolation.NotValidForUsage);
+                trace.TraceEvent(TraceEventType.Warning, 0, "The key usage did not have the correct usage flag set");
+            }
+
+            return result;
+        }
+
+        public static CertificateSecurityInformation VerifyBoth(Org.BouncyCastle.X509.X509Certificate cert, DateTime date, IX509Store certs, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, bool checkRevocation, bool checkTime)
+        {
+            CertificateSecurityInformation result = Verify(cert, date, certs, crls, ocsps, checkRevocation, checkTime);
+
+            //check key usage
+            int[] keyUsageIndexes = new int[] { 0, 1 };
+            foreach (int i in keyUsageIndexes)
+            {
+                if (!cert.GetKeyUsage()[i])
+                {
+                    result.securityViolations.Add(CertSecurityViolation.NotValidForUsage);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "The key usage did not have the correct usage flag set");
+                }
+            }
+
+            return result;
+        }
+
+        public static CertificateSecurityInformation VerifyEnc(Org.BouncyCastle.X509.X509Certificate encCert, Org.BouncyCastle.X509.X509Certificate authCert, DateTime date, IX509Store certs, bool checkRevocation)
         {
             CertificateSecurityInformation result = new CertificateSecurityInformation();
 
@@ -68,7 +108,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             }
 
             //check key usage
-            int[] keyUsageIndexes = new int[] { 2, 3 }; //(TODO: use active config).
+            int[] keyUsageIndexes = new int[] { 2, 3 };
             foreach (int i in keyUsageIndexes)
             {
                 if (!encCert.GetKeyUsage()[i])
@@ -100,36 +140,19 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                 }
 
                 //Validate
-                result.IssuerInfo = Verify(authCert, false, certs, crls, ocsps, offline, date);
+                result.IssuerInfo = VerifyBoth(authCert, date, certs, new List<CertificateList>(0), new List<BasicOcspResponse>(0), checkRevocation, false);
             }
             else
             {
                 //We assume that we have the authCert in case it's of a 3rd person, we don't care if its or own encryption cert (we only care for the validity)
-                //result.securityViolations.Add(CertSecurityViolation.IssuerTrustUnknown);
             }
 
             return result;
         }
 
-        private static CertificateSecurityInformation Verify(BC::X509Certificate cert, bool nonRepudiation, IX509Store certs, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, bool? offline, DateTime date)
+        private static CertificateSecurityInformation Verify(Org.BouncyCastle.X509.X509Certificate cert, DateTime date, IX509Store certs, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, bool checkRevocation, bool checkTime)
         {
             CertificateSecurityInformation result = new CertificateSecurityInformation();
-
-            result.Certificate = new X509Certificate2(cert.GetEncoded());
-
-            //check validity
-            try
-            {
-                cert.CheckValidity(date);
-            }
-            catch (CertificateExpiredException)
-            {
-                result.securityViolations.Add(CertSecurityViolation.NotTimeValid);
-            }
-            catch (CertificateNotYetValidException)
-            {
-                result.securityViolations.Add(CertSecurityViolation.NotTimeValid);
-            }
 
             AsymmetricKeyParameter key = cert.GetPublicKey();
 
@@ -147,75 +170,38 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                 trace.TraceEvent(TraceEventType.Warning, 0, "The key was smaller then {0}", EteeActiveConfig.Unseal.MinimumSignatureKeySize);
             }
 
-            //check key usage
-            int[] keyUsageIndexes;
-            if (nonRepudiation)
+            X509Certificate2Collection extraStore = new X509Certificate2Collection();
+            foreach (Org.BouncyCastle.X509.X509Certificate obj in certs.GetMatches(null))
             {
-                keyUsageIndexes = new int[] { 1 };
+                extraStore.Add(new X509Certificate2(obj.GetEncoded()));
             }
+            Chain chain;
+            if (checkRevocation)
+                chain = new X509Certificate2(cert.GetEncoded()).BuildChain(date, extraStore, ref crls, ref ocsps, checkTime ? DateTime.UtcNow : date);
             else
+                chain = new X509Certificate2(cert.GetEncoded()).BuildBasicChain(date, extraStore);
+                    
+            CertificateSecurityInformation dest = null;
+            foreach (ChainElement ce in chain.ChainElements)
             {
-                keyUsageIndexes = new int[] { 0 };
-            }
-            foreach (int i in keyUsageIndexes)
-            {
-                if (!cert.GetKeyUsage()[i])
+                if (dest == null) {
+                    dest = result;
+                }
+                else
                 {
-                    result.securityViolations.Add(CertSecurityViolation.NotValidForUsage);
-                    trace.TraceEvent(TraceEventType.Warning, 0, "The key usage did not have the correct usage flag set");
+                    dest.IssuerInfo = new CertificateSecurityInformation();
+                    dest = dest.IssuerInfo;
+                }
+
+                dest.Certificate = ce.Certificate;
+                foreach (X509ChainStatus status in ce.ChainElementStatus.Where(x => x.Status != X509ChainStatusFlags.NoError))
+                {
+                    dest.securityViolations.Add((CertSecurityViolation)Enum.Parse(typeof(CertSecurityViolation), Enum.GetName(typeof(X509ChainStatusFlags), status.Status)));
                 }
             }
-
-            //Check certificate status + validity
-            X509Chain chain = new X509Chain();
-            if (ocsps.Count > 0 || crls.Count > 0)
+            if (chain.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.PartialChain) > 0)
             {
-                chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
-            }
-            else
-            {
-                chain.ChainPolicy.RevocationMode = (offline != null && offline.Value) || Settings.Default.Offline ? X509RevocationMode.Offline : X509RevocationMode.Online;
-            }
-            chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
-            chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
-            chain.ChainPolicy.VerificationTime = date;
-            if (certs != null)
-            {
-                ICollection authCertMatch = certs.GetMatches(null);
-                foreach(BC::X509Certificate extraCert in authCertMatch)
-                {
-                    chain.ChainPolicy.ExtraStore.Add(new X509Certificate2(extraCert.GetEncoded()));
-                }
-            }
-            chain.Build(result.Certificate);
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Created key chain (includes revocation check)");
-
-            //Check the overall result.
-            bool partial = false;
-            foreach (X509ChainStatus status in chain.ChainStatus)
-            {
-                switch (status.Status)
-                {
-                    case X509ChainStatusFlags.NoError:
-                        break;
-                    case X509ChainStatusFlags.PartialChain:
-                        partial = true;
-                        break;
-                    case X509ChainStatusFlags.CtlNotSignatureValid:
-                    case X509ChainStatusFlags.CtlNotTimeValid:
-                    case X509ChainStatusFlags.CtlNotValidForUsage:
-                        trace.TraceEvent(TraceEventType.Error, 0, "Unexpected X509ChainStatusFlag: {0}", status.Status);
-                        throw new NotSupportedException("This case isn't supported yet, please contact support");
-                    default:
-                        //Ignore
-                        break;
-                }
-            }
-
-            X509ChainElementEnumerator chainEnum = chain.ChainElements.GetEnumerator();
-            if (chainEnum.MoveNext())
-            {
-                Process(result, chainEnum, crls, ocsps, date, partial);
+                result.securityViolations.Add(CertSecurityViolation.IssuerTrustUnknown);
             }
 
             trace.TraceEvent(TraceEventType.Verbose, 0, "Verified certificate {0} for date {1}", cert.SubjectDN.ToString(), date);
@@ -241,54 +227,6 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                 }
             }
             return true;
-        }
-
-        private static void Process(CertificateSecurityInformation dest, X509ChainElementEnumerator srcChain, IList<X509Crl> crls, IList<BasicOcspResp> ocsps, DateTime on, bool partial)
-        {
-            X509ChainElement src = srcChain.Current;
-            dest.Certificate = src.Certificate;
-
-            BC::X509Certificate cert = DotNetUtilities.FromX509Certificate(src.Certificate);
-            BC::X509Certificate issuer = null;
-
-            foreach (X509ChainStatus status in src.ChainElementStatus)
-            {
-                switch (status.Status)
-                {
-                    case X509ChainStatusFlags.NoError:
-                        //All ok, so nothing to do
-                        break;
-                    default:
-                        try
-                        {
-                            dest.securityViolations.Add((CertSecurityViolation)Enum.Parse(typeof(CertSecurityViolation), Enum.GetName(typeof(X509ChainStatusFlags), status.Status)));
-                        }
-                        catch (ArgumentException ae)
-                        {
-                            throw new NotSupportedException("Unsupported Chain element status, please report this issue", ae);
-                        }
-                        break;
-                }
-            }
-
-            if (srcChain.MoveNext())
-            {
-                dest.IssuerInfo = new CertificateSecurityInformation();
-                Process(dest.IssuerInfo, srcChain, crls, ocsps, on, partial);
-                issuer = DotNetUtilities.FromX509Certificate(dest.IssuerInfo.Certificate);
-
-                //don't do if checked by windows already
-                if ((ocsps.Count > 0 || crls.Count > 0) 
-                    && !OcspVerifier.Verify(ocsps, on, cert, issuer, "embedded")
-                    && !CrlVerifier.Verify(crls, on, cert, issuer, "embedded"))
-                {
-                    dest.securityViolations.Add(CertSecurityViolation.RevocationStatusUnknown);
-                }
-            }
-            else if (partial)
-            {
-                dest.securityViolations.Add(CertSecurityViolation.IssuerTrustUnknown);
-            }
         }
     }
 }

@@ -19,14 +19,14 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 
-using Egelke.EHealth.Etee.Crypto.Encrypt;
+using Egelke.EHealth.Etee.Crypto.Sender;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Resources;
 using Egelke.EHealth.Etee.Crypto;
 using ETEE = Egelke.EHealth.Etee.Crypto;
 using System.IO;
-using Egelke.EHealth.Etee.Crypto.Decrypt;
+using Egelke.EHealth.Etee.Crypto.Receiver;
 using System.Security.Cryptography;
 using System.Collections.ObjectModel;
 using Egelke.EHealth.Etee.Crypto.Utils;
@@ -35,6 +35,10 @@ using Egelke.EHealth.Etee.Crypto.Status;
 using System.Configuration;
 using System.Collections.Specialized;
 using Egelke.EHealth.Etee.Crypto.Configuration;
+using Org.BouncyCastle.Security;
+using Egelke.EHealth.Client.Tsa;
+using Egelke.EHealth.Etee.Crypto.Store;
+using Egelke.EHealth.Client.Tool;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
@@ -42,124 +46,348 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class SelectCert
     {
-        static X509Certificate2 cert;
+        const String clearMessage = "This is a secret message from Alice for Bob";
 
-        static X509Certificate2 aliceEnc;
+        static X509Certificate2 authCert;
 
-        static X509Certificate2 bobEnc;
+        static X509Certificate2 signCert;
+
+        static EHealthP12 alice;
+
+        static EHealthP12 bob;
 
         static X509Certificate2Collection both;
+
+        static EncryptionToken bobEtk;
+
+        static ITimestampProvider tsa;
+
+        Level? level;
+
+        bool useTmaInsteadOfTsa;
+
+        ETEE::Status.TrustStatus trustStatus;
+
+        ValidationStatus validationStatus;
 
         [TestFixtureSetUp]
         public static void InitializeClass()
         {
             //ask the sender
-            cert = AskCertificate();
+            authCert = AskCertificate(X509KeyUsageFlags.DigitalSignature);
+            if (!DotNetUtilities.FromX509Certificate(authCert).GetKeyUsage()[1])
+            {
+                signCert = AskCertificate(X509KeyUsageFlags.NonRepudiation);
+            }
+            else
+            {
+                signCert = null;
+            }
 
-            //Bob (and Alice) used as receiver
-            bobEnc = new X509Certificate2("../../bob/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
-            aliceEnc = new X509Certificate2("../../alice/alice_enc.p12", "test", X509KeyStorageFlags.Exportable);
-            both = new X509Certificate2Collection(new X509Certificate2[] { bobEnc, aliceEnc });
+            //Bob as decryption
+            bobEtk = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
+
+            //Bob (and Alice) used for decryption
+            alice = new EHealthP12("../../alice/alices_private_key_store.p12", "test");
+            bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
+            both = new X509Certificate2Collection(new X509Certificate2[] { alice["1204544406096826217265"], bob["825373489"] });
+
+            //create a tsa (fedict in this case)
+            tsa = new Rfc3161TimestampProvider();
         }
 
         [Test]
-        public void Online()
+        public void NullLevel()
         {
+            level = null;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            Stream output = Seal();
+
+            VerifyOnly(output);
+
+            output.Position = 0;
+
+            UnsealAndVerify(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void B_Level()
+        {
+            level = Level.B_Level;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            Stream output = Seal();
+
+            VerifyOnly(output);
+
+            output.Position = 0;
+
+            UnsealAndVerify(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void T_Level()
+        {
+            level = Level.LT_Level;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            Stream output = Seal();
+
+            VerifyOnly(output);
+
+            output.Position = 0;
+
+            UnsealAndVerify(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void T_LevelTma()
+        {
+            level = Level.LT_Level;
+            useTmaInsteadOfTsa = true;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            Stream output = Seal();
+
+            VerifyOnlyFromTma(output);
+
+            output.Position = 0;
+
+            VerifyOnlyAsTma(output);
+
+            output.Position = 0;
+
+            UnsealAndVerify(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LT_Level()
+        {
+            level = Level.LT_Level;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            Stream output = Seal();
+
+            VerifyOnly(output);
+
+            output.Position = 0;
+
+            UnsealAndVerify(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LT_LevelTma()
+        {
+            level = Level.LT_Level;
+            useTmaInsteadOfTsa = true;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            Stream output = Seal();
+
+            VerifyOnlyFromTma(output);
+
+            output.Position = 0;
+
+            VerifyOnlyAsTma(output);
+
+            output.Position = 0;
+
+            UnsealAndVerify(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LTA_Level()
+        {
+            level = Level.LTA_Level;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            Stream output = Seal();
+
+            VerifyOnly(output);
+
+            output.Position = 0;
+
+            UnsealAndVerify(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LTA_LevelTma()
+        {
+            level = Level.LTA_Level;
+            useTmaInsteadOfTsa = true;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            Stream output = Seal();
+
+            VerifyOnlyFromTma(output);
+
+            output.Position = 0;
+
+            VerifyOnlyAsTma(output);
+
+            output.Position = 0;
+
+            UnsealAndVerify(output);
+
+            output.Close();
+        }
+
+        private void VerifyOnly(Stream output)
+        {
+            IDataVerifier verifier;
+            if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa) 
+            {
+                verifier = DataVerifierFactory.Create(level);
+            }
+            else
+            {
+                verifier = DataVerifierFactory.CreateFromTimemarkAuthority(level.Value, new CurrentTimemarkProvider());
+            }
+
+            SignatureSecurityInformation result = verifier.Verify(output);
+            Console.WriteLine(result.ToString());
+
             
-            String str = "This is a secret message from Alice for Bob";
-
-            Stream output = Seal(str, cert);
-
-            UnsealAndVerify(str, cert, output, EHealth.Etee.Crypto.Status.TrustStatus.Full);
+            Assert.AreEqual(validationStatus, result.ValidationStatus);
+            Assert.AreEqual(trustStatus, result.TrustStatus);
+            Assert.AreEqual(authCert.Thumbprint, result.Signer.Thumbprint);
+            Assert.AreEqual((level & Level.T_Level) == Level.T_Level, result.TimestampRenewalTime > DateTime.UtcNow);
+            Assert.NotNull(result.SignatureValue);
+            Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
         }
 
-        [Test]
-        public void Offline()
+        private void VerifyOnlyFromTma(Stream output)
         {
-            Settings.Default.Offline = true;
-            String str = "This is a secret message from Alice for Bob";
-
-            try
+            IDataVerifier verifier;
+            if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa)
             {
-                Stream output = Seal(str, cert);
-
-                UnsealAndVerify(str, cert, output, EHealth.Etee.Crypto.Status.TrustStatus.Unsure);
+                verifier = DataVerifierFactory.Create(level);
             }
-            finally
+            else
             {
-                Settings.Default.Offline = false;
+                verifier = DataVerifierFactory.CreateFromTimemarkAuthority(level.Value, new CurrentTimemarkProvider());
             }
+
+            SignatureSecurityInformation result = verifier.Verify(output);
+            Console.WriteLine(result.ToString());
+
+
+            Assert.AreEqual(validationStatus, result.ValidationStatus);
+            Assert.AreEqual(trustStatus, result.TrustStatus);
+            Assert.AreEqual(authCert.Thumbprint, result.Signer.Thumbprint);
+            Assert.IsNull(result.TimestampRenewalTime);
+            Assert.NotNull(result.SignatureValue);
+            Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
         }
 
-        [Test]
-        public void OfflineVsOnline()
+        private void VerifyOnlyAsTma(Stream output)
         {
-            String str = "This is a secret message from Alice for Bob";
+            TimemarkKey key;
+            ITmaDataVerifier verifier = DataVerifierFactory.CreateAsTimemarkAuthority(level.Value);
 
-            Settings.Default.Offline = true;
-            Stream output;
-            try
-            {
-                output = Seal(str, cert);
+            SignatureSecurityInformation result = verifier.Verify(output, DateTime.UtcNow, out key);
+            Console.WriteLine(result.ToString());
 
-            }
-            finally
-            {
-                Settings.Default.Offline = false;
-            }
+            Assert.NotNull(key.SignatureValue);
+            Assert.AreEqual(key.Signer.Thumbprint, result.Signer.Thumbprint);
+            Assert.IsTrue((DateTime.UtcNow - key.SigningTime) < new TimeSpan(0, 1, 0));
 
-            UnsealAndVerify(str, cert, output, EHealth.Etee.Crypto.Status.TrustStatus.Full);
+
+            Assert.AreEqual(validationStatus, result.ValidationStatus);
+            Assert.AreEqual(trustStatus, result.TrustStatus);
+            Assert.AreEqual(authCert.Thumbprint, result.Signer.Thumbprint);
         }
 
-        private static void UnsealAndVerify(String str, X509Certificate2 cert, Stream output, ETEE::Status.TrustStatus trustStatus)
+        private void UnsealAndVerify(Stream output)
         {
-            IDataUnsealer unsealer = DataUnsealerFactory.Create(true, both);
+            IDataUnsealer unsealer;
+            if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa) 
+            {
+                unsealer = DataUnsealerFactory.Create(both, level);
+            }
+            else 
+            {
+                unsealer = DataUnsealerFactory.CreateFromTimemarkAuthority(both, level.Value, new CurrentTimemarkProvider());
+            }
+            
             UnsealResult result = unsealer.Unseal(output);
             Console.WriteLine(result.SecurityInformation.ToString());
 
-            output.Close();
-
             MemoryStream stream = new MemoryStream();
             Utils.Copy(result.UnsealedData, stream);
+            result.UnsealedData.Close();
 
-            //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
-            Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
+            Assert.IsTrue((DateTime.UtcNow - result.SealedOn) < new TimeSpan(0, 1, 0));
+            Assert.IsNotNull(result.SignatureValue);
+            Assert.AreEqual(validationStatus, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(trustStatus, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(cert.Thumbprint, result.Sender.Thumbprint);
-            Assert.AreEqual(bobEnc.Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
-            Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
+            Assert.AreEqual(authCert.Thumbprint, result.AuthenticationCertificate.Thumbprint);
+            Assert.AreEqual(signCert == null ? authCert.Thumbprint : signCert.Thumbprint, result.SigningCertificate.Thumbprint);
+            Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
+            Assert.AreEqual(clearMessage, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
 
-        private static Stream Seal(String str, X509Certificate2 cert)
+        private Stream Seal()
         {
-            IDataSealer sealer = DataSealerFactory.Create(cert);
+            IDataSealer sealer;
+            if (!level.HasValue || level.Value == Level.B_Level)
+            {
+                sealer = DataSealerFactory.Create(authCert, signCert, level == null ? Level.B_Level : level.Value);
+            }
+            else
+            {
+                if (useTmaInsteadOfTsa)
+                    sealer = DataSealerFactory.CreateForTimemarkAuthority(authCert, signCert, level.Value);
+                else
+                    sealer = DataSealerFactory.Create(authCert, signCert, level.Value, tsa);
+            }
 
-            //Get ETK
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
-            //receiver.Verify();
-
-            Stream output = sealer.Seal(receiver, new MemoryStream(Encoding.UTF8.GetBytes(str)));
+            Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(clearMessage)), bobEtk);
             return output;
         }
 
-        private static X509Certificate2 AskCertificate()
+        private static X509Certificate2 AskCertificate(X509KeyUsageFlags flags)
         {
-            X509Certificate2 cert;
-
             X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             my.Open(OpenFlags.ReadOnly);
             try
             {
-                X509Certificate2Collection nonRep = my.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.NonRepudiation, true);
-                cert = X509Certificate2UI.SelectFromCollection(nonRep, "Select your cert", "Select the cert you want to used to sign the msg", X509SelectionFlag.SingleSelection)[0];
+                X509Certificate2Collection nonRep = my.Certificates.Find(X509FindType.FindByKeyUsage, flags, true);
+                return X509Certificate2UI.SelectFromCollection(nonRep, "Select your cert", "Select the cert you want to used to sign the msg", X509SelectionFlag.SingleSelection)[0];
             }
             finally
             {
                 my.Close();
             }
-            return cert;
         }
+
 
     }
 }

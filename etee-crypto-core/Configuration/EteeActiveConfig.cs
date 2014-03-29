@@ -1,5 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
+ * Copyright (C) 2014 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +28,17 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
 
         private static SealActiveConfig seal;
         private static UnsealActiveConfig unseal;
+
+        /// <summary>
+        /// The max difference between the different clocks.
+        /// </summary>
+        static public TimeSpan ClockSkewness
+        {
+            get
+            {
+                return new TimeSpan(0, 5, 0);
+            }
+        }
 
         static public SealActiveConfig Seal
         {
