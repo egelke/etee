@@ -52,8 +52,10 @@
   <ItemGroup>
     <Compile Include="Chain.cs" />
     <Compile Include="ChainElement.cs" />
+    <Compile Include="CurrentTimemarkProvider.cs" />
     <Compile Include="DssTimestampProvider.cs" />
     <Compile Include="EHealthTimestampProvider.cs" />
+    <Compile Include="FixedTimemarkProvider.cs" />
     <Compile Include="ITimemarkProvider.cs" />
     <Compile Include="ITimestampProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
