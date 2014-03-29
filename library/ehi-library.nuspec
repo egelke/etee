@@ -12,10 +12,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
-Transformed Library into NuGet Package.
-Officially transfered IP from Siemens to Egelke.
+Replaced BouncyCastle Library with patched version.
     </releaseNotes>
-    <copyright>Copyright © Egelke BVBA 2013</copyright>
+    <copyright>Copyright © Egelke BVBA 2013-2014</copyright>
     <tags>eHealth STS SSO SAML</tags>
   </metadata>
 </package>
