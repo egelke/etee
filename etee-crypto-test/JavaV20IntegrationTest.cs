@@ -12,7 +12,7 @@
  * GNU Lesser General Public License for more details.
 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -28,76 +28,51 @@ using Egelke.EHealth.Etee.Crypto;
 using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
 using Org.BouncyCastle.Security;
+using Egelke.EHealth.Client.Tool;
+using Egelke.EHealth.Client.Tsa;
+using Egelke.EHealth.Client.Tsa.DSS;
+using System.ServiceModel.Description;
+using Egelke.EHealth.Client.Sso.WA;
+using Egelke.EHealth.Client.Sso.Sts;
+using System.ServiceModel;
+using System.Security.Cryptography;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
     [TestFixture]
     public class JavaV20IntegrationTest
     {
-        private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
+        private TraceSource trace = new TraceSource("Egelke.EHealth.Etee.Test");
 
-        private IDataSealer sealer;
+        X509Certificate2 auth;
+        X509Certificate2 sign;
+        EHealthP12 bob;
 
-        private IDataUnsealer bobUnsealer;
-
-        private IDataUnsealer anonUnsealer;
 
         [TestFixtureSetUp]
         public void MyClassInitialize()
         {
-            X509Certificate2 bobEnc = new X509Certificate2("../../bob/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
-
-            X509Certificate2 auth = AskCertificate(X509KeyUsageFlags.DigitalSignature);
-            X509Certificate2 sign;
-            if (!DotNetUtilities.FromX509Certificate(auth).GetKeyUsage()[1])
-            {
-                sign = AskCertificate(X509KeyUsageFlags.NonRepudiation);
-            }
-            else
-            {
-                sign = null;
-            }
-
-            //TODO::test other levels too
-            sealer = DataSealerFactory.Create(auth, sign, Level.B_Level); 
-            bobUnsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(new X509Certificate2[] { bobEnc }), null);
-            anonUnsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(), null);
-        }
-
-        private static X509Certificate2 AskCertificate(X509KeyUsageFlags flags)
-        {
-            X509Certificate2 cert;
+            bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
 
             X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             my.Open(OpenFlags.ReadOnly);
             try
             {
-                X509Certificate2Collection nonRep = my.Certificates.Find(X509FindType.FindByKeyUsage, flags, true);
-                cert = X509Certificate2UI.SelectFromCollection(nonRep, "Select your cert", "Select the cert you want to used to sign the msg", X509SelectionFlag.SingleSelection)[0];
+                auth = my.Certificates.Find(X509FindType.FindByThumbprint, File.ReadAllText("authCertTumb.txt"), false)[0];
+                if (File.Exists("signCertTumb.txt"))
+                {
+                    sign = my.Certificates.Find(X509FindType.FindByThumbprint, File.ReadAllText("signCertTumb.txt"), false)[0];
+                }
+                else
+                {
+                    sign = null;
+                }
             }
             finally
             {
                 my.Close();
             }
-            return cert;
-        }
 
-        private static X509Certificate2 AskAuthCertificate()
-        {
-            X509Certificate2 cert;
-
-            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            my.Open(OpenFlags.ReadOnly);
-            try
-            {
-                X509Certificate2Collection nonRep = my.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.DigitalSignature, true);
-                cert = X509Certificate2UI.SelectFromCollection(nonRep, "Select your cert", "Select the cert you want to used to sign the msg", X509SelectionFlag.SingleSelection)[0];
-            }
-            finally
-            {
-                my.Close();
-            }
-            return cert;
         }
 
         private String RunJava(String program)
@@ -110,7 +85,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.FileName = "java.exe";
-            p.StartInfo.Arguments = @"-cp ..\..\javabin\v2.0\etee-crypto-test.jar;..\..\javabin\v2.0\etee-crypto-lib-2.0.7.jar;..\..\javabin\lib\bcmail-jdk15on-146.jar;..\..\javabin\lib\bcprov-jdk15on-146.jar;..\..\javabin\lib\junit-4.8.2.jar;..\..\javabin\lib\log4j-1.2.16.jar;..\..\javabin\lib\commons-logging-1.1.3.jar;..\..\javabin\lib\commons-eid-client-0.4.0.jar;..\..\javabin\lib\commons-eid-dialogs-0.4.0.jar;..\..\javabin\lib\commons-eid-jca-0.4.0.jar " + program;
+            p.StartInfo.Arguments = @"-cp ..\..\javabin\v2.0\etee-crypto-test.jar;..\..\javabin\v2.0\etee-crypto-lib-2.0.0_beta-0.jar;..\..\javabin\lib\bcmail-jdk15on-146.jar;..\..\javabin\lib\bcprov-jdk15on-146.jar;..\..\javabin\lib\bctsp-jdk15on-146.jar;..\..\javabin\lib\junit-4.8.2.jar;..\..\javabin\lib\log4j-1.2.16.jar;..\..\javabin\lib\commons-logging-1.1.3.jar;..\..\javabin\lib\commons-eid-client-0.4.0.jar;..\..\javabin\lib\commons-eid-dialogs-0.4.0.jar;..\..\javabin\lib\commons-eid-jca-0.4.0.jar " + program;
             p.Start();
 
             result = p.StandardOutput.ReadToEnd();
@@ -125,7 +100,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [Test]
-        public void Java2NetAddressedWithEmbedded()
+        public void Java2NetAddressedBLevel()
         {
             RunJava("etee.crypto.test.Seal NONE");
 
@@ -133,7 +108,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             FileStream file = new FileStream("message_to_bob.msg", FileMode.Open);
             using (file)
             {
-                result = bobUnsealer.Unseal(file);
+                IDataUnsealer unsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(new X509Certificate2[] { bob["825373489"] }), null);
+                result = unsealer.Unseal(file);
             }
             System.Console.WriteLine(result.SecurityInformation);
             
@@ -147,38 +123,189 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String msg = Encoding.UTF8.GetString(bytes);
             Assert.IsTrue(msg.StartsWith("This is a message to bob"));
         }
-       
+
         [Test]
-        public void Net2JavaAddressedWithEmbedded()
+        public void Java2NetAddressedLTLevelTma()
+        {
+            RunJava("etee.crypto.test.Seal MANDATORY");
+
+            UnsealResult result;
+            FileStream file = new FileStream("message_to_bob.msg", FileMode.Open);
+            using (file)
+            {
+                IDataUnsealer unsealer = DataUnsealerFactory.CreateFromTimemarkAuthority(new X509Certificate2Collection(new X509Certificate2[] { bob["825373489"] }), Level.LT_Level, new CurrentTimemarkProvider());
+                result = unsealer.Unseal(file);
+            }
+            System.Console.WriteLine(result.SecurityInformation);
+
+            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
+
+            Assert.AreEqual("SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Authentication), C=BE", result.AuthenticationCertificate.Subject);
+
+            byte[] bytes = new byte[result.UnsealedData.Length];
+            result.UnsealedData.Read(bytes, 0, bytes.Length);
+            String msg = Encoding.UTF8.GetString(bytes);
+            Assert.IsTrue(msg.StartsWith("This is a message to bob"));
+        }
+
+        [Test]
+        public void Java2NetAddressedLTLevel()
+        {
+            RunJava("etee.crypto.test.Seal MANDATORY");
+
+            File.Copy("message_to_bob.msg", "message_to_store.msg", true);
+
+            String output = RunJava("etee.crypto.test.Verify IGNORE");
+
+            SHA256 sha = SHA256.Create();
+            byte[] hash = sha.ComputeHash(Convert.FromBase64String(output.Trim()));
+
+            var tsa = new TimeStampAuthorityClient(new StsBinding(), new EndpointAddress("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2"));
+            tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
+            tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
+            tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
+
+            var tsProvider = new EHealthTimestampProvider(tsa);
+            byte[] tst = tsProvider.GetTimestampFromDocumentHash(hash, "http://www.w3.org/2001/04/xmlenc#sha256");
+
+            File.Copy("message_to_bob.msg", "message_to_store.msg", true);
+
+            RunJava("etee.crypto.test.Stamp " + Convert.ToBase64String(tst));
+
+            UnsealResult result;
+            FileStream file = new FileStream("message_to_bob.msg", FileMode.Open);
+            using (file)
+            {
+                IDataUnsealer unsealer = DataUnsealerFactory.CreateFromTimemarkAuthority(new X509Certificate2Collection(new X509Certificate2[] { bob["825373489"] }), Level.LT_Level, new CurrentTimemarkProvider());
+                result = unsealer.Unseal(file);
+            }
+            System.Console.WriteLine(result.SecurityInformation);
+
+            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
+
+            Assert.AreEqual("SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Authentication), C=BE", result.AuthenticationCertificate.Subject);
+
+            byte[] bytes = new byte[result.UnsealedData.Length];
+            result.UnsealedData.Read(bytes, 0, bytes.Length);
+            String msg = Encoding.UTF8.GetString(bytes);
+            Assert.IsTrue(msg.StartsWith("This is a message to bob"));
+        }
+
+        [Test]
+        public void Net2JavaAddressedLTLevel()
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
+            var tsa = new TimeStampAuthorityClient(new StsBinding(), new EndpointAddress("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2"));
+            tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
+            tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
+            tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
+
+            IDataSealer sealer = DataSealerFactory.Create(auth, sign, Level.LT_Level, new EHealthTimestampProvider(tsa));
             Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
 
             FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
-            msg.CopyTo(msgFile);
+            using (msgFile)
+            {
+                msg.CopyTo(msgFile);
+            }
 
-            String output = RunJava("etee.crypto.test.Unseal NONE");
+            String output = RunJava("etee.crypto.test.Unseal MANDATORY");
 
             Assert.IsTrue(output.Contains(text));
         }
 
         [Test]
-        [ExpectedException(typeof(InvalidOperationException))]
-        public void Net2JavaAddressedWithoutEmbedded()
+        public void Net2JavaAddressedLTLevelFedict()
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
+            IDataSealer sealer = DataSealerFactory.Create(auth, sign, Level.LT_Level, new Rfc3161TimestampProvider());
             Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
 
             FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
-            msg.CopyTo(msgFile);
+            using (msgFile)
+            {
+                msg.CopyTo(msgFile);
+            }
+
+            String output = RunJava("etee.crypto.test.Unseal MANDATORY");
+
+            Assert.IsTrue(output.Contains(text));
+        }
+
+        
+
+        [Test]
+        public void Net2JavaAddressedLTLevelCached()
+        {
+            File.Copy("../../msg/LT_eHTSA.msg", "message_to_bob.msg", true);
+
+            String output = RunJava("etee.crypto.test.Unseal MANDATORY");
+
+            Assert.IsTrue(output.Contains("This is a secret message from Alice for Bob written at 31/03/2014 16:03:03"));
+        }
+
+        [Test]
+        public void Net2JavaAddressedLTLevelCachedFedict()
+        {
+            File.Copy("../../msg/LT_FedictTSA.msg", "message_to_bob.msg", true);
+
+            String output = RunJava("etee.crypto.test.Unseal MANDATORY");
+
+            Assert.IsTrue(output.Contains("This is a secret message from Alice for Bob written at 31/03/2014 16:40:25"));
+        }
+       
+        [Test]
+        public void Net2JavaAddressedLTLevelTma()
+        {
+            String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
+
+            IDataSealer sealer = DataSealerFactory.CreateForTimemarkAuthority(auth, sign, Level.LT_Level);
+            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
+
+            FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
+            using (msgFile)
+            {
+                msg.CopyTo(msgFile);
+            }
+
+            String output = RunJava("etee.crypto.test.Unseal MANDATORY");
+
+            Assert.IsTrue(output.Contains(text));
+        }
+
+        
+
+        [Test]
+        public void Net2JavaAddressedBLevel()
+        {
+            String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
+
+            IDataSealer sealer = DataSealerFactory.Create(auth, sign, Level.B_Level);
+            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
+
+            FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
+            using (msgFile)
+            {
+                msg.CopyTo(msgFile);
+            }
 
             String output = RunJava("etee.crypto.test.Unseal NONE"); //should be OK
 
             Assert.IsTrue(output.Contains(text));
 
-            output = RunJava("etee.crypto.test.Unseal MANDATORY"); //should fail, with exception
+            try
+            {
+                output = RunJava("etee.crypto.test.Unseal MANDATORY"); //should fail, with exception
+                Assert.Fail();
+            }
+            catch (InvalidOperationException)
+            {
+
+            }
 
         }
         /*

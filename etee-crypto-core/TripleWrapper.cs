@@ -381,15 +381,21 @@ namespace Egelke.EHealth.Etee.Crypto
             timemarkKey.SignatureValue = signerInfo.GetSignature();
 
             //Extract the unsigned attributes & signing time
-
+            bool hasSigningTime;
             IDictionary unsignedAttributes = signerInfo.UnsignedAttributes != null ? signerInfo.UnsignedAttributes.ToDictionary() : new Hashtable();
             BC::Asn1.Cms.Attribute singingTimeAttr = signerInfo.SignedAttributes != null ? signerInfo.SignedAttributes[CmsAttributes.SigningTime] : null;
             if (singingTimeAttr == null)
             {
-                trace.TraceEvent(TraceEventType.Error, 0, "The message to complete does not contain a signing time");
-                throw new InvalidMessageException("Java v1 messages can't be completed, only v2 messages and .Net v1 messages can be completed");
+                trace.TraceEvent(TraceEventType.Warning, 0, "The message to complete does not contain a signing time");
+                hasSigningTime = false;
+                timemarkKey.SigningTime = DateTime.UtcNow;
             }
-            timemarkKey.SigningTime = new BC::Asn1.Cms.Time(((DerSet)singingTimeAttr.AttrValues)[0].ToAsn1Object()).Date;
+            else
+            {
+                hasSigningTime = false;
+                timemarkKey.SigningTime = new BC::Asn1.Cms.Time(((DerSet)singingTimeAttr.AttrValues)[0].ToAsn1Object()).Date;
+            }
+            
 
             //Extract the signer, if available
             IX509Store embeddedCerts = parser.GetCertificates("Collection");
@@ -488,7 +494,11 @@ namespace Egelke.EHealth.Etee.Crypto
                 }
 
                 tst = rawTsts[0].GetEncoded().ToTimeStampToken();
-
+                if (!hasSigningTime)
+                {
+                    trace.TraceEvent(TraceEventType.Information, 0, "Implicit signing time {0} is replaced with time-stamp time {1}", timemarkKey.SigningTime, tst.TimeStampInfo.GenTime);
+                    timemarkKey.SigningTime = tst.TimeStampInfo.GenTime;
+                }
                 if (tst.TimeStampInfo.GenTime > (timemarkKey.SigningTime + EteeActiveConfig.ClockSkewness + Settings.Default.TimestampGracePeriod))
                 {
                     trace.TraceEvent(TraceEventType.Error, 0, "The message was time-stamped on {0}, which is beyond the allows period of {2} from the signing time {1}", tst.TimeStampInfo.GenTime, timemarkKey.SigningTime, Settings.Default.TimestampGracePeriod);
