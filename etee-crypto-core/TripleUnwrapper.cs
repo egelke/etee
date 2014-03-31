@@ -331,7 +331,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
             signerInfo = (SignerInformation)iterator.Current;
 
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Found signature with signer ID: {0}", signerInfo.SignerID);
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Found signature, with signer ID = issuer {0} and serial number {0}", signerInfo.SignerID.Issuer, signerInfo.SignerID.SerialNumber);
             if (iterator.MoveNext())
             {
                 trace.TraceEvent(TraceEventType.Error, 0, "Found more then one signature, this isn't supported (yet)");
@@ -498,7 +498,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 {
                     isSigingTimeValidated = false;
                     validationTime = signingTime;
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "There is not validated provided, not is retrieved because of the level");
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "There is not validated provided, nor is it retrieved because of the level");
                 }
             }
             else
@@ -645,7 +645,8 @@ namespace Egelke.EHealth.Etee.Crypto
                             {
                                 //Validate the description cert, providing minimal info to force minimal validation.
                                 CertificateSecurityInformation certVerRes = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(cert), null, date, null, false);
-                                trace.TraceEvent(TraceEventType.Verbose, 0, "Validated potential decryption certificate ({0}) : {1}", cert.Subject, certVerRes);
+                                trace.TraceEvent(TraceEventType.Verbose, 0, "Validated potential decryption certificate ({0}) : Validation Status = {1}, Trust Status = {2}",
+                                    cert.Subject, certVerRes.ValidationStatus, certVerRes.TrustStatus);
                                 if (certVerRes.SecurityViolations.Count == 0)
                                 {
                                     validCertificate.Add(cert);
