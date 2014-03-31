@@ -79,7 +79,7 @@
     </Reference>
     <Reference Include="Egelke.EHealth.Client.Tsa, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC4\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
+      <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC5\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
