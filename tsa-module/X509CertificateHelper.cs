@@ -33,11 +33,14 @@ using System.Net;
 using System.IO;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.X509.Store;
+using System.Diagnostics;
 
 namespace Egelke.EHealth.Client.Tsa
 {
     public static class X509CertificateHelper
     {
+        private static TraceSource trace = new TraceSource("Egelke.EHealth.Tsa");
+
         private static readonly TimeSpan ClockSkewness = new TimeSpan(0, 5, 0);
 
         private static CertificateList RetreiveCrl(BC::X509Certificate cert)
@@ -73,6 +76,7 @@ namespace Egelke.EHealth.Client.Tsa
                                     return null;
 
                                 //Make the Web request
+                                trace.TraceEvent(TraceEventType.Information, 0, "retrieving CRL for {0} from {1}", cert.SubjectDN, location);
                                 WebRequest crlRequest = WebRequest.Create(locationUri);
                                 WebResponse crlResponse = crlRequest.GetResponse();
 
@@ -80,6 +84,7 @@ namespace Egelke.EHealth.Client.Tsa
                                 using (crlResponse)
                                 {
                                     Asn1Sequence crlAns1 = (Asn1Sequence)Asn1Sequence.FromStream(crlResponse.GetResponseStream());
+                                    trace.TraceData(TraceEventType.Verbose, 0, "retrieved CRL", location, Convert.ToBase64String(crlAns1.GetEncoded()));
                                     return CertificateList.GetInstance(crlAns1);
                                 }
                             }
@@ -128,6 +133,7 @@ namespace Egelke.EHealth.Client.Tsa
                         ocspWebReq.ContentType = "application/ocsp-request";
                         Stream ocspWebReqStream = ocspWebReq.GetRequestStream();
                         ocspWebReqStream.Write(ocspReq.GetEncoded(), 0, ocspReq.GetEncoded().Length);
+                        trace.TraceEvent(TraceEventType.Information, 0, "retrieving OCSP for {0} from {1}", cert.SubjectDN, location);
                         WebResponse ocspWebResp = ocspWebReq.GetResponse();
 
                         //Get the response
@@ -135,6 +141,7 @@ namespace Egelke.EHealth.Client.Tsa
                         using (ocspWebResp)
                         {
                             ocspResponse = OcspResponse.GetInstance(new Asn1InputStream(ocspWebResp.GetResponseStream()).ReadObject());
+                            trace.TraceData(TraceEventType.Verbose, 0, "retrieved OCSP-response", location, Convert.ToBase64String(ocspResponse.GetEncoded()));
                         }
 
                         //Check the responder status
@@ -153,8 +160,6 @@ namespace Egelke.EHealth.Client.Tsa
             return null;
         }
 
-        
-
         public static X509ChainStatus CheckRevocation(this X509Certificate2 cert, X509Certificate2 issuer, DateTime validationTime, ref IList<CertificateList> certLists, ref IList<BasicOcspResponse> ocspResponses, bool checkSuspend, TimeSpan maxDelay)
         {
             X509ChainStatus status = new X509ChainStatus();
@@ -166,6 +171,7 @@ namespace Egelke.EHealth.Client.Tsa
             //If no (OCSP) revocation check is allowed
             if (certBc.GetNonCriticalExtensionOids().Contains(OcspObjectIdentifiers.PkixOcspNocheck.Id))
             {
+                trace.TraceEvent(TraceEventType.Verbose, 0, "No revocation needed for {0} because of extension", cert.Subject);
                 return status;
             }
 
@@ -183,6 +189,8 @@ namespace Egelke.EHealth.Client.Tsa
 
                foreach (SingleResp singleResp in matchingSingleResps)
                {
+                   trace.TraceEvent(TraceEventType.Verbose, 0, "Found matching Single OCSP Response for {0}, generated on {1} with valid status = {2}", 
+                       cert.Subject, singleResp.ThisUpdate, singleResp.GetCertStatus() == null);
                    if (bestSingleOcspResp == null)
                     {
                         bestOcspResp = ocspResp;
@@ -210,6 +218,8 @@ namespace Egelke.EHealth.Client.Tsa
                 if (crl.IssuerDN.Equals(certBc.IssuerDN)
                     && ((crl.NextUpdate != null && crl.NextUpdate.Value > validationTime) || crl.ThisUpdate > validationTime))
                 {
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Found matching CRL for {0}, generated on {1}",
+                       cert.Subject, crl.ThisUpdate);
                     if (bestCrl == null)
                     {
                         bestCrl = crl;
@@ -224,7 +234,7 @@ namespace Egelke.EHealth.Client.Tsa
                 }
             }
 
-            //Found neither OCSP or CRL, retreiving OCSP
+            //Found neither OCSP or CRL, retrieving OCSP
             if (bestOcspResp == null && bestCrl == null)
             {
                 BasicOcspResponse ocspResponse = RetreiveOcsps(certBc, issuerBc);
@@ -238,7 +248,7 @@ namespace Egelke.EHealth.Client.Tsa
                 }
             }
 
-            //No OCSP to retrieve, retreiving CRL, crl can still be useful
+            //No OCSP to retrieve, retrieving CRL, crl can still be useful
             if (bestOcspResp == null && bestCrl == null)
             {
                 CertificateList crl = RetreiveCrl(certBc);
@@ -254,6 +264,7 @@ namespace Egelke.EHealth.Client.Tsa
             //Didn't find any CRL or OCSP anywhere
             if (bestOcspResp == null && bestCrl == null)
             {
+                trace.TraceEvent(TraceEventType.Warning, 0, "No revocation information found for {0}", cert.Subject);
                 status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
                 status.StatusInformation = "No revocation information available for the certificate";
                 return status;
@@ -273,6 +284,7 @@ namespace Egelke.EHealth.Client.Tsa
                         IEnumerator selected = bestOcspResp.GetCertificates("Collection").GetMatches(selector).GetEnumerator();
                         if (!selected.MoveNext())
                         {
+                            trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} is signed by an unknown signer", cert.Subject);
                             status.Status = X509ChainStatusFlags.CtlNotSignatureValid;
                             status.StatusInformation = "The OCSP is signed by a unknown certificate";
                             return status;
@@ -280,10 +292,12 @@ namespace Egelke.EHealth.Client.Tsa
                         ocspSignerBc = (BC::X509Certificate)selected.Current;
                         break;
                     default:
+                        trace.TraceEvent(TraceEventType.Error, 0, "OCSP response for {0} does not have a ResponderID", cert.Subject);
                         throw new NotSupportedException("This library only support ResponderID's by name");
                 }
                 if (!bestOcspResp.Verify(ocspSignerBc.GetPublicKey()))
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} has an invalid signature", cert.Subject);
                     status.Status = X509ChainStatusFlags.CtlNotSignatureValid;
                     status.StatusInformation = "The OCSP has an invalid signature";
                     return status;
@@ -300,11 +314,12 @@ namespace Egelke.EHealth.Client.Tsa
                 DateTime now = DateTime.UtcNow;
                 //allow for some clock skewness
                 DateTime signingTime = bestOcspResp.ProducedAt > now && (bestOcspResp.ProducedAt - ClockSkewness) < now  ? now : bestOcspResp.ProducedAt;
-                //The signing time of ocsp responses can be trusted if it is later then the provided validation time (since we assume there is not suspention for OCSP responses)
+                //The signing time of ocsp responses can be trusted if it is later then the provided validation time (since we assume there is not suspension for OCSP responses)
                 DateTime trustedTime = signingTime > validationTime ? signingTime : validationTime;
-                Chain ocspChain = ocspSigner.BuildChain(signingTime, ocspExtraStore, ref certLists, ref ocspResponses, trustedTime);  //again we assume there is not suspention for OCSP responses
+                Chain ocspChain = ocspSigner.BuildChain(signingTime, ocspExtraStore, ref certLists, ref ocspResponses, trustedTime);  //again we assume there is not suspension for OCSP responses
                 if (ocspChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} has an invalid certificate chain", cert.Subject);
                     status.Status = X509ChainStatusFlags.CtlNotTimeValid;
                     status.StatusInformation = "The OCSP is signed by a certificate that hasn't a valid chain";
                     return status;
@@ -313,6 +328,7 @@ namespace Egelke.EHealth.Client.Tsa
                 {
                     if (ocspChainElement.ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
                     {
+                        trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} has an invalid certificate {1} in the chain", cert.Subject, ocspChainElement.Certificate.Subject);
                         status.Status = X509ChainStatusFlags.CtlNotTimeValid;
                         status.StatusInformation = "The OCSP is signed by a certificate that hasn't a valid chain";
                         return status;
@@ -323,14 +339,16 @@ namespace Egelke.EHealth.Client.Tsa
                 IList ocspSignerExtKeyUsage = ocspSignerBc.GetExtendedKeyUsage();
                 if (!ocspSignerExtKeyUsage.Contains("1.3.6.1.5.5.7.3.9"))
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} is signed by certificate {1} that isn't allowed to sign OCSP responses", cert.Subject, ocspSignerBc.SubjectDN);
                     status.Status = X509ChainStatusFlags.CtlNotValidForUsage;
                     status.StatusInformation = "The OCSP is signed by a certificate that isn't allowed to sign OCSP";
                     return status;
                 }
 
-                //check if the certificate is revoced
+                //check if the certificate is revoked
                 if (bestSingleOcspResp.GetCertStatus() != null)
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} indicates that the certificate is revoked", cert.Subject);
                     status.Status = X509ChainStatusFlags.Revoked;
                     status.StatusInformation = "The OCSP response marks the certificate as revoked";
                     return status;
@@ -339,6 +357,7 @@ namespace Egelke.EHealth.Client.Tsa
                 //check if status is still up to date
                 if (checkSuspend && bestSingleOcspResp.ThisUpdate > (validationTime + maxDelay))
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} is older then {1} and therefore certificate might been suspended at the time of use", cert.Subject);
                     status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
                     status.StatusInformation = "The revocation information is outdated which means the certificate could have been suspended when used";
                     return status;
@@ -355,14 +374,16 @@ namespace Egelke.EHealth.Client.Tsa
                 }
                 catch
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "CRL for {0} has an invalid signature", cert.Subject);
                     status.Status = X509ChainStatusFlags.CtlNotSignatureValid;
                     status.StatusInformation = "The CRL has an invalid signature";
                     return status;
                 }
 
-                //chech the signer (only the part relevant for CRL)
+                //check the signer (only the part relevant for CRL)
                 if (!issuerBc.GetKeyUsage()[6])
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "CRL for {0} was signed with a certificate that isn't allowed to sign CRLs", cert.Subject);
                     status.Status = X509ChainStatusFlags.CtlNotValidForUsage;
                     status.StatusInformation = "The CRL was signed with a certificate that isn't allowed to sign CRLs";
                     return status;
@@ -371,6 +392,7 @@ namespace Egelke.EHealth.Client.Tsa
                 //check if the certificate is revoked
                 if (bestCrl.IsRevoked(certBc))
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "CRL indicates that {0} is revoked", cert.Subject);
                     status.Status = X509ChainStatusFlags.Revoked;
                     status.StatusInformation = "The CRL marks the certificate as revoked";
                     return status;
@@ -379,6 +401,7 @@ namespace Egelke.EHealth.Client.Tsa
                 //check if status is still up to date
                 if (checkSuspend && bestCrl.ThisUpdate > (validationTime + maxDelay))
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "CRL for {0} is older then {1} and therefore the certificate might been suspended at the time of use", cert.Subject);
                     status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
                     status.StatusInformation = "The revocation information is outdated which means the certificate could have been suspended when used";
                     return status;
@@ -400,11 +423,28 @@ namespace Egelke.EHealth.Client.Tsa
             //create the chain using the information from the X509 Chain
             Chain chain = new Chain();
             chain.ChainStatus = new List<X509ChainStatus>();
+            if (trace.Switch.ShouldTrace(TraceEventType.Information))
+            {
+                foreach (var status in x509Chain.ChainStatus)
+                {
+                    trace.TraceEvent(status.Status != X509ChainStatusFlags.NoError ? TraceEventType.Warning : TraceEventType.Information, 0,
+                        "The certificate {0} has a status {1}: {2}", cert.Subject, status.Status, status.StatusInformation);
+                }
+            }
             chain.ChainStatus.AddRange(x509Chain.ChainStatus);
+            
             chain.ChainElements = new List<ChainElement>();
             X509ChainElementEnumerator x509Elements = x509Chain.ChainElements.GetEnumerator();
             while (x509Elements.MoveNext())
             {
+                if (trace.Switch.ShouldTrace(TraceEventType.Information))
+                {
+                    foreach (var status in x509Elements.Current.ChainElementStatus)
+                    {
+                        trace.TraceEvent(status.Status != X509ChainStatusFlags.NoError ? TraceEventType.Warning : TraceEventType.Information, 0,
+                            "The certificate {0} has a status {1}: {2}", x509Elements.Current.Certificate.Subject, status.Status, status.StatusInformation);
+                    }
+                }
                 chain.ChainElements.Add(new ChainElement(x509Elements.Current));
             }
 
@@ -423,7 +463,11 @@ namespace Egelke.EHealth.Client.Tsa
 
         public static Chain BuildChain(this X509Certificate2 cert, DateTime signingTime, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime trustedTime, bool checkHistoricalSuspend, TimeSpan maxDelay)
         {
-            if (signingTime > trustedTime) throw new ArgumentException("The trusted time must be greater or equal then the signing time", "trustedTime");
+            if (signingTime > trustedTime)
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "The signing time {1} is newer then the trusted time {2} for {0}", cert.Subject, signingTime, trustedTime);
+                throw new ArgumentException("The trusted time must be greater or equal then the signing time", "trustedTime");
+            }
 
             Chain chain = cert.BuildBasicChain(signingTime, extraStore);
             List<ChainElement>.Enumerator elements = chain.ChainElements.GetEnumerator();

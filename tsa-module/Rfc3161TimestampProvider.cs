@@ -8,7 +8,7 @@
  *  the Free Software Foundation, either version 2.1 of the License, or
  *  (at your option) any later version.
  *
- *  Foobar is distributed in the hope that it will be useful,
+ *  eH-I is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
@@ -25,21 +25,24 @@ using System.Net;
 using Org.BouncyCastle.Tsp;
 using System.IO;
 using System.Security.Cryptography;
+using System.Diagnostics;
 
 namespace Egelke.EHealth.Client.Tsa
 {
     /// <summary>
-    /// Timestamp provided via teh RFC3161 protocol.
+    /// Time-stamp provided via the RFC3161 protocol.
     /// </summary>
     /// <remarks>
-    /// Get a timestamp via the HTTP protocol.
+    /// Get a time-stamp via the HTTP protocol.
     /// </remarks>
     public class Rfc3161TimestampProvider : ITimestampProvider
     {
+        private TraceSource trace = new TraceSource("Egelke.EHealth.Tsa");
+
         private Uri address;
 
         /// <summary>
-        /// Constuctor that has the Fedict TSA as destination.
+        /// Constructor that has the Fedict TSA as destination.
         /// </summary>
         /// <remarks>
         /// You may only use this when you have the explicit agreement of Fedict. 
@@ -59,13 +62,13 @@ namespace Egelke.EHealth.Client.Tsa
         }
 
         /// <summary>
-        /// Gets a timestamp of the provided address via the RFC3161.
+        /// Gets a time-stamp of the provided address via the RFC3161.
         /// </summary>
-        /// <param name="hash">The has to get the timestamp from</param>
+        /// <param name="hash">The has to get the time-stamp from</param>
         /// <param name="digestMethod">The algorithm used to calculate the hash</param>
-        /// <returns>The timestamp token in binary (encoded) format</returns>
+        /// <returns>The time-stamp token in binary (encoded) format</returns>
         /// <exception cref="WebException">When the TSA returned a http-error</exception>
-        /// <exception cref="TspValidationException">When the TSA returns an invalid timestamp response</exception>
+        /// <exception cref="TspValidationException">When the TSA returns an invalid time-stamp response</exception>
         public byte[] GetTimestampFromDocumentHash(byte[] hash, string digestMethod)
         {
             String digestOid = CryptoConfig.MapNameToOID(CryptoConfig.CreateFromName(digestMethod).GetType().ToString());
@@ -75,6 +78,7 @@ namespace Egelke.EHealth.Client.Tsa
             TimeStampRequest tspr = tsprg.Generate(digestOid, hash);
             byte[] tsprBytes = tspr.GetEncoded();
 
+            trace.TraceEvent(TraceEventType.Information, 0, "retrieving time-stamp of {0} from {1}", Convert.ToBase64String(hash), address);
             WebRequest post = WebRequest.Create(address);
             post.ContentType = "application/timestamp-query";
             post.Method = "POST";
@@ -84,14 +88,26 @@ namespace Egelke.EHealth.Client.Tsa
                 postStream.Write(tsprBytes, 0, tsprBytes.Length);
             }
             WebResponse response = post.GetResponse();
+            Stream responseStream = response.GetResponseStream();
             if (response.ContentType != "application/timestamp-reply")
             {
+                byte[] buffer = (new BinaryReader(responseStream)).ReadBytes(16 * 1024);
+                trace.TraceData(TraceEventType.Error, 0, "Invalid http content for time-stamp reply: " + response.ContentType, buffer);
                 throw new ApplicationException("Response with invalid content type of the TSA: " + response.ContentType);
             }
-            Stream responseStream = response.GetResponseStream();
 
             TimeStampResponse tsResponse = new TimeStampResponse(responseStream);
-            tsResponse.Validate(tspr);
+            trace.TraceData(TraceEventType.Verbose, 0, "retrieved time-stamp response", address.ToString(), Convert.ToBase64String(tsResponse.GetEncoded()));
+
+            try
+            {
+                tsResponse.Validate(tspr);
+            }
+            catch (Exception e)
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "The time-stamp response does not correspond with the request: {0}", e.Message);
+                throw e;
+            }
 
             return tsResponse.TimeStampToken.GetEncoded();
         }

@@ -33,6 +33,7 @@ using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
+using System.Diagnostics;
 
 namespace Egelke.EHealth.Client.Tsa
 {
@@ -41,12 +42,14 @@ namespace Egelke.EHealth.Client.Tsa
     /// </summary>
     public static class TimeStampTokenHelper
     {
+        private static TraceSource trace = new TraceSource("Egelke.EHealth.Tsa");
+
         private static readonly TimeSpan ClockSkewness = new TimeSpan(0, 5, 0);
 
         /// <summary>
         /// Parses a TimeStampToken from binary format to BouncyCastle object format.
         /// </summary>
-        /// <param name="tst">The timestamptoken (the token itself, not the response)</param>
+        /// <param name="tst">The time-stamp-token (the token itself, not the response)</param>
         /// <returns>The BouncyCastle object</returns>
         public static TimeStampToken ToTimeStampToken(this byte[] tst)
         {
@@ -55,19 +58,28 @@ namespace Egelke.EHealth.Client.Tsa
 
         public static bool IsMatch(this TimeStampToken tst, Stream data)
         {
-            //check if we can verify the timestamp
+            //check if we can verify the time-stamp
             if (tst.TimeStampInfo.HashAlgorithm.Parameters != DerNull.Instance)
-                throw new NotSupportedException("Only hash algorithms without params are currently supported for timestamps");
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "The time-stamp {0} contains hash parameters {1} which isn't supported", tst.TimeStampInfo.SerialNumber, tst.TimeStampInfo.HashAlgorithm.Parameters);
+                throw new NotSupportedException("Only hash algorithms without parameters are currently supported for timestamps");
+            }
             if (tst.TimeStampInfo.Nonce != null)
-                throw new NotSupportedException("Timestamp with a nonce isn't supported");
-
-            //create the hash according to the specs of the timestamp
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "The time-stamp {0} contains a Nonce which isn't supported", tst.TimeStampInfo.SerialNumber, tst.TimeStampInfo.HashAlgorithm.Parameters);
+                throw new NotSupportedException("Time-stamp with a nonce isn't supported");
+            }
+                
+            //create the hash according to the specs of the time-stamp
             var hashAlogOid = new Oid(tst.TimeStampInfo.HashAlgorithm.ObjectID.Id);
             var hashAlgo = (HashAlgorithm)CryptoConfig.CreateFromName(hashAlogOid.FriendlyName);
             byte[] signatureValueHashed = hashAlgo.ComputeHash(data);
 
             //verify the hash value
             byte[] timestampHash = tst.TimeStampInfo.TstInfo.MessageImprint.GetHashedMessage();
+
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Comparing the calculated hash ({3}) {1} with {2} for TST {0}", tst.TimeStampInfo.SerialNumber,
+                Convert.ToBase64String(signatureValueHashed), Convert.ToBase64String(timestampHash), hashAlogOid.FriendlyName);
             return ((IStructuralEquatable)signatureValueHashed).Equals(timestampHash, StructuralComparisons.StructuralEqualityComparer);
         }
 
@@ -92,7 +104,7 @@ namespace Egelke.EHealth.Client.Tsa
         }
 
         /// <summary>
-        /// Validates the time-stamp token in normal case, not for abtriation.
+        /// Validates the time-stamp token in normal case, not for arbitration.
         /// </summary>
         /// <param name="tst"></param>
         /// <param name="crls"></param>
@@ -121,6 +133,7 @@ namespace Egelke.EHealth.Client.Tsa
             BC::X509Certificate signerBc = tst.GetSigner();
             if (signerBc == null)
             {
+                trace.TraceEvent(TraceEventType.Warning, 0, "The signer of the time-stamp {0} isn't found", tst.TimeStampInfo.SerialNumber);
                 X509ChainStatus status = new X509ChainStatus();
                 status.Status = X509ChainStatusFlags.NotSignatureValid;
                 status.StatusInformation = "Signer not found";
@@ -134,9 +147,10 @@ namespace Egelke.EHealth.Client.Tsa
                 }
                 catch (Exception e)
                 {
+                    trace.TraceEvent(TraceEventType.Warning, 0, "The signature from {1} of the time-stamp {0} is invalid: {2}", tst.TimeStampInfo.SerialNumber, signerBc.SubjectDN, e.Message);
                     X509ChainStatus status = new X509ChainStatus();
                     status.Status = X509ChainStatusFlags.NotSignatureValid;
-                    status.StatusInformation = "Timestamp not signed by indicated certificate: " + e.Message;
+                    status.StatusInformation = "Time-stamp not signed by indicated certificate: " + e.Message;
                     X509CertificateHelper.AddErrorStatus(value.TimestampStatus, status);
                 }
             }
@@ -154,7 +168,7 @@ namespace Egelke.EHealth.Client.Tsa
             }
 
             //Check the chain
-            value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(signingTime, extraStore, ref crls, ref ocsps, validationTime); //we assume 'timestamp signers aren't suspended, only permanently revoked
+            value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(signingTime, extraStore, ref crls, ref ocsps, validationTime); //we assume time-stamp signers aren't suspended, only permanently revoked
 
             //get the renewal time
             value.RenewalTime = DateTime.MaxValue;
@@ -166,10 +180,11 @@ namespace Egelke.EHealth.Client.Tsa
                 }
             }
 
-            //check if the certificate may be used for timestamping
+            //check if the certificate may be used for time-stamping
             IList signerExtKeyUsage = signerBc.GetExtendedKeyUsage();
             if (!signerExtKeyUsage.Contains("1.3.6.1.5.5.7.3.8"))
             {
+                trace.TraceEvent(TraceEventType.Warning, 0, "The signer {1} of the time-stamp {0} isn't allowed to sign timestamps", tst.TimeStampInfo.SerialNumber, signerBc.SubjectDN);
                 X509ChainStatus status = new X509ChainStatus();
                 status.Status = X509ChainStatusFlags.NotValidForUsage;
                 status.StatusInformation = "The certificate may not be used for timestamps";

@@ -118,6 +118,11 @@
     <None Include="files\test.crt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="files\testCa.crt" />
+    <None Include="files\testRootCa.crt" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="tsa.config">
       <SubType>Designer</SubType>
     </None>
