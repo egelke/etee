@@ -33,6 +33,7 @@ using Egelke.EHealth.Etee.Crypto.Utils;
 using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
 using Egelke.EHealth.Client.Tool;
+using Egelke.EHealth.Etee.Crypto.Configuration;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
@@ -54,11 +55,14 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [TestFixtureSetUp]
         public static void InitializeClass()
         {
-            //Alice, used as sender
+            //Load eHealth certificates
             alice = new EHealthP12("../../alice/alices_private_key_store.p12", "test");
             bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
 
-            //Bob, used as receiver
+            //Add the Alice certs to the extra store
+            X509Certificate2[] extraCerts = new X509Certificate2[alice.Values.Count];
+            alice.Values.CopyTo(extraCerts, 0);
+            Settings.Default.ExtraStore = new X509Certificate2Collection(extraCerts);
 
             both = new X509Certificate2Collection(new X509Certificate2[] { alice["1204544406096826217265"], bob["825373489"] });
             aliceOnly = new X509Certificate2Collection(new X509Certificate2[] { alice["1204544406096826217265"] });
@@ -260,7 +264,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Addressed(sealer, unsealer);
         }
 
-        [Test]
+        [Test, Explicit, Category("Long")]
         public void HudgeFile()
         {
             Random rand = new Random();

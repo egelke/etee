@@ -35,46 +35,6 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     public class EncryptionTokenTest
     {
 
-        X509Certificate2 testCA;
-
-        [TestFixtureSetUp]
-        public void SetUp()
-        {
-            testCA = new X509Certificate2("../../imports/CA.cer");
-
-            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
-            store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
-            try
-            {
-                if (!store.Certificates.Contains(testCA))
-                {
-                    store.Add(testCA);
-                }
-            }
-            finally
-            {
-                store.Close();
-            }
-        }
-
-        [TestFixtureTearDown]
-        public void TearDown()
-        {
-            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
-            store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
-            try
-            {
-                if (store.Certificates.Contains(testCA))
-                {
-                    store.Remove(testCA);
-                }
-            }
-            finally
-            {
-                store.Close();
-            }
-        }
-
         private void LoadNewCert(X509Store store, String certPath)
         {
             X509Certificate2 cert = new X509Certificate2(certPath);
@@ -86,6 +46,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [Test]
+        [Ignore]
         public void kgss()
         {
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/kgss.etk"));

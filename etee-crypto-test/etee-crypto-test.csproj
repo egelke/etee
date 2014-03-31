@@ -67,7 +67,7 @@
     </Reference>
     <Reference Include="Egelke.EHealth.Client.Tsa, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC4\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
+      <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC5\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -82,6 +82,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config.cs" />
     <Compile Include="JavaV20IntegrationTest.cs" />
     <Compile Include="JavaV16IntegrationTest.cs" />
     <Compile Include="SelectCert.cs" />
@@ -100,7 +101,9 @@
     <Content Include="alice\alices_public_key.etk" />
     <None Include="alice\alices_private_key_store.p12" />
     <None Include="bob\bobs_private_key_store.p12" />
-    <None Include="Etee.config" />
+    <None Include="App.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Content Include="bob\bobs_public_key.etk" />
     <Content Include="etk\auth_and_encr_not_same_DN.etk" />
     <Content Include="etk\expired_auth.etk" />

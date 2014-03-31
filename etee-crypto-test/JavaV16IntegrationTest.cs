@@ -27,6 +27,7 @@ using Egelke.EHealth.Etee.Crypto.Sender;
 using Egelke.EHealth.Etee.Crypto;
 using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
+using Egelke.EHealth.Client.Tool;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
@@ -44,11 +45,13 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [TestFixtureSetUp]
         public void MyClassInitialize()
         {
-            X509Certificate2 aliceAuth = new X509Certificate2("../../alice/alice_auth.p12", "test", X509KeyStorageFlags.Exportable);
-            X509Certificate2 bobEnc = new X509Certificate2("../../bob/bob_enc.p12", "test", X509KeyStorageFlags.Exportable);
 
-            aliceSealer = DataSealerFactory.Create(aliceAuth, null, Level.B_Level);
-            bobUnsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(new X509Certificate2[] { bobEnc }), null);
+            var alice = new EHealthP12("../../alice/alices_private_key_store.p12", "test");
+            var bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
+
+
+            aliceSealer = DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level);
+            bobUnsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(new X509Certificate2[] { bob["825373489"] }), null);
             anonUnsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(), null);
         }
 
