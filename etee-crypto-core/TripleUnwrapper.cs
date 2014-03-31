@@ -331,7 +331,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
             signerInfo = (SignerInformation)iterator.Current;
 
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Found signature, with signer ID = issuer {0} and serial number {0}", signerInfo.SignerID.Issuer, signerInfo.SignerID.SerialNumber);
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Found signature, with signer ID = issuer {0} and serial number {1}", signerInfo.SignerID.Issuer, signerInfo.SignerID.SerialNumber);
             if (iterator.MoveNext())
             {
                 trace.TraceEvent(TraceEventType.Error, 0, "Found more then one signature, this isn't supported (yet)");
@@ -409,12 +409,14 @@ namespace Egelke.EHealth.Etee.Crypto
             trace.TraceEvent(TraceEventType.Verbose, 0, "Signature value verification finished");
 
             //Get the signing time
+            bool hasSigningTime = false;
             DateTime signingTime = DateTime.UtcNow;
             if (signerInfo != null && signerInfo.SignedAttributes != null)
             {
                 Org.BouncyCastle.Asn1.Cms.Attribute time = signerInfo.SignedAttributes[CmsAttributes.SigningTime];
                 if (time != null && time.AttrValues.Count > 0)
                 {
+                    hasSigningTime = true;
                     result.SigningTime = Org.BouncyCastle.Asn1.Cms.Time.GetInstance(time.AttrValues[0]).Date;
                     signingTime = result.SigningTime.Value;
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains a signing time: {0}", result.SigningTime);
@@ -527,6 +529,11 @@ namespace Egelke.EHealth.Etee.Crypto
                 //we get the time from the time-stamp
                 validationTime = stamp.Time;
                 trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the time-stamp time which is on {0}", validationTime);
+                if (!hasSigningTime)
+                {
+                    trace.TraceEvent(TraceEventType.Information, 0, "Implicit signing time {0} is replaced with time-stamp time {1}", signingTime, tst.TimeStampInfo.GenTime);
+                    signingTime = stamp.Time;
+                }
 
                 if (stamp.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0) {
                     trace.TraceEvent(TraceEventType.Warning, 0, "The time-stamp is invalid with {0} errors, including {1}: {2}",

@@ -67,7 +67,7 @@
     </Reference>
     <Reference Include="Egelke.EHealth.Client.Tsa, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC5\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
+      <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC6\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -93,6 +93,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Contributors.html" />
+    <Content Include="javabin\lib\bctsp-jdk15on-146.jar" />
+    <Content Include="javabin\v2.0\etee-crypto-lib-2.0.0_beta-0.jar" />
     <Content Include="License.html" />
     <Content Include="Readme.html" />
     <None Include="..\debug.snk">
@@ -103,6 +105,7 @@
     <None Include="bob\bobs_private_key_store.p12" />
     <None Include="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
     <Content Include="bob\bobs_public_key.etk" />
     <Content Include="etk\auth_and_encr_not_same_DN.etk" />
@@ -132,7 +135,6 @@
     <Content Include="javabin\lib\log4j-1.2.16.jar" />
     <Content Include="javabin\v1.6\SIGNED-etee-crypto-1.6.1-tests.jar" />
     <Content Include="javabin\v1.6\SIGNED-etee-crypto-1.6.1.jar" />
-    <Content Include="javabin\v2.0\etee-crypto-lib-2.0.1.jar" />
     <Content Include="javabin\v2.0\etee-crypto-test.jar" />
     <Content Include="msg\openssl_encrypted.msg" />
     <Content Include="msg\openssl_inner_signed.msg" />
@@ -175,6 +177,9 @@
     <None Include="etk\kgss.etk" />
     <None Include="etk\myself.etk" />
     <None Include="imports\CA.cer" />
+    <None Include="imports\CA2.cer" />
+    <None Include="msg\LT_eHTSA.msg" />
+    <None Include="msg\LT_FedictTSA.msg" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

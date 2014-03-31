@@ -22,12 +22,12 @@ using Org.BouncyCastle.Crypto.Parameters;
 namespace Egelke.EHealth.Etee.Crypto
 {
     /// <summary>
-    /// Represents an symetric secret key or Key Encryption Key.
+    /// Represents an symmetric secret key or Key Encryption Key.
     /// </summary>
     /// <remarks>
     /// <para>
     /// This class represents a secret, but shared, key from the KGSS.  It can be used to seal messages so it can only be viewed by the 
-    /// that the KGSS allows to retreive the same key.  It isn't advised to use the same key for more then one message.  
+    /// that the KGSS allows to retrieve the same key.  It isn't advised to use the same key for more then one message.  
     /// </para>
     /// </remarks>
     public class SecretKey
@@ -41,15 +41,15 @@ namespace Egelke.EHealth.Etee.Crypto
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The xml representation of the "GetNewKeyResponseContent" contains both the id als the key
+        /// The xml representation of the "GetNewKeyResponseContent" contains both the id as the key
         /// that can be provided to this constructor.  The xml representation "GetKeyResponseContent"
         /// only contains the key param for this constructor, the id param should be the same as
         /// in the xml representation of "GetKeyRequestContent".
         /// </para>
         /// </remarks>
         /// <param name="id">The ID of the KEK.  Senders get it from the KGSS web service, receivers 
-        /// get it directly from the sender in an application spefic way.</param>
-        /// <param name="key">The KEK itself, always retreived from the KGSS web service</param>
+        /// get it directly from the sender in an application specific way.</param>
+        /// <param name="key">The KEK itself, always retrieved from the KGSS web service</param>
         public SecretKey(String id, String key)
             : this(Convert.FromBase64String(id), Convert.FromBase64String(key))
         {
