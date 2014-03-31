@@ -348,16 +348,23 @@ namespace Egelke.EHealth.Client.Tsa
                 //check if the certificate is revoked
                 if (bestSingleOcspResp.GetCertStatus() != null)
                 {
-                    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} indicates that the certificate is revoked", cert.Subject);
-                    status.Status = X509ChainStatusFlags.Revoked;
-                    status.StatusInformation = "The OCSP response marks the certificate as revoked";
-                    return status;
+                    RevokedStatus revokedStatus = (RevokedStatus) bestSingleOcspResp.GetCertStatus();
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "OCSP response for {0} indicates that the certificate is revoked on {1}", cert.Subject, revokedStatus.RevocationTime);
+                    if (validationTime >= revokedStatus.RevocationTime)
+                    {
+                        trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} indicates that the certificate is revoked on {1}, which is before the usage on {2}", 
+                            cert.Subject, revokedStatus.RevocationTime, validationTime);
+                        status.Status = X509ChainStatusFlags.Revoked;
+                        status.StatusInformation = "The OCSP response marks the certificate as revoked";
+                        return status;
+                    }
                 }
 
                 //check if status is still up to date
                 if (checkSuspend && bestSingleOcspResp.ThisUpdate > (validationTime + maxDelay))
                 {
-                    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} is older then {1} and therefore certificate might been suspended at the time of use", cert.Subject);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response of {1} for {0} is older then {3} at {2} and therefore certificate might been suspended at the time of use",
+                        cert.Subject, bestSingleOcspResp.ThisUpdate, validationTime, maxDelay);
                     status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
                     status.StatusInformation = "The revocation information is outdated which means the certificate could have been suspended when used";
                     return status;
@@ -390,18 +397,25 @@ namespace Egelke.EHealth.Client.Tsa
                 }
 
                 //check if the certificate is revoked
-                if (bestCrl.IsRevoked(certBc))
+                X509CrlEntry crlEntry = bestCrl.GetRevokedCertificate(certBc.SerialNumber);
+                if (crlEntry != null)
                 {
-                    trace.TraceEvent(TraceEventType.Warning, 0, "CRL indicates that {0} is revoked", cert.Subject);
-                    status.Status = X509ChainStatusFlags.Revoked;
-                    status.StatusInformation = "The CRL marks the certificate as revoked";
-                    return status;
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "CRL indicates that {0} is revoked on {1}", cert.Subject, crlEntry.RevocationDate);
+                    if (validationTime >= crlEntry.RevocationDate)
+                    {
+                        trace.TraceEvent(TraceEventType.Warning, 0, "CRL indicates that {0} is revoked on {1} which is before the usage on {2}",
+                            cert.Subject, crlEntry.RevocationDate, validationTime);
+                        status.Status = X509ChainStatusFlags.Revoked;
+                        status.StatusInformation = "The CRL marks the certificate as revoked";
+                        return status;
+                    }
                 }
 
                 //check if status is still up to date
                 if (checkSuspend && bestCrl.ThisUpdate > (validationTime + maxDelay))
                 {
-                    trace.TraceEvent(TraceEventType.Warning, 0, "CRL for {0} is older then {1} and therefore the certificate might been suspended at the time of use", cert.Subject);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "CRL from {1} for {0} is older then {2} on {3} and therefore the certificate might been suspended at the time of use",
+                        cert.Subject, bestCrl.ThisUpdate, maxDelay, validationTime);
                     status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
                     status.StatusInformation = "The revocation information is outdated which means the certificate could have been suspended when used";
                     return status;

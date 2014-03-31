@@ -344,6 +344,31 @@ namespace Egelke.EHealth.Client.TsaTest
         }
 
         /*
+         * Test: Success
+         * Cert status: the certificate is revoked
+         * Check historical supspened: false
+         * Provided revocation info: none
+         * Trust signing time: yes
+         */
+        [Test]
+        public void Success11()
+        {
+            DateTime time = new DateTime(2014, 03, 11, 12, 0, 0);
+
+            var cert = new X509Certificate2("files/revoked.crt");
+            IList<CertificateList> crls = new List<CertificateList>();
+            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
+            Chain chain = cert.BuildChain(time, null, ref crls, ref ocps, time);
+
+            Assert.AreEqual(1, crls.Count);
+            Assert.AreEqual(1, ocps.Count);
+            Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+        }
+
+        /*
          * Test: Fail not yet valid
          * Cert status: not yet valid, leaf only (check stops there)
          * Check historical supspened: false
