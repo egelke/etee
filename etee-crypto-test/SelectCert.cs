@@ -39,13 +39,16 @@ using Org.BouncyCastle.Security;
 using Egelke.EHealth.Client.Tsa;
 using Egelke.EHealth.Etee.Crypto.Store;
 using Egelke.EHealth.Client.Tool;
+using System.Diagnostics;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
 
-    [TestFixture]
+    [TestFixture, Explicit, Category("Manual")]
     public class SelectCert
     {
+        public TraceSource trace = new TraceSource("Egelke.EHealth.Etee.Test");
+
         const String clearMessage = "This is a secret message from Alice for Bob";
 
         static X509Certificate2 authCert;
@@ -73,15 +76,23 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [TestFixtureSetUp]
         public static void InitializeClass()
         {
-            //ask the sender
-            authCert = AskCertificate(X509KeyUsageFlags.DigitalSignature);
-            if (!DotNetUtilities.FromX509Certificate(authCert).GetKeyUsage()[1])
+            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            my.Open(OpenFlags.ReadOnly);
+            try
             {
-                signCert = AskCertificate(X509KeyUsageFlags.NonRepudiation);
+                authCert = my.Certificates.Find(X509FindType.FindByThumbprint, File.ReadAllText("authCertTumb.txt"), false)[0];
+                if (File.Exists("signCertTumb.txt"))
+                {
+                    signCert = my.Certificates.Find(X509FindType.FindByThumbprint, File.ReadAllText("signCertTumb.txt"), false)[0];
+                }
+                else
+                {
+                    signCert = null;
+                }
             }
-            else
+            finally
             {
-                signCert = null;
+                my.Close();
             }
 
             //Bob as decryption
@@ -103,13 +114,16 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
+            trace.TraceInformation("Null-Level: Sealing");
             Stream output = Seal();
 
-            VerifyOnly(output);
+            trace.TraceInformation("Null-Level: Verify");
+            Verify(output);
 
             output.Position = 0;
 
-            UnsealAndVerify(output);
+            trace.TraceInformation("Null-Level: Unseal");
+            Unseal(output);
 
             output.Close();
         }
@@ -121,13 +135,16 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
+            trace.TraceInformation("B-Level: Sealing");
             Stream output = Seal();
 
-            VerifyOnly(output);
+            trace.TraceInformation("B-Level: Verify");
+            Verify(output);
 
             output.Position = 0;
 
-            UnsealAndVerify(output);
+            trace.TraceInformation("B-Level: Unseal");
+            Unseal(output);
 
             output.Close();
         }
@@ -140,13 +157,16 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
+            trace.TraceInformation("T-Level: Sealing");
             Stream output = Seal();
 
-            VerifyOnly(output);
+            trace.TraceInformation("T-Level: Verify");
+            Verify(output);
 
             output.Position = 0;
 
-            UnsealAndVerify(output);
+            trace.TraceInformation("T-Level: Unseal");
+            Unseal(output);
 
             output.Close();
         }
@@ -159,17 +179,21 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
+            trace.TraceInformation("T-Level TMA: Seal");
             Stream output = Seal();
 
-            VerifyOnlyFromTma(output);
+            trace.TraceInformation("T-Level TMA: Verify from TMA");
+            VerifyFromTma(output);
 
             output.Position = 0;
 
-            VerifyOnlyAsTma(output);
+            trace.TraceInformation("T-Level TMA: Verify as TMA");
+            VerifyAsTma(output);
 
             output.Position = 0;
 
-            UnsealAndVerify(output);
+            trace.TraceInformation("T-Level TMA: Unseal");
+            Unseal(output);
 
             output.Close();
         }
@@ -182,13 +206,16 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
+            trace.TraceInformation("LT-Level: seal");
             Stream output = Seal();
 
-            VerifyOnly(output);
+            trace.TraceInformation("LT-Level: verify");
+            Verify(output);
 
             output.Position = 0;
 
-            UnsealAndVerify(output);
+            trace.TraceInformation("LT-Level: unseal");
+            Unseal(output);
 
             output.Close();
         }
@@ -201,17 +228,21 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
+            trace.TraceInformation("LT-Level TMA: Seal");
             Stream output = Seal();
 
-            VerifyOnlyFromTma(output);
+            trace.TraceInformation("LT-Level TMA: Verify from TMA");
+            VerifyFromTma(output);
+
+            output.Position = 0;
+            
+            trace.TraceInformation("LT-Level TMA: Verify as TMA");
+            VerifyAsTma(output);
 
             output.Position = 0;
 
-            VerifyOnlyAsTma(output);
-
-            output.Position = 0;
-
-            UnsealAndVerify(output);
+            trace.TraceInformation("LT-Level TMA: unseal");
+            Unseal(output);
 
             output.Close();
         }
@@ -224,13 +255,16 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
+            trace.TraceInformation("LTA-Level: seal");
             Stream output = Seal();
 
-            VerifyOnly(output);
+            trace.TraceInformation("LT-Level: verify");
+            Verify(output);
 
             output.Position = 0;
 
-            UnsealAndVerify(output);
+            trace.TraceInformation("LT-Level: unseal");
+            Unseal(output);
 
             output.Close();
         }
@@ -243,22 +277,26 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
+            trace.TraceInformation("LTA-Level TMA: seal");
             Stream output = Seal();
 
-            VerifyOnlyFromTma(output);
+            trace.TraceInformation("LTA-Level TMA: Verify from TMA");
+            VerifyFromTma(output);
 
             output.Position = 0;
 
-            VerifyOnlyAsTma(output);
+            trace.TraceInformation("LTA-Level TMA: Verify as TMA");
+            VerifyAsTma(output);
 
             output.Position = 0;
 
-            UnsealAndVerify(output);
+            trace.TraceInformation("LTA-Level TMA: unseal");
+            Unseal(output);
 
             output.Close();
         }
 
-        private void VerifyOnly(Stream output)
+        private void Verify(Stream output)
         {
             IDataVerifier verifier;
             if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa) 
@@ -282,7 +320,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
         }
 
-        private void VerifyOnlyFromTma(Stream output)
+        private void VerifyFromTma(Stream output)
         {
             IDataVerifier verifier;
             if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa)
@@ -306,7 +344,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
         }
 
-        private void VerifyOnlyAsTma(Stream output)
+        private void VerifyAsTma(Stream output)
         {
             TimemarkKey key;
             ITmaDataVerifier verifier = DataVerifierFactory.CreateAsTimemarkAuthority(level.Value);
@@ -324,7 +362,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(authCert.Thumbprint, result.Signer.Thumbprint);
         }
 
-        private void UnsealAndVerify(Stream output)
+        private void Unseal(Stream output)
         {
             IDataUnsealer unsealer;
             if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa) 
@@ -373,20 +411,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             return output;
         }
 
-        private static X509Certificate2 AskCertificate(X509KeyUsageFlags flags)
-        {
-            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            my.Open(OpenFlags.ReadOnly);
-            try
-            {
-                X509Certificate2Collection nonRep = my.Certificates.Find(X509FindType.FindByKeyUsage, flags, true);
-                return X509Certificate2UI.SelectFromCollection(nonRep, "Select your cert", "Select the cert you want to used to sign the msg", X509SelectionFlag.SingleSelection)[0];
-            }
-            finally
-            {
-                my.Close();
-            }
-        }
+        
 
 
     }
