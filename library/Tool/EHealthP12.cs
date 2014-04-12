@@ -30,6 +30,7 @@ using Org.BouncyCastle.Security;
 
 namespace Egelke.EHealth.Client.Tool
 {
+    [Obsolete("This class is moved to the eH-I PKI module, this class is no longer maintained here and may be removed in future versions")]
     public class EHealthP12 : IDictionary<String, X509Certificate2>
     {
 

@@ -12,7 +12,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
-Replaced BouncyCastle Library with patched version.
+EHealthP12 moved to eH-I PKI module, this one deprecated.
     </releaseNotes>
     <copyright>Copyright © Egelke BVBA 2013-2014</copyright>
     <tags>eHealth STS SSO SAML</tags>
