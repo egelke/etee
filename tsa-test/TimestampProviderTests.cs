@@ -1,7 +1,7 @@
 ﻿using Egelke.EHealth.Client.Sso.Sts;
 using Egelke.EHealth.Client.Sso.WA;
-using Egelke.EHealth.Client.Tsa;
-using Egelke.EHealth.Client.Tsa.DSS;
+using Egelke.EHealth.Client.Pki;
+using Egelke.EHealth.Client.Pki.DSS;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
@@ -17,7 +17,7 @@ using System.ServiceModel.Description;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Egelke.EHealth.Client.TsaTest
+namespace Egelke.EHealth.Client.Pki.Test
 {
     [TestFixture]
     public class TimestampProviderTests

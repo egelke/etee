@@ -8,7 +8,7 @@
  *  the Free Software Foundation, either version 2.1 of the License, or
  *  (at your option) any later version.
  *
- *  Foobar is distributed in the hope that it will be useful,
+ *  eH-I is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
@@ -19,7 +19,7 @@
 
 using System.Net.Security;
 
-namespace Egelke.EHealth.Client.Tsa.DSS
+namespace Egelke.EHealth.Client.Pki.DSS
 {
 #pragma warning disable 1591
     /// <summary>
@@ -2737,7 +2737,7 @@ namespace Egelke.EHealth.Client.Tsa.DSS
         }
 
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        Egelke.EHealth.Client.Tsa.DSS.StampResponse Egelke.EHealth.Client.Tsa.DSS.TimeStampAuthority.Stamp(Egelke.EHealth.Client.Tsa.DSS.StampRequest request)
+        Egelke.EHealth.Client.Pki.DSS.StampResponse Egelke.EHealth.Client.Pki.DSS.TimeStampAuthority.Stamp(Egelke.EHealth.Client.Pki.DSS.StampRequest request)
         {
             return base.Channel.Stamp(request);
         }

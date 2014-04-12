@@ -15,6 +15,6 @@
 Initial version, migrated from ETEE library.
     </releaseNotes>
     <copyright>Copyright © Egelke BVBA 2014</copyright>
-    <tags>eHealth eSigning TimeStamp</tags>
+    <tags>eHealth eSigning TimeStamp PKI PKCS#12 X509</tags>
   </metadata>
 </package>

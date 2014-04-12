@@ -1,32 +1,15 @@
-﻿/*
- * This file is part of eHealth-Interoperability.
- * 
- * eHealth-Interoperability is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * eHealth-Interoperability  is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
-
- * You should have received a copy of the GNU Lesser General Public License
- * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Siemens.EHealth.Client.Tool;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
-using Siemens.eHealth.ETEE.Crypto.Test;
 using System.Collections;
 using NUnit.Framework;
+using Egelke.EHealth.Client.Pki;
+using System.IO;
 
-namespace Siemens.EHealth.Client.UnitTest
+namespace Egelke.EHealth.Client.Pki.Test
 {
     [TestFixture]
     public class EHealthP12TestOnRealP12
@@ -36,10 +19,7 @@ namespace Siemens.EHealth.Client.UnitTest
         [TestFixtureSetUp]
         public static void setup()
         {
-            String pwd = Microsoft.VisualBasic.Interaction.InputBox("Enther the P12 pwd");
-
-            p12 = new EHealthP12(@"..\..\EHealthP12\ehealth.p12", pwd);
-            //p12 = new EHealthP12("prod.p12", pwd);
+            p12 = new EHealthP12(@"..\..\EHealthP12\SSIN=79021802145.p12", File.ReadAllText(@"..\..\EHealthP12\pwd.txt"));
         }
 
         [Test]
@@ -85,7 +65,7 @@ namespace Siemens.EHealth.Client.UnitTest
             }
         }
 
-        [Test]
+        [Test, Ignore]
         public void ReinstallInCurrentUser()
         {
             //Prepare

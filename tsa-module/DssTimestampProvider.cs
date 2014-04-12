@@ -8,7 +8,7 @@
  *  the Free Software Foundation, either version 2.1 of the License, or
  *  (at your option) any later version.
  *
- *  Foobar is distributed in the hope that it will be useful,
+ *  eH-I is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
@@ -24,7 +24,7 @@ using System.Text;
 using System.ServiceModel;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Egelke.EHealth.Client.Tsa
+namespace Egelke.EHealth.Client.Pki
 {
     /// <summary>
     /// Timestamp provider for TSA's that implement the DSS Timestamp profile.

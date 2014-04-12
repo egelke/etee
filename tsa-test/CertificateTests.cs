@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 using System.Security.Cryptography.X509Certificates;
-using Egelke.EHealth.Client.Tsa;
+using Egelke.EHealth.Client.Pki;
 using System.Collections.Generic;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.IO;
 using Org.BouncyCastle.Asn1;
 
-namespace Egelke.EHealth.Client.TsaTest
+namespace Egelke.EHealth.Client.Pki.Test
 {
     [TestFixture]
     public class CertificateTests
@@ -97,7 +97,6 @@ namespace Egelke.EHealth.Client.TsaTest
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
@@ -123,7 +122,6 @@ namespace Egelke.EHealth.Client.TsaTest
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
@@ -149,7 +147,6 @@ namespace Egelke.EHealth.Client.TsaTest
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
@@ -175,15 +172,14 @@ namespace Egelke.EHealth.Client.TsaTest
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
          * Test: Success
          * Cert status: OK (not expired, not revoked/suspended)
-         * Check historical supspened: true
+         * Check historical suspended: true
          * Provided revocation info: empty
-         * Intermedate CA location: Win store
+         * Intermediate CA location: Win store
          * Trust signing time: yes (i.e. trusted time = signing time)
          */
         [Test]
@@ -195,21 +191,20 @@ namespace Egelke.EHealth.Client.TsaTest
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
             Chain chain = leafCert.BuildChain(DateTime.UtcNow, null, ref crls, ref ocps, DateTime.UtcNow, true, new TimeSpan(1, 0, 0));
 
-            Assert.AreEqual(2, crls.Count);
+            Assert.AreEqual(1, crls.Count);
             Assert.AreEqual(1, ocps.Count);
             Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
          * Test: Success
          * Cert status: OK (not expired, not revoked/suspended)
-         * Check historical supspened: false
+         * Check historical suspended: false
          * Provided revocation info: empty
-         * Intermedate CA location: Win store
+         * Intermediate CA location: Win store
          * Trust signing time: no (i.e. trusted time = more recent then signing time)
          */
         [Test]
@@ -224,13 +219,12 @@ namespace Egelke.EHealth.Client.TsaTest
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
             Chain chain = leafCert.BuildChain(time, null, ref crls, ref ocps, trustedTime);
 
-            Assert.AreEqual(2, crls.Count);
+            Assert.AreEqual(1, crls.Count);
             Assert.AreEqual(1, ocps.Count);
             Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
@@ -252,13 +246,12 @@ namespace Egelke.EHealth.Client.TsaTest
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { leafOcsp });
             Chain chain = leafCert.BuildChain(time, null, ref crls, ref ocps, DateTime.UtcNow, true, new TimeSpan(1, 0, 0));
 
-            Assert.AreEqual(2, crls.Count); //will become 3 at one point, 4 later on.
+            Assert.AreEqual(2, crls.Count);
             Assert.AreEqual(2, ocps.Count);
             Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
@@ -278,13 +271,12 @@ namespace Egelke.EHealth.Client.TsaTest
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { leafOcsp });
             Chain chain = leafCert.BuildChain(time, null, ref crls, ref ocps, time, true, new TimeSpan(1, 0, 0));
 
-            Assert.AreEqual(2, crls.Count);
+            Assert.AreEqual(1, crls.Count);
             Assert.AreEqual(1, ocps.Count);
             Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
@@ -311,7 +303,6 @@ namespace Egelke.EHealth.Client.TsaTest
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
@@ -384,13 +375,12 @@ namespace Egelke.EHealth.Client.TsaTest
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
             Chain chain = leafCert.BuildChain(time, null, ref crls, ref ocps, DateTime.UtcNow);
 
-            Assert.AreEqual(2, crls.Count);
+            Assert.AreEqual(1, crls.Count);
             Assert.AreEqual(1, ocps.Count);
             Assert.AreEqual(1, chain.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.NotTimeValid));
             Assert.AreEqual(1, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status == X509ChainStatusFlags.NotTimeValid));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
@@ -489,8 +479,7 @@ namespace Egelke.EHealth.Client.TsaTest
             Assert.AreEqual(1, chain.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
             Assert.AreEqual(1, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
             Assert.AreEqual(1, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
-            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.RevocationStatusUnknown));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         /*
@@ -516,7 +505,6 @@ namespace Egelke.EHealth.Client.TsaTest
             Assert.AreEqual(1, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError)); //is created on 1/1/2014, so status known.
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[3].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
     }
 }

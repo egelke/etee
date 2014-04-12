@@ -24,8 +24,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("eH-I TSA")]
-[assembly: AssemblyDescription("eHealth Timestamp Authority Interoperability library")]
+[assembly: AssemblyTitle("eH-I PKI")]
+[assembly: AssemblyDescription("PKI tools useful for eHealth")]
 [assembly: AssemblyConfiguration("Beta")]
 [assembly: AssemblyCompany("Egelke BVBA")]
 [assembly: AssemblyProduct("eHealth-Interoperability")]
@@ -53,7 +53,7 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0")]
 [assembly: AssemblyFileVersion("1.0.0")]
-[assembly: AssemblyInformationalVersion("1.0.0-RC6")]
+[assembly: AssemblyInformationalVersion("1.0.0-Beta1")]
 
 [assembly: CLSCompliant(true)]
 

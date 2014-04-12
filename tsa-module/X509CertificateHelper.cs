@@ -35,7 +35,7 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.X509.Store;
 using System.Diagnostics;
 
-namespace Egelke.EHealth.Client.Tsa
+namespace Egelke.EHealth.Client.Pki
 {
     public static class X509CertificateHelper
     {

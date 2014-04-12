@@ -27,7 +27,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Diagnostics;
 
-namespace Egelke.EHealth.Client.Tsa
+namespace Egelke.EHealth.Client.Pki
 {
     /// <summary>
     /// Time-stamp provided via the RFC3161 protocol.

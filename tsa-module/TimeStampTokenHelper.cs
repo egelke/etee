@@ -35,7 +35,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System.Diagnostics;
 
-namespace Egelke.EHealth.Client.Tsa
+namespace Egelke.EHealth.Client.Pki
 {
     /// <summary>
     /// Helper methods of TimeStampTokens.

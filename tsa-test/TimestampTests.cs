@@ -1,4 +1,4 @@
-﻿using Egelke.EHealth.Client.Tsa;
+﻿using Egelke.EHealth.Client.Pki;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
@@ -11,7 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Egelke.EHealth.Client.TsaTest
+namespace Egelke.EHealth.Client.Pki.Test
 {
     [TestFixture]
     public class TimestampTests

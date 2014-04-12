@@ -7,8 +7,8 @@
     <ProjectGuid>{DE4ECDDE-F1E6-4964-BAF6-4A7AECC457FA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Egelke.EHealth.Client.Tsa</RootNamespace>
-    <AssemblyName>Egelke.EHealth.Client.Tsa</AssemblyName>
+    <RootNamespace>Egelke.EHealth.Client.Pki</RootNamespace>
+    <AssemblyName>Egelke.EHealth.Client.Pki</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -54,6 +54,7 @@
     <Compile Include="ChainElement.cs" />
     <Compile Include="CurrentTimemarkProvider.cs" />
     <Compile Include="DssTimestampProvider.cs" />
+    <Compile Include="EHealthP12.cs" />
     <Compile Include="EHealthTimestampProvider.cs" />
     <Compile Include="FixedTimemarkProvider.cs" />
     <Compile Include="ITimemarkProvider.cs" />
