@@ -183,7 +183,7 @@ namespace Egelke.EHealth.Client.Pki.Test
         [Test]
         public void ToCollection()
         {
-            X509Certificate2Collection collection = p12.ToCollecion();
+            X509Certificate2Collection collection = p12.ToCollection();
             Assert.AreEqual(5, collection.Count);
         }
 
