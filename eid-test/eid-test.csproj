@@ -81,12 +81,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\eid-module\eid-module.csproj">
-      <Project>{398E1A45-BA82-453F-A169-AA87D78C6B1D}</Project>
-      <Name>eid-module</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="genIns.nunit" />
     <None Include="packages.config" />
   </ItemGroup>
