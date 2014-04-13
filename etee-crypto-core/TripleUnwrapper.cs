@@ -335,7 +335,7 @@ namespace Egelke.EHealth.Etee.Crypto
             if (iterator.MoveNext())
             {
                 trace.TraceEvent(TraceEventType.Error, 0, "Found more then one signature, this isn't supported (yet)");
-                throw new NotSupportedException("The library doesn't support messages that is signed multiple times");
+                throw new InvalidMessageException("An eHealth compliant message can have only one signer");
             }
             
 
@@ -406,6 +406,12 @@ namespace Egelke.EHealth.Etee.Crypto
             }
             else
             {
+                if (outer == null)
+                {
+                    trace.TraceEvent(TraceEventType.Error, 0, "The outer signature does not contain any certificates");
+                    throw new InvalidMessageException("The outer signature is missing certifcates");
+                }
+
                 //The subject is the same as the outer
                 result.Subject = outer.Subject;
                 signerCert = DotNetUtilities.FromX509Certificate(result.Subject.Certificate);
@@ -444,7 +450,7 @@ namespace Egelke.EHealth.Etee.Crypto
             }
 
             //Validating signature info
-            if (this.level == null)
+            if (this.level == null && result.Subject == null)
             {
                 if (outer == null)
                     result.Subject = CertVerifier.VerifyAuth(signerCert, signingTime, certs, null, null, false, false);
@@ -647,6 +653,7 @@ namespace Egelke.EHealth.Etee.Crypto
                         IList<KeyValuePair<RecipientInformation, IList>> allMatches = new List<KeyValuePair<RecipientInformation, IList>>();
                         foreach (RecipientInformation recipient in recipients)
                         {
+                            trace.TraceEvent(TraceEventType.Verbose, 0, "The message is addressed to {0} ({1})", recipient.RecipientID.SerialNumber, recipient.RecipientID.Issuer);
                             if (recipient is KeyTransRecipientInformation) {
                                 IList matches = (IList) encCertStore.GetMatches(recipient.RecipientID);
                                 if (matches.Count > 0)

@@ -17,6 +17,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         {
             X509Certificate2 testCA = new X509Certificate2("../../imports/CA.cer");
             X509Certificate2 testCA2 = new X509Certificate2("../../imports/CA2.cer");
+            X509Certificate2 testCA3 = new X509Certificate2("../../imports/specimenCa.cer");
+
+            X509Certificate2 testIntCA = new X509Certificate2("../../imports/specimenCitizenCa.cer");
 
             X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
@@ -30,6 +33,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 {
                     store.Add(testCA2);
                 }
+                if (!store.Certificates.Contains(testCA3))
+                {
+                    store.Add(testCA3);
+                }
             }
             finally
             {
@@ -42,6 +49,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         {
             X509Certificate2 testCA = new X509Certificate2("../../imports/CA.cer");
             X509Certificate2 testCA2 = new X509Certificate2("../../imports/CA2.cer");
+            X509Certificate2 testCA3 = new X509Certificate2("../../imports/specimenCa.cer");
 
             X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
@@ -54,6 +62,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 if (store.Certificates.Contains(testCA2))
                 {
                     store.Remove(testCA2);
+                }
+                if (store.Certificates.Contains(testCA3))
+                {
+                    store.Remove(testCA3);
                 }
             }
             finally

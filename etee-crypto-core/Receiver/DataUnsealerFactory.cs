@@ -22,6 +22,7 @@ using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Egelke.EHealth.Client.Pki;
+using Org.BouncyCastle.Security;
 
 namespace Egelke.EHealth.Etee.Crypto.Receiver
 {
@@ -100,7 +101,8 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
             {
                 foreach(X509Certificate2 cert in p12.Values)
                 {
-                    if (cert.Subject == cert.Issuer)
+                    //very basic check, the rest is done when unsealing
+                    if (cert.HasPrivateKey)
                     {
                         encCerts.Add(cert);
                     }
