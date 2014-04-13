@@ -27,7 +27,7 @@ using Egelke.EHealth.Etee.Crypto.Sender;
 using Egelke.EHealth.Etee.Crypto;
 using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
-using Egelke.EHealth.Client.Tool;
+using Egelke.EHealth.Client.Pki;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
@@ -50,9 +50,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             var bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
 
 
-            aliceSealer = DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level);
-            bobUnsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(new X509Certificate2[] { bob["825373489"] }), null);
-            anonUnsealer = DataUnsealerFactory.Create(new X509Certificate2Collection(), null);
+            aliceSealer = EhDataSealerFactory.Create(Level.B_Level, alice);
+            bobUnsealer = DataUnsealerFactory.Create(null, bob);
+            anonUnsealer = DataUnsealerFactory.Create(null);
         }
 
         private String RunJava(String program)

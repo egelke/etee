@@ -35,7 +35,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using Egelke.EHealth.Client.Tsa;
+using Egelke.EHealth.Client.Pki;
 
 namespace Egelke.EHealth.Etee.Crypto.Utils
 {

@@ -36,10 +36,9 @@ using System.Configuration;
 using System.Collections.Specialized;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Org.BouncyCastle.Security;
-using Egelke.EHealth.Client.Tsa;
 using Egelke.EHealth.Etee.Crypto.Store;
-using Egelke.EHealth.Client.Tool;
 using System.Diagnostics;
+using Egelke.EHealth.Client.Pki;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
@@ -51,15 +50,15 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         const String clearMessage = "This is a secret message from Alice for Bob";
 
-        static X509Certificate2 authCert;
+        static EHealthP12 ehCert;
 
-        static X509Certificate2 signCert;
+        static String subject = "SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Authentication), C=BE";
+
+        static String subject2 = "SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Signature), C=BE";
 
         static EHealthP12 alice;
 
         static EHealthP12 bob;
-
-        static X509Certificate2Collection both;
 
         static EncryptionToken bobEtk;
 
@@ -76,32 +75,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [TestFixtureSetUp]
         public static void InitializeClass()
         {
-            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            my.Open(OpenFlags.ReadOnly);
-            try
-            {
-                authCert = my.Certificates.Find(X509FindType.FindByThumbprint, File.ReadAllText("authCertTumb.txt"), false)[0];
-                if (File.Exists("signCertTumb.txt"))
-                {
-                    signCert = my.Certificates.Find(X509FindType.FindByThumbprint, File.ReadAllText("signCertTumb.txt"), false)[0];
-                }
-                else
-                {
-                    signCert = null;
-                }
-            }
-            finally
-            {
-                my.Close();
-            }
-
             //Bob as decryption
             bobEtk = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
 
             //Bob (and Alice) used for decryption
             alice = new EHealthP12("../../alice/alices_private_key_store.p12", "test");
             bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
-            both = new X509Certificate2Collection(new X509Certificate2[] { alice["1204544406096826217265"], bob["825373489"] });
 
             //create a tsa (fedict in this case)
             tsa = new Rfc3161TimestampProvider();
@@ -221,6 +200,62 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [Test]
+        public void LT_LevelIn2Steps()
+        {
+            level = Level.B_Level;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("B-Level: seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("LT-Level: complete");
+            level = Level.LT_Level;
+            output = Complete(output);
+
+            trace.TraceInformation("LT-Level: verify");
+            Verify(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LT_LevelIn3Steps()
+        {
+            level = Level.B_Level;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("B-Level: seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("T-Level: complete");
+            level = Level.T_Level;
+            output = Complete(output);
+
+            trace.TraceInformation("LT-Level: complete");
+            level = Level.LT_Level;
+            output = Complete(output);
+
+            trace.TraceInformation("LT-Level: verify");
+            Verify(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
         public void LT_LevelTma()
         {
             level = Level.LT_Level;
@@ -236,6 +271,37 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             output.Position = 0;
             
+            trace.TraceInformation("LT-Level TMA: Verify as TMA");
+            VerifyAsTma(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level TMA: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LT_LevelTmaIn2Steps()
+        {
+            level = Level.B_Level;
+            useTmaInsteadOfTsa = true;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("B-Level TMA: Seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("LT-Level: complete for TMA");
+            level = Level.LT_Level;
+            output = Complete(output);
+
+            trace.TraceInformation("LT-Level TMA: Verify from TMA");
+            VerifyFromTma(output);
+
+            output.Position = 0;
+
             trace.TraceInformation("LT-Level TMA: Verify as TMA");
             VerifyAsTma(output);
 
@@ -268,6 +334,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             output.Close();
         }
+
+        
 
         [Test]
         public void LTA_LevelTma()
@@ -314,7 +382,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             
             Assert.AreEqual(validationStatus, result.ValidationStatus);
             Assert.AreEqual(trustStatus, result.TrustStatus);
-            Assert.AreEqual(authCert.Thumbprint, result.Signer.Thumbprint);
+            Assert.AreEqual(subject, result.Signer.Subject);
             Assert.AreEqual((level & Level.T_Level) == Level.T_Level, result.TimestampRenewalTime > DateTime.UtcNow);
             Assert.NotNull(result.SignatureValue);
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
@@ -338,7 +406,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             Assert.AreEqual(validationStatus, result.ValidationStatus);
             Assert.AreEqual(trustStatus, result.TrustStatus);
-            Assert.AreEqual(authCert.Thumbprint, result.Signer.Thumbprint);
+            Assert.AreEqual(subject, result.Signer.Subject);
             Assert.IsNull(result.TimestampRenewalTime);
             Assert.NotNull(result.SignatureValue);
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
@@ -359,7 +427,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             Assert.AreEqual(validationStatus, result.ValidationStatus);
             Assert.AreEqual(trustStatus, result.TrustStatus);
-            Assert.AreEqual(authCert.Thumbprint, result.Signer.Thumbprint);
+            Assert.AreEqual(subject, result.Signer.Subject);
         }
 
         private void Unseal(Stream output)
@@ -367,11 +435,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             IDataUnsealer unsealer;
             if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa) 
             {
-                unsealer = DataUnsealerFactory.Create(both, level);
+                unsealer = DataUnsealerFactory.Create(level, alice, bob);
             }
             else 
             {
-                unsealer = DataUnsealerFactory.CreateFromTimemarkAuthority(both, level.Value, new CurrentTimemarkProvider());
+                unsealer = DataUnsealerFactory.CreateFromTimemarkAuthority(level.Value, new CurrentTimemarkProvider(), alice, bob);
             }
             
             UnsealResult result = unsealer.Unseal(output);
@@ -385,8 +453,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsNotNull(result.SignatureValue);
             Assert.AreEqual(validationStatus, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(trustStatus, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(authCert.Thumbprint, result.AuthenticationCertificate.Thumbprint);
-            Assert.AreEqual(signCert == null ? authCert.Thumbprint : signCert.Thumbprint, result.SigningCertificate.Thumbprint);
+            Assert.AreEqual(subject, result.AuthenticationCertificate.Subject);
+            Assert.AreEqual(subject2, result.SigningCertificate.Subject);
             Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(clearMessage, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
@@ -397,20 +465,51 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             IDataSealer sealer;
             if (!level.HasValue || level.Value == Level.B_Level)
             {
-                sealer = DataSealerFactory.Create(authCert, signCert, level == null ? Level.B_Level : level.Value);
+                if (ehCert != null)
+                {
+                    sealer = EhDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, ehCert);
+                }
+                else
+                {
+                    sealer = EidDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, new TimeSpan(0, 5, 0));
+                }
             }
             else
             {
-                if (useTmaInsteadOfTsa)
-                    sealer = DataSealerFactory.CreateForTimemarkAuthority(authCert, signCert, level.Value);
+                if (ehCert != null)
+                {
+                    if (useTmaInsteadOfTsa)
+                        sealer = EhDataSealerFactory.CreateForTimemarkAuthority(level.Value, ehCert);
+                    else
+                        sealer = EhDataSealerFactory.Create(level.Value, tsa, ehCert);
+                }
                 else
-                    sealer = DataSealerFactory.Create(authCert, signCert, level.Value, tsa);
+                {
+                    if (useTmaInsteadOfTsa)
+                        sealer = EidDataSealerFactory.CreateForTimemarkAuthority(level.Value, new TimeSpan(0, 5, 0));
+                    else
+                        sealer = EidDataSealerFactory.Create(level.Value, tsa, new TimeSpan(0, 5, 0));
+                }
             }
 
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(clearMessage)), bobEtk);
             return output;
         }
 
+        private Stream Complete(Stream toComplete)
+        {
+            IDataCompleter completer;
+            if (useTmaInsteadOfTsa)
+            {
+                completer = DataCompleterFactory.CreateForTimeMarkAuthority(level.Value);
+            }
+            else
+            {
+                completer = DataCompleterFactory.Create(level.Value, tsa);
+            }
+            Stream output = completer.Complete(toComplete);
+            return output;
+        }
         
 
 

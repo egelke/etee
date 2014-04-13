@@ -42,7 +42,7 @@ using Org.BouncyCastle.Asn1.Esf;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.Cms;
-using Egelke.EHealth.Client.Tsa;
+using Egelke.EHealth.Client.Pki;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Tsp;
@@ -67,39 +67,18 @@ namespace Egelke.EHealth.Etee.Crypto
 
         private ITimestampProvider timestampProvider;
 
-        internal TripleWrapper(Level level, X509Certificate2 authentication, X509Certificate2 signature, ITimestampProvider timestampProvider)
+        private X509Certificate2Collection extraStore;
+
+        internal TripleWrapper(Level level, X509Certificate2 authentication, X509Certificate2 signature, ITimestampProvider timestampProvider, X509Certificate2Collection extraStore)
         {
             //basic checks
-            if (authentication == null) throw new ArgumentNullException("authentication", "The authentication certificate must be provided");
-            if (!authentication.HasPrivateKey) throw new ArgumentException("authentication", "The authentication certificate must have a private key");
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only levels B, T, LT and LTA are allowed");
-             
-            //correct wrong input
-            if (signature == authentication) signature = null;
-
-            //advanced checks (for eHealth certificate)
-            BC::X509.X509Certificate bcAuthentication = DotNetUtilities.FromX509Certificate(authentication);
-            if (signature == null)
-            {
-                //for eHealth certificate
-                if (!((RSACryptoServiceProvider)authentication.PrivateKey).CspKeyContainerInfo.Exportable) throw new ArgumentException("authentication", "The authentication certificate must be exportable if no (eID) signature certificate is provided");
-                if (!bcAuthentication.GetKeyUsage()[0] || !bcAuthentication.GetKeyUsage()[1]) throw new ArgumentException("authentication", "The authentication certificate must have a key for both non-Repudiation and signing");
-            }
-            else
-            {
-                //for eID certificate
-                if (signature.Issuer != authentication.Issuer) throw new ArgumentException("signature", "The signature certificate must have the same issuer as the authentication certificate");
-                if (!signature.HasPrivateKey) throw new ArgumentException("signature", "The signature certificate must have a private key");
-
-                BC::X509.X509Certificate bcSignature = DotNetUtilities.FromX509Certificate(signature);
-                if (!bcAuthentication.GetKeyUsage()[0]) throw new ArgumentException("authentication", "The authentication certificate must have a key for signing");
-                if (!bcSignature.GetKeyUsage()[1]) throw new ArgumentException("signature", "The authentication certificate must have a key for non-Repudiation");
-            }
 
             this.level = level;
             this.signature = signature;
             this.authentication = authentication;
             this.timestampProvider = timestampProvider;
+            this.extraStore = extraStore;
         }
 
         #region DataCompleter Members
@@ -425,7 +404,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 trace.TraceEvent(TraceEventType.Verbose, 0, "The message does not contains certificates, adding the chain of {0}", timemarkKey.Signer.Subject);
 
                 //Construct the chain of certificates
-                Chain chain = timemarkKey.Signer.BuildBasicChain(timemarkKey.SigningTime, Settings.Default.ExtraStore);
+                Chain chain = timemarkKey.Signer.BuildBasicChain(timemarkKey.SigningTime, extraStore);
                 if (chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
                 {
                     trace.TraceEvent(TraceEventType.Error, 0, "The certification chain of {0} failed with errors", chain.ChainElements[0].Certificate.Subject);

@@ -37,7 +37,7 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// use an instance that implements this interface.
     /// </para>
     /// <para>
-    /// The <see cref="DataSealerFactory"/> class should be used to get an instance that implements
+    /// The <see cref="EidDataSealerFactory"/> class should be used to get an instance that implements
     /// this interface.
     /// </para>
     /// <para>
@@ -52,7 +52,7 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// responsible of the transport of the messages.
     /// </para>
     /// </remarks>
-    /// <seealso cref="DataSealerFactory"/>
+    /// <seealso cref="EidDataSealerFactory"/>
     /// <seealso cref="EncryptionToken"/>
     /// <seealso cref="SecretKey"/>
     public interface IDataSealer

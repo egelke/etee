@@ -43,7 +43,7 @@ namespace Egelke.EHealth.Etee.Crypto
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Thi class represents an ETK retrieved from the ETK-Depot.  It can be used to seal messages so it can only be viewed by the party
+    /// This class represents an ETK retrieved from the ETK-Depot.  It can be used to seal messages so it can only be viewed by the party
     /// that owns the ETK and therefore has the private key corresponding to this.  It is possible, and even advised, to cache the ETK for
     /// parties you will probably require in the future.
     /// </para>
@@ -62,11 +62,11 @@ namespace Egelke.EHealth.Etee.Crypto
         /// <para>
         /// The xml representation of the "GetEtkResponse" of the ETK-Depot web service
         /// contains an element "ETK" of which is content can be provided to this
-        /// constructor.  Normaly you will not have access to the xml representation,
-        /// so it is unlikely you will need this constuctor for this reason.
+        /// constructor.  Normally you will not have access to the xml representation,
+        /// so it is unlikely you will need this constructor for this reason.
         /// </para>
         /// <para>
-        /// If you use a cache that can't handle binary data, use this constuctor
+        /// If you use a cache that can't handle binary data, use this constructor
         /// to use an instance from cache.
         /// </para>
         /// </remarks>
@@ -77,15 +77,15 @@ namespace Egelke.EHealth.Etee.Crypto
         }
 
         /// <summary>
-        /// Constructor for the binary represenation of the ETK.
+        /// Constructor for the binary representation of the ETK.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The binary represenation of the "GetEtkResponse" of the ETK-Depot web service
+        /// The binary representation of the "GetEtkResponse" of the ETK-Depot web service
         /// contains an byte array item that can be provided to this constructor.
         /// </para>
         /// <para>
-        /// If you use a cahce that can handle binary data, use this constructor
+        /// If you use a cache that can handle binary data, use this constructor
         /// to use an instance from cache.
         /// </para>
         /// </remarks>
@@ -153,7 +153,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This method checks if the certificate in the ETK is issued by a trusted party.  Tust means
+        /// This method checks if the certificate in the ETK is issued by a trusted party.  Trust means
         /// the root certificate is trusted by the computer it is running on and all
         /// validation checks, including revocation, are successful.  Root
         /// certificates are trusted by the computer if present in the 
@@ -161,7 +161,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// </para>
         /// <para>
         /// This method no longer validates the signer of the ETK token due lack of signing time in the ETK.
-        /// The encryption certificate inside the ETK is still completley verified, this means there isn't a reduction in
+        /// The encryption certificate inside the ETK is still completely verified, this means there isn't a reduction in
         /// security compared to the previous implementation.
         /// </para>
         /// </remarks>

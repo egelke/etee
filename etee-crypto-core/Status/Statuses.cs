@@ -369,7 +369,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// to the encryption algorithm of the encryption.
         /// </para>
         /// <para>
-        /// For security reaons only the most advanced algorithms are
+        /// For security reasons only the most advanced algorithms are
         /// allowed.  This violation occurs when the encryption algorithm of the 
         /// signature is less advanced then required.
         /// </para>
@@ -408,11 +408,18 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         SubjectTrustUnknown,
 
         /// <summary>
+        /// The inner subject isn't the same as the outer subject.
+        /// </summary>
+        [TrustLevel(TrustStatus.None)]
+        [ValidationResult(ValidationStatus.Valid)]
+        SubjectDoesNotMachEnvelopingSubject,
+
+        /// <summary>
         /// <para>
         /// The time indicated by the message at which it is sealed is not valid.
         /// </para>
         /// <para>
-        /// The message includes a timestamp which which contains a time that doesn't
+        /// The message includes a time-stamp which which contains a time that doesn't
         /// correspond with the sealing time indicated by the message.  This voids the
         /// trust because the sender is validated on the sealing time that is (incorrectly)
         /// indicated.
@@ -423,11 +430,13 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         SealingTimeInvalid,
 
         /// <summary>
-        /// The included timestamp was invalid or could not be trusted.
+        /// The included time-stamp was invalid or could not be trusted.
         /// </summary>
         [TrustLevel(TrustStatus.Unsure)]
         [ValidationResult(ValidationStatus.Invalid)]
-        InvalidTimestamp
+        InvalidTimestamp,
+
+
     }
 
     /// <summary>

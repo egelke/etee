@@ -41,7 +41,7 @@ using Org.BouncyCastle.Asn1.Esf;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Egelke.EHealth.Client.Tsa;
+using Egelke.EHealth.Client.Pki;
 using Org.BouncyCastle.Tsp;
 using System.Linq;
 using Egelke.EHealth.Etee.Crypto.Store;
@@ -375,8 +375,28 @@ namespace Egelke.EHealth.Etee.Crypto
 
                 //Getting the first certificate
                 signerCert = (Org.BouncyCastle.X509.X509Certificate)signerCerts.Current;
-
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Found the signer certificate: {0}", signerCert.SubjectDN.ToString());
+
+                //Check if the outer certificate matches the inner certificate
+                if (outer != null)
+                {
+                    Org.BouncyCastle.X509.X509Certificate authCert = DotNetUtilities.FromX509Certificate(outer.Subject.Certificate);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Comparing The signer certificate {0} ({1}) with the authentication certificate {2} ({3})",
+                            signerCert.SubjectDN, signerCert.IssuerDN, authCert.SubjectDN, authCert.IssuerDN);
+                    //_safe_ check if the serial numbers of the subject name are equal and they have the same issuer
+                    if (!authCert.SubjectDN.GetOidList().Contains(X509Name.SerialNumber)
+                        || !signerCert.SubjectDN.GetOidList().Contains(X509Name.SerialNumber)
+                        || authCert.SubjectDN.GetValueList(X509Name.SerialNumber).Count != 1
+                        || signerCert.SubjectDN.GetValueList(X509Name.SerialNumber).Count != 1
+                        || !authCert.SubjectDN.GetValueList(X509Name.SerialNumber)[0].Equals(signerCert.SubjectDN.GetValueList(X509Name.SerialNumber)[0])
+                        || !authCert.IssuerDN.Equals(signerCert.IssuerDN))
+                    {
+                        result.securityViolations.Add(SecurityViolation.SubjectDoesNotMachEnvelopingSubject);
+                        trace.TraceEvent(TraceEventType.Warning, 0, "The signer certificate {0} ({1}) does not match the authentication certificate {2} ({3})",
+                            signerCert.SubjectDN, signerCert.IssuerDN, authCert.SubjectDN, authCert.IssuerDN);
+                    }
+                }
+
                 if (signerCerts.MoveNext())
                 {
                     //found several certificates...
@@ -486,7 +506,7 @@ namespace Egelke.EHealth.Etee.Crypto
                         }
                         trace.TraceEvent(TraceEventType.Verbose, 0, "Requesting time-mark for message signed by {0}, signed on {1} and with signature value {2}", 
                             signerCert.SubjectDN, signingTime, signerInfo.GetSignature());
-                        validationTime = timemarkauthority.GetTimemark(new X509Certificate2(signerCert.GetEncoded()), signingTime, signerInfo.GetSignature());
+                        validationTime = timemarkauthority.GetTimemark(new X509Certificate2(signerCert.GetEncoded()), signingTime, signerInfo.GetSignature()).ToUniversalTime();
                         trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the return time-mark which is: {0}", validationTime);
                     }
                     else

@@ -16,7 +16,7 @@
  * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using Egelke.EHealth.Client.Tsa;
+using Egelke.EHealth.Client.Pki;
 using Egelke.EHealth.Etee.Crypto.Sender;
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Intended for sealed messages stores that will complete sealed messages but not nesesary seal them itself.
+    /// Intended for sealed messages stores that will complete sealed messages but not necessary seal them itself.
     /// Often these message store are time-mark authorities, but this isn't a required.
     /// </para>
     /// <para>
@@ -49,16 +49,16 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// It is illegal to call this method with B-Level since this would not change the message in any way.
         /// </para>
         /// </remarks>
-        /// <param name="level">The required level the complerer must produce: T-Level, LT-Level or LTA-Level</param>
+        /// <param name="level">The required level the completer must produce: T-Level, LT-Level or LTA-Level</param>
         /// <param name="timestampProvider">The client of the time-stamp authority</param>
         /// <returns>The completer of the required level that will used the provided time-stamp authority client</returns>
         public static IDataCompleter Create(Level level, ITimestampProvider timestampProvider)
         {
             if (level == Level.B_Level) throw new NotSupportedException("Nothing to complete for B-level");
-            if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A timestamp provider is required with this method");
+            if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should be used for a level that requires time stamping");
 
-            return new TripleWrapper(level, null, null, timestampProvider);
+            return new TripleWrapper(level, null, null, timestampProvider, null);
         }
 
         /// <summary>
@@ -70,14 +70,14 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// It is illegal to call this method with B-Level or T-Level since this would not change the message in any way.
         /// </para>
         /// </remarks>
-        /// <param name="level">The required level the complerer must produce: LT-Level or LTA-Level</param>
+        /// <param name="level">The required level the completer must produce: LT-Level or LTA-Level</param>
         /// <returns>The completer of the required level to by a client of a time-mark authority</returns>
         public static IDataCompleter CreateForTimeMarkAuthority(Level level)
         {
             if (level == Level.B_Level || level == Level.T_Level) throw new NotSupportedException("Nothing to complete for B-level or T-Level for time-mark authority");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should be used for a level that requires time stamping");
 
-            return new TripleWrapper(level, null, null, null);
+            return new TripleWrapper(level, null, null, null, null);
         }
 
         /// <summary>
@@ -87,14 +87,14 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// The resulting completer does not add a time-stamp because it is either called by a time-marking authority itself or
         /// the message will be send to one.
         /// </remarks>
-        /// <param name="level">The required level the complerer must produce: T-Level, LT-Level or LTA-Level</param>
+        /// <param name="level">The required level the completer must produce: T-Level, LT-Level or LTA-Level</param>
         /// <returns>The completer of the required level to be used by a time-mark authority</returns>
         public static ITmaDataCompleter CreateAsTimeMarkAuthority(Level level)
         {
             if (level == Level.B_Level) throw new NotSupportedException("Nothing to complete for B-level");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleWrapper(level, null, null, null);
+            return new TripleWrapper(level, null, null, null, null);
         }
 
     }

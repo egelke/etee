@@ -57,19 +57,19 @@ namespace Egelke.EHealth.Etee.Crypto
         }
 
         /// <summary>
-        /// Constuctor for the binary representation of the KEK.
+        /// Constructor for the binary representation of the KEK.
         /// </summary>
         ///         /// <remarks>
         /// <para>
-        /// The binary representation of the "GetNewKeyResponseContent" contains both the id als the key
+        /// The binary representation of the "GetNewKeyResponseContent" contains both the id as the key
         /// that can be provided to this constructor.  The binary representation "GetKeyResponseContent"
         /// only contains the key param for this constructor, the id param should be the same as
         /// in the binary representation of "GetKeyRequestContent".
         /// </para>
         /// </remarks>
         /// <param name="id">The ID of the KEK.  Senders get it from the KGSS web service, receivers 
-        /// get it directly from the sender in an application spefic way</param>
-        /// <param name="key">The KEK itself, always retreived from the KGSS web service</param>
+        /// get it directly from the sender in an application specific way</param>
+        /// <param name="key">The KEK itself, always retrieved from the KGSS web service</param>
         public SecretKey(byte[] id, byte[] key)
         {
             this.id = id;
@@ -82,7 +82,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This is the only part of the KEK that the application itself must transmit to the reciever,
+        /// This is the only part of the KEK that the application itself must transmit to the receiver,
         /// together with the message itself.  This is public information, so there is no need to seal it
         /// for transport.
         /// </para>
@@ -104,7 +104,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This is the only part of the KEK that the application itself must transmit to the reciever,
+        /// This is the only part of the KEK that the application itself must transmit to the receiver,
         /// together with the message itself.  This is public information, so there is no need to seal it
         /// for transport.
         /// </para>

@@ -62,12 +62,12 @@
     <Reference Include="crypto">
       <HintPath>..\packages\BouncyCastle-Patch.1.7.0\lib\net40\crypto.dll</HintPath>
     </Reference>
-    <Reference Include="Egelke.EHealth.Client">
-      <HintPath>..\packages\Egelke.EHealth.Client.2.0.1\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="Egelke.EHealth.Client.Tsa, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
+    <Reference Include="Egelke.EHealth.Client, Version=2.0.2.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC6\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
+      <HintPath>..\packages\Egelke.EHealth.Client.2.0.2\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Egelke.EHealth.Client.Pki">
+      <HintPath>..\packages\Egelke.EHealth.Client.Pki.1.0.0-Beta2\lib\net40-Client\Egelke.EHealth.Client.Pki.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>

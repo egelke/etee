@@ -30,7 +30,7 @@ using System.Security;
 [assembly: AssemblyConfiguration("Beta")]
 [assembly: AssemblyCompany("Egelke BVBA")]
 [assembly: AssemblyProduct(".Net ETEE")]
-[assembly: AssemblyCopyright("Copyright © Egelke BVBA 2013")]
+[assembly: AssemblyCopyright("Copyright © Egelke BVBA 2013-2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
