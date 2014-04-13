@@ -46,8 +46,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void MyClassInitialize()
         {
 
-            var alice = new EHealthP12("../../alice/alices_private_key_store.p12", "test");
-            var bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
+            var alice = new EHealthP12("../../alice/old_alices_private_key_store.p12", "test");
+            var bob = new EHealthP12("../../bob/old_bobs_private_key_store.p12", "test");
 
 
             aliceSealer = EhDataSealerFactory.Create(Level.B_Level, alice);
@@ -90,8 +90,14 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             {
                 result = bobUnsealer.Unseal(file);
             }
-            
-            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            System.Console.WriteLine(result.SecurityInformation);
+
+            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.None, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(2, result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Count);
+            //v1.6 does not add the chain of certificates, only the leaf
+            Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
+            //Old bob and alice don't have the right key usage
+            Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
 
             Assert.IsTrue(result.AuthenticationCertificate.Subject.Contains("NIHII=00000000101"));
@@ -108,7 +114,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
-            Stream msg = aliceSealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
+            Stream msg = aliceSealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/old_bobs_public_key.etk")));
 
             FileStream msgFile = new FileStream("message_from_alice_for_bob.msg", FileMode.OpenOrCreate);
             msg.CopyTo(msgFile);
@@ -132,8 +138,14 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             {
                 result = anonUnsealer.Unseal(fs, kek);
             }
+            System.Console.WriteLine(result.SecurityInformation);
 
-            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.None, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(2, result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Count);
+            //v1.6 does not add the chain of certificates, only the leaf
+            Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
+            //Old bob and alice don't have the right key usage
+            Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
 
             Assert.IsTrue(result.AuthenticationCertificate.Subject.Contains("NIHII=00000000101"));

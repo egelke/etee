@@ -28,7 +28,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
     /// <remarks>
     /// <para>
     /// The object depends on where this enum is used.  The object can be the message,
-    /// an inner/outer siganture, certificate, etk, ...
+    /// an inner/outer signature, certificate, etk, ...
     /// </para>
     /// <para>
     /// Correct means that the object isn't altered by somebody other then the issuer
@@ -51,11 +51,11 @@ namespace Egelke.EHealth.Etee.Crypto.Status
 
         /// <summary>
         /// <para>
-        /// It was impossible to execute all required checks at this time because some information wasn't avialable.
+        /// It was impossible to execute all required checks at this time because some information wasn't available.
         /// </para>
         /// <para>
         /// You should not use this object.  Check the <see cref="SecurityInformation.SecurityViolations"/> 
-        /// property for the reason and try to fix it (e.g restore internet
+        /// property for the reason and try to fix it (e.g restore Internet
         /// access so the CRL file can be downloaded) and run the verification again on the same object.
         /// </para>
         /// </summary>
@@ -96,10 +96,10 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// The issuer is not trusted because some checks could not be executed.
         /// </para>
         /// <para>
-        /// You should not accept this message, altough it is very lickly the sender is correct.  
+        /// You should not accept this message, although it is very likely the sender is correct.  
         /// Check the <see cref="SecurityInformation.SecurityViolations"/>  property for the reason.  
         /// If the reason is the sender, you may request the sender to fix it and resend the message. 
-        /// If the reason is local, it is sufficent to fix it and redo the validation.
+        /// If the reason is local, it is sufficient to fix it and redo the validation.
         /// </para>
         /// </summary>
         Unsure = 1,
@@ -188,7 +188,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// </para>
         /// <para>
         /// The receiver, that is you, can't be trusted.  This means an encryption/decryption
-        /// certficate is used that is (no longer) valid.
+        /// certificate is used that is (no longer) valid.
         /// Check the <see cref="UnsealSecurityInformation.Encryption"/> properties for
         /// more information.
         /// </para>
@@ -206,7 +206,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// data is altered, but it could also mean the sender or receiver information
         /// is changed.  The <see cref="SecurityResult{TViolation}.SecurityResult"/> and 
         /// <see cref="SecurityResult{TViolation}.TrustStatus"/> properties reflect the situation
-        /// where the data is altered, but it might as wel be the sender and or receiver
+        /// where the data is altered, but it might as well be the sender and or receiver
         /// that are changed.
         /// </para>
         /// </summary>
@@ -215,7 +215,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         InvalidData,
 
         /// <summary>
-        /// It is unkown if the data is valid or not, most likely because of missig signature information.
+        /// It is unknown if the data is valid or not, most likely because of missing signature information.
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
         [ValidationResult(ValidationStatus.Unsure)]
@@ -223,12 +223,12 @@ namespace Egelke.EHealth.Etee.Crypto.Status
     }
 
     /// <summary>
-    /// Detailed security information about a security operation, eighter signature or encryption.
+    /// Detailed security information about a security operation, either signature or encryption.
     /// </summary>
     /// <remarks>
     /// This library does treat signing and encryption in the say way for certain extend.  Both
     /// have a certificate, for signing this is the sender for encryption this is the receiver, which
-    /// is called "Subject".  The checks on the subject are exaclty the same for signing and encryption.
+    /// is called "Subject".  The checks on the subject are exactly the same for signing and encryption.
     /// The checks for the signature itself and the decryption are different, therefore both have
     /// specific violations.
     /// </remarks>
@@ -240,19 +240,19 @@ namespace Egelke.EHealth.Etee.Crypto.Status
 
         /// <summary>
         /// <para>
-        /// The content is encyrpted with an unaccepted algorithm (encryption).
+        /// The content is encrypted with an unaccepted algorithm (encryption).
         /// </para>
         /// <para>
         /// The content of an sealed message is never encrypted directly with
-        /// the public key of the receiver.  Instaid a (faster) symetric key
-        /// is used to encrypt the content and only the symetric key itself
+        /// the public key of the receiver.  Instaid a (faster) symmetric key
+        /// is used to encrypt the content and only the symmetric key itself
         /// is sealed with the public key of the receiver(s).
         /// </para>
         /// <para>
         /// For security reasons, only the most advanced encryption
         /// algorithms are allowed.  This violation occurs when a
         /// less advanced algorithm is used for the encryption of content
-        /// by the symteric key.
+        /// by the symmetric key.
         /// </para>
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
@@ -265,15 +265,15 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// </para>
         /// <para>
         /// The content of an sealed message is never encrypted directly with
-        /// the public key of the receiver.  Instaid a (faster) symetric key
-        /// is used to encrypt the content and only the symetric key itself
+        /// the public key of the receiver.  Instaid a (faster) symmetric key
+        /// is used to encrypt the content and only the symmetric key itself
         /// is sealed with the public key of the receiver(s).
         /// </para>
         /// <para>
         /// For security reasons, only the most advanced encryption
         /// algorithms are allowed.  This violation occurs when a
         /// less advanced algorithm is used for the encryption of the
-        /// symetric key by the public key of the receiver.
+        /// symmetric key by the public key of the receiver.
         /// </para>
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
@@ -286,14 +286,14 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// </para>
         /// <para>
         /// The content of an sealed message is never encrypted directly with
-        /// the public key of the receiver.  Instaid a (faster) symetric key
-        /// is used to encrypt the content and only the symetric key itself
+        /// the public key of the receiver.  Instaid a (faster) symmetric key
+        /// is used to encrypt the content and only the symmetric key itself
         /// is sealed with the public key of the receiver(s).
         /// </para>
         /// <para>
-        /// For security reasons, only keys of a certains size are allowed.  
+        /// For security reasons, only keys of a certain size are allowed.  
         /// This violation occurs when a the public key of the receiver is
-        /// smaller then the minimuum size.
+        /// smaller then the minimum size.
         /// </para>
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
@@ -314,7 +314,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// The signer info wasn't present (signing).
         /// </para>
         /// <para>
-        /// Normaly a sealed message contains the information about the signer,
+        /// Normally a sealed message contains the information about the signer,
         /// if this information is missing it is impossible to verify the
         /// signature and this violation is raised.
         /// </para>
@@ -328,8 +328,8 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// The signature was invalid (signing).
         /// </para>
         /// <para>
-        /// When this violation is raised, eigther the data is altered
-        /// or the issuer information is subsituted.
+        /// When this violation is raised, either the data is altered
+        /// or the issuer information is substituted.
         /// </para>
         /// </summary>
         [TrustLevel(TrustStatus.None)]
@@ -348,7 +348,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// to the encryption algorithm of the encryption.
         /// </para>
         /// <para>
-        /// For security reaons only the most advanced algorithms are
+        /// For security reasons only the most advanced algorithms are
         /// allowed.  This violation occurs when the digest algorithm of the 
         /// signature is less advanced then required.
         /// </para>
@@ -455,14 +455,14 @@ namespace Egelke.EHealth.Etee.Crypto.Status
     public enum CertSecurityViolation
     {
         /// <summary>
-        /// The issue was invalid. See <see cref="SecurityInformation.Subject"/> proparty for more information.
+        /// The issue was invalid. See <see cref="SecurityInformation.Subject"/> property for more information.
         /// </summary>
         [TrustLevel(TrustStatus.None)]
         [ValidationResult(ValidationStatus.Valid)]
         UntrustedIssuer,
 
         /// <summary>
-        /// The issuer validation was impossible. See <see cref="SecurityInformation.Subject"/> proparty for more information.
+        /// The issuer validation was impossible. See <see cref="SecurityInformation.Subject"/> property for more information.
         /// </summary>
         [TrustLevel(TrustStatus.Unsure)]
         [ValidationResult(ValidationStatus.Valid)]
@@ -479,7 +479,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
 
         /// <summary>
         /// <para>
-        /// The size of the key for this certificate is less then the required minimuum.
+        /// The size of the key for this certificate is less then the required minimum.
         /// </para>
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
@@ -492,8 +492,8 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// </para>
         /// <para>
         /// For encryption the time is always validated with the current time since
-        /// the validation always occures toghether with the decryption.  For signing certificates
-        /// the siging time is used for validation, is the signing time isn't available
+        /// the validation always occurs together with the decryption.  For signing certificates
+        /// the signing time is used for validation, is the signing time isn't available
         /// the current time is used.
         /// </para>
         /// </summary>
@@ -522,10 +522,10 @@ namespace Egelke.EHealth.Etee.Crypto.Status
 
         /// <summary>
         /// <para>
-        /// The certificate is incorrecty used.
+        /// The certificate is incorrectly used.
         /// </para>
         /// <para>
-        /// This can be eighter a signing certificate that is used
+        /// This can be either a signing certificate that is used
         /// for encryption or visa versa.  It can also be that a non
         /// CA certificate is used to issue a certificate.
         /// </para>
@@ -548,8 +548,8 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// The revocation status of the certificate could not be determined.
         /// </para>
         /// <para>
-        /// When the certificate contains revocation information windows recognises
-        /// but windows can't retreive it, this violation is raised.  By default windows
+        /// When the certificate contains revocation information windows recognizes
+        /// but windows can't retrieve it, this violation is raised.  By default windows
         /// only supports CRLs.
         /// </para>
         /// </summary>
@@ -574,7 +574,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         InvalidExtension,
 
         /// <summary>
-        /// The certificate violates a policy contraint.
+        /// The certificate violates a policy constraint.
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
         [ValidationResult(ValidationStatus.Invalid)]
@@ -602,21 +602,21 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         HasNotSupportedNameConstraint,
 
         /// <summary>
-        /// The certificates violates a name contraint because its name wasn't defined.
+        /// The certificates violates a name constraint because its name wasn't defined.
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
         [ValidationResult(ValidationStatus.Invalid)]
         HasNotDefinedNameConstraint,
 
         /// <summary>
-        /// The certificates violates a name contraint because its name is explicity not permitted.
+        /// The certificates violates a name constraint because its name is explicitly not permitted.
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
         [ValidationResult(ValidationStatus.Invalid)]
         HasNotPermittedNameConstraint,
 
         /// <summary>
-        /// The certificates violates a name contraint because its name is exlcuded.
+        /// The certificates violates a name constraint because its name is excluded.
         /// </summary>
         [TrustLevel(TrustStatus.Full)]
         [ValidationResult(ValidationStatus.Invalid)]
@@ -632,7 +632,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// this does not mean the certificate is invalid.
         /// </para>
         /// <para>
-        /// If you application does not allow offline revocation, you must explecitely 
+        /// If you application does not allow off-line revocation, you must explicitly 
         /// check the validation result.
         /// </para>
         /// </summary>

@@ -89,6 +89,7 @@
     <Compile Include="EncryptionTokenTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Alice.cs" />
+    <Compile Include="TestMessages.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +103,9 @@
     </None>
     <Content Include="alice\alices_public_key.etk" />
     <None Include="alice\alices_private_key_store.p12" />
+    <None Include="alice\old_alices_private_key_store.p12" />
+    <None Include="bob\Bob2_private_key_store.p12" />
+    <None Include="bob\Bob3_private_key_store.p12" />
     <None Include="bob\bobs_private_key_store.p12" />
     <None Include="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -163,14 +167,13 @@
     <Content Include="msg\triple_wrapped_revoked_cert.msg" />
     <Content Include="msg\triple_wrapped_signed_with_other_key_and_algo.msg" />
     <Content Include="msg\triple_wrapped_unauthorized_algos.msg" />
-    <Content Include="msg\triple_wrapped_unsupported_algos.msg" />
     <Content Include="msg\triple_wrapped_was_not_valid_yet_auth.msg" />
-    <Content Include="msg\triple_wrapped_without_certset.msg" />
-    <Content Include="msg\triple_wrapped_without_inner_eid_cert.msg" />
-    <Content Include="msg\triple_wrapped_without_outer_eid_cert.msg" />
     <Content Include="msg\triple_wrapped_with_2_signerinfos.msg" />
     <Content Include="msg\triple_wrapped_wrong_encryption_key.msg" />
     <Content Include="COPYING" />
+    <None Include="bob\old_bobs_private_key_store.p12" />
+    <None Include="bob\old_bobs_public_key.etk" />
+    <None Include="dirk\dirks_private_key_store.p12" />
     <None Include="Etee.nunit" />
     <None Include="etk\Bob2_public_key.etk" />
     <None Include="etk\Bob3_public_key.etk" />
@@ -178,8 +181,24 @@
     <None Include="etk\myself.etk" />
     <None Include="imports\CA.cer" />
     <None Include="imports\CA2.cer" />
+    <None Include="imports\specimenCa.cer" />
+    <None Include="imports\specimenCitizenCa.cer" />
+    <None Include="msg\brokenSignedData.msg" />
+    <None Include="msg\LTA_eHTSA.msg" />
+    <None Include="msg\LTA_Tma.msg" />
     <None Include="msg\LT_eHTSA.msg" />
     <None Include="msg\LT_FedictTSA.msg" />
+    <None Include="msg\outer_signed_message.msg" />
+    <None Include="msg\triple_wrapped_unsupported_algos_SHA224WITHRSA.msg" />
+    <None Include="msg\triple_wrapped_without_outer_cert.msg" />
+    <None Include="other\expired_auth.p12" />
+    <None Include="other\expired_encr.p12" />
+    <None Include="other\invalid_authkey_usage.p12" />
+    <None Include="other\invalid_cert_chain.p12" />
+    <None Include="other\invalid_encrkey_usage.p12" />
+    <None Include="other\invalid_key_algorithm.p12" />
+    <None Include="other\invalid_key_size.p12" />
+    <None Include="other\not_yet_auth.p12" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

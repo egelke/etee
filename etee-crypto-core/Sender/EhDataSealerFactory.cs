@@ -74,7 +74,7 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         ///     //if user did not select a certificate, notify him he should
         ///     if (selected.Count != 1) throw new Exception("You must select a certificate");
         ///    
-        ///     sealer = DataSealerFactory.Create(selected[0], null, Level.B_Level);
+        ///     sealer = DataSealerFactory.Create(Level.B_Level, selected[0]);
         /// }
         /// finally
         /// {
@@ -83,12 +83,12 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// </code>
         /// </example>
         /// <param name="authSign">The eHealth certificate to use for proving the origin of the message.  The certificate key must be <strong>exportable</strong>!</param>
-        /// <param name="authSignChain">The certificate chain of the eHealth certificate, if not present in the windows certificate store</param>
         /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender (i.e. authentication and signature certificate)</returns>
         public static IDataSealer Create(Level level, X509Certificate2 authSign)
         {
             ValidateCertificates(authSign);
+            ValidateAnyCertificates(authSign);
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
             return new TripleWrapper(level, authSign, null, null, null);
@@ -117,6 +117,7 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, X509Certificate2 authSign)
         {
             ValidateCertificates(authSign);
+            ValidateAnyCertificates(authSign);
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
 
@@ -140,15 +141,15 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// The data sealer has not direct dependency to this time-mark authority, it is the caller that must send it himself.
         /// </remarks>
         /// <param name="authSign">The eHealth certificate to use for proving the origin of the message.  The certificate key must be <strong>exportable</strong>!</param>
-        /// <param name="authSignChain">The certificate chain of the eHealth certificate, if not present in the windows certificate store</param>
         /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
         /// <seealso cref="Create(X509Certificate2, X509Certificate2, Level)"/>
-        public static IDataSealer CreateForTimemarkAuthority(X509Certificate2Collection authSignChain, Level level, X509Certificate2 authSign)
+        public static IDataSealer CreateForTimemarkAuthority(Level level, X509Certificate2 authSign)
         {
             ValidateCertificates(authSign);
+            ValidateAnyCertificates(authSign);
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleWrapper(level, authSign, null, null, authSignChain);
+            return new TripleWrapper(level, authSign, null, null, null);
         }
 
         public static IDataSealer CreateForTimemarkAuthority(Level level, EHealthP12 p12)
@@ -162,8 +163,10 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         private static void ValidateCertificates(X509Certificate2 authSign) {
             if (authSign == null) throw new ArgumentNullException("authSign", "The authentication certificate must be provided");
             if (!authSign.HasPrivateKey) throw new ArgumentException("authSign", "The authentication certificate must have a private key");
+        }
 
-            //advanced checks (for eHealth certificate)
+        private static void ValidateAnyCertificates(X509Certificate2 authSign)
+        {
             BC::X509.X509Certificate bcAuthentication = DotNetUtilities.FromX509Certificate(authSign);
             if (!((RSACryptoServiceProvider)authSign.PrivateKey).CspKeyContainerInfo.Exportable) throw new ArgumentException("authentication", "The authentication certificate must be exportable if no (eID) signature certificate is provided");
             if (!bcAuthentication.GetKeyUsage()[0] || !bcAuthentication.GetKeyUsage()[1]) throw new ArgumentException("authentication", "The authentication certificate must have a key for both non-Repudiation and signing");
