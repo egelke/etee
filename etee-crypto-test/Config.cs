@@ -12,21 +12,6 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class Config
     {
-        private static X509Certificate2 AskCertificate(X509KeyUsageFlags flags)
-        {
-            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            my.Open(OpenFlags.ReadOnly);
-            try
-            {
-                X509Certificate2Collection nonRep = my.Certificates.Find(X509FindType.FindByKeyUsage, flags, true);
-                return X509Certificate2UI.SelectFromCollection(nonRep, "Select your cert", "Select the cert you want to used to sign the msg", X509SelectionFlag.SingleSelection, IntPtr.Zero)[0];
-            }
-            finally
-            {
-                my.Close();
-            }
-        }
-
         [Test(Description="Prepares your platform for tests"), Explicit]
         public void SetUp()
         {
@@ -49,19 +34,6 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             finally
             {
                 store.Close();
-            }
-
-            //ask the sender
-            X509Certificate2 authCert = AskCertificate(X509KeyUsageFlags.DigitalSignature);
-            File.WriteAllText("authCertTumb.txt", authCert.Thumbprint);
-            if (!DotNetUtilities.FromX509Certificate(authCert).GetKeyUsage()[1])
-            {
-                X509Certificate2 signCert = AskCertificate(X509KeyUsageFlags.NonRepudiation);
-                File.WriteAllText("signCertTumb.txt", signCert.Thumbprint);
-            }
-            else
-            {
-                File.Delete("signCertTumb.txt");
             }
         }
 

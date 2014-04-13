@@ -29,11 +29,10 @@ using System.IO;
 using Egelke.EHealth.Etee.Crypto.Receiver;
 using System.Security.Cryptography;
 using System.Collections.ObjectModel;
-using Egelke.EHealth.Etee.Crypto.Utils;
 using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
-using Egelke.EHealth.Client.Tool;
 using Egelke.EHealth.Etee.Crypto.Configuration;
+using Egelke.EHealth.Client.Pki;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
@@ -59,20 +58,13 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             alice = new EHealthP12("../../alice/alices_private_key_store.p12", "test");
             bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
 
-            //Add the Alice certs to the extra store
-            X509Certificate2[] extraCerts = new X509Certificate2[alice.Values.Count];
-            alice.Values.CopyTo(extraCerts, 0);
-            Settings.Default.ExtraStore = new X509Certificate2Collection(extraCerts);
 
-            both = new X509Certificate2Collection(new X509Certificate2[] { alice["1204544406096826217265"], bob["825373489"] });
-            aliceOnly = new X509Certificate2Collection(new X509Certificate2[] { alice["1204544406096826217265"] });
-            bobOnly = new X509Certificate2Collection(new X509Certificate2[] { bob["825373489"] });
         }
 
         [Test]
         public void Addressed()
         {
-            Addressed(DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level), DataUnsealerFactory.Create(both, null));
+            Addressed(EhDataSealerFactory.Create(Level.B_Level, alice), DataUnsealerFactory.Create(null, alice, bob));
         }
 
         private void Addressed(IDataSealer sealer, IDataUnsealer unsealer)
@@ -112,10 +104,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
             EncryptionToken receiver2 = new EncryptionToken(Utils.ReadFully("../../alice/alices_public_key.etk"));
 
-            IDataSealer sealer = DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level);
+            IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), receiver1, receiver2);
 
-            IDataUnsealer unsealer = DataUnsealerFactory.Create(both, null);
+            IDataUnsealer unsealer = DataUnsealerFactory.Create(null, alice, bob);
             UnsealResult result = unsealer.Unseal(output);
             Console.WriteLine(result.SecurityInformation.ToString());
 
@@ -132,7 +124,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsNotNull(result.SecurityInformation.ToString());
 
 
-            unsealer = DataUnsealerFactory.Create(aliceOnly, null);
+            unsealer = DataUnsealerFactory.Create(null, alice);
             result = unsealer.Unseal(output);
             Console.WriteLine(result.SecurityInformation.ToString());
 
@@ -151,7 +143,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
 
-            unsealer = DataUnsealerFactory.Create(bobOnly, null);
+            unsealer = DataUnsealerFactory.Create(null, bob);
             result = unsealer.Unseal(output);
             Console.WriteLine(result.SecurityInformation.ToString());
 
@@ -175,7 +167,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void NonAddressed()
         {
-            NonAddressed(DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level), DataUnsealerFactory.Create(new X509Certificate2Collection(), null));
+            NonAddressed(EhDataSealerFactory.Create(Level.B_Level, alice), DataUnsealerFactory.Create(null));
         }
 
         private void NonAddressed(IDataSealer sealer, IDataUnsealer unsealer)
@@ -206,7 +198,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void Mixed()
         {
-            Mixed(DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level), DataUnsealerFactory.Create(both, null));
+            Mixed(EhDataSealerFactory.Create(Level.B_Level, alice), DataUnsealerFactory.Create(null, alice, bob));
         }
 
         private void Mixed(IDataSealer sealer, IDataUnsealer unsealer)
@@ -252,9 +244,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void ReuseOfSealerAndUnsealer()
         {
-            IDataSealer sealer = DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level);
-            IDataUnsealer unsealer = DataUnsealerFactory.Create(bobOnly, null);
-            IDataUnsealer unsealerAlice = DataUnsealerFactory.Create(aliceOnly, null);
+            IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);
+            IDataUnsealer unsealer = DataUnsealerFactory.Create(null, bob);
+            IDataUnsealer unsealerAlice = DataUnsealerFactory.Create(null, alice);
 
             Addressed(sealer, unsealer);
             NonAddressed(sealer, unsealer);
@@ -264,7 +256,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Addressed(sealer, unsealer);
         }
 
-        [Test, Explicit, Category("Long")]
+        [Test, Explicit]
         public void HudgeFile()
         {
             Random rand = new Random();
@@ -286,7 +278,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
 
                 //Seal
-                IDataSealer sealer = DataSealerFactory.Create(alice["Authentication"], null, Level.B_Level);
+                IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);
                 Stream output = sealer.Seal(hudgeFile, receiver);
                 hudgeFile.Position = 0;
 
@@ -294,7 +286,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 using (output)
                 {
                     //Unseal again
-                    IDataUnsealer unsealer = DataUnsealerFactory.Create(both, null);
+                    IDataUnsealer unsealer = DataUnsealerFactory.Create(null, alice, bob);
                     result = unsealer.Unseal(output);
                 }
                 Console.WriteLine(result.SecurityInformation.ToString());

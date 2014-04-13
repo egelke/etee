@@ -43,7 +43,7 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
         }
 
         /// <summary>
-        /// The max delay between the timestamp and signing time.
+        /// The max delay between the time-stamp and signing time.
         /// </summary>
         /// <remarks>
         /// The default value is 5 minutes.
@@ -62,11 +62,6 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
         /// </para>
         /// </value>
         public long InMemorySize { get; set; }
-
-        /// <summary>
-        /// Additional certificates that may be required but aren't in the windows certificate store.
-        /// </summary>
-        public X509Certificate2Collection ExtraStore { get; set; }
 
         private Settings() 
         {

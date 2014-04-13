@@ -16,7 +16,7 @@
  * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using Egelke.EHealth.Client.Tsa;
+using Egelke.EHealth.Client.Pki;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,23 +29,23 @@ namespace Egelke.EHealth.Etee.Crypto.Store
     /// <see cref="IDataVerifier"/> factory class for sealed message stores.
     /// </summary>
     /// <remarks>
-    /// Intended for sealed messages stores that will verify sealed messages but not nesesary unseal them.
+    /// Intended for sealed messages stores that will verify sealed messages but not necessary unseal them.
     /// Often these message store are time-mark authorities, but this isn't a required.
     /// </remarks>
     public class DataVerifierFactory
     {
         /// <summary>
-        /// Creates an instance of the <see cref="IDataVerifier"/> inferface to verify messages.
+        /// Creates an instance of the <see cref="IDataVerifier"/> interface to verify messages.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// Verifies the authentication part of the message, not the signer (non-repudication) of
+        /// Verifies the authentication part of the message, not the signer (non-repudiation) of
         /// the message.  It does not decrypt the message, so the content remains hidden and it
         /// does not require the possession of any key.
         /// </para>
         /// <para>
         /// Can be used to verify all types of messages, including those with time information (T, LT and LTA-Level) in
-        /// case a time-stam authorith is used and not a time-mark authority.
+        /// case a time-stamp authority is used and not a time-mark authority.
         /// </para>
         /// </remarks>
         /// <param name="level">The level to which a message must conform to, <c>null</c> meaning no revocation check must be done</param>
@@ -56,7 +56,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         }
 
         /// <summary>
-        /// Creates an instance of the <see cref="ITmaDataVerifier"/> inferface to verify messages as time-mark authority.
+        /// Creates an instance of the <see cref="ITmaDataVerifier"/> interface to verify messages as time-mark authority.
         /// </summary>
         /// <remarks>
         /// For usage by a time mark authority, allows you to provide the known time-mark before the time-mark key is known.
@@ -72,7 +72,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         }
 
         /// <summary>
-        /// Creates an instance of the <see cref="ITmaDataVerifier"/> inferface to verify messages retreived from a time-mark authority.
+        /// Creates an instance of the <see cref="ITmaDataVerifier"/> interface to verify messages retrieved from a time-mark authority.
         /// </summary>
         /// <remarks>
         /// For usage with messages that come from a time-mark authority (e.g. ehBox).  In case the message contains an embedded time-stamp,
