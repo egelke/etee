@@ -19,7 +19,27 @@ namespace Egelke.EHealth.Client.Pki.Test
         [TestFixtureSetUp]
         public static void setup()
         {
-            p12 = new EHealthP12(@"..\..\EHealthP12\SSIN=79021802145.p12", File.ReadAllText(@"..\..\EHealthP12\pwd.txt"));
+            p12 = new EHealthP12(@"..\..\EHealthP12\SSIN=79021802145.p12", File.ReadAllText(@"..\..\EHealthP12\SSIN=79021802145.txt"));
+            //p12 = new EHealthP12(@"..\..\EHealthP12\ehealth.p12", File.ReadAllText(@"..\..\EHealthP12\ehealth.txt"));
+        }
+
+        
+
+        [Test, Explicit]
+        public void Hack()
+        {
+            foreach (String pwd in File.ReadAllLines(@"..\..\EHealthP12\ehealth.txt"))
+            {
+                try
+                {
+                    var cert = new X509Certificate2(@"..\..\EHealthP12\ehealth.p12", pwd);
+                    System.Console.WriteLine("The password is: " + pwd);
+                }
+                catch (CryptographicException)
+                {
+                    System.Console.WriteLine("Failed password");
+                }
+            }
         }
 
         [Test]

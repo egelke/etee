@@ -171,7 +171,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)packages\OpenCover.4.5.2506\OpenCover.Console.exe" -register:user -target:"$(SolutionDir)packages\NUnit.Runners.2.6.3\tools\nunit-console.exe" -targetargs:"/noshadow \"$(ProjectDir)\tsa.nunit\"" -filter:"+[Egelke*]* -[Egelke*]Egelke.EHealth.Client.Pki.DSS* -[*Test]*" -output:"$(TargetDir)opencover-nunit.xml" &amp;&amp; "$(SolutionDir)packages\ReportGenerator.1.9.1.0\reportgenerator.exe" -reports:"$(TargetDir)opencover-nunit.xml" -targetdir:"$(TargetDir)coverage"</PostBuildEvent>
+    <PostBuildEvent>rem "$(SolutionDir)packages\OpenCover.4.5.2506\OpenCover.Console.exe" -register:user -target:"$(SolutionDir)packages\NUnit.Runners.2.6.3\tools\nunit-console.exe" -targetargs:"/noshadow \"$(ProjectDir)\tsa.nunit\"" -filter:"+[Egelke*]* -[Egelke*]Egelke.EHealth.Client.Pki.DSS* -[*Test]*" -output:"$(TargetDir)opencover-nunit.xml" &amp;&amp; "$(SolutionDir)packages\ReportGenerator.1.9.1.0\reportgenerator.exe" -reports:"$(TargetDir)opencover-nunit.xml" -targetdir:"$(TargetDir)coverage"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
