@@ -8,11 +8,11 @@
     <owners>$author$</owners>
     <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
     <projectUrl>http://etee.codeplex.com/</projectUrl>
-    <iconUrl>https://nuget.org/Content/Images/packageDefaultIcon-50x50.png</iconUrl>
+    <iconUrl>https://egelke-web.sharepoint.com/SiteImages/Health-care-shield-icon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Transformed Library into NuGet Package</releaseNotes>
-    <copyright>Copyright © Egelke BVBA 2013</copyright>
-    <tags>eHealth Encrpytion</tags>
+    <releaseNotes>Transformed Library into WF Actions and NuGet Package</releaseNotes>
+    <copyright>Copyright © Egelke BVBA 2013-104</copyright>
+    <tags>eHealth Encrpytion WF</tags>
   </metadata>
 </package>

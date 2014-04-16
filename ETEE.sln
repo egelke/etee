@@ -19,9 +19,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-core", "etee-cr
 EndProject
 Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "api", "api.shfbproj", "{6EEC1160-A980-4425-A4AD-CAC0BB35635E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{16F57AF2-7A51-4EE4-8DC7-AE4FDB2BAFDA}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 5
+		SccNumberOfProjects = 6
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs14
 		SccLocalPath0 = .
@@ -37,6 +42,8 @@ Global
 		SccProjectUniqueName4 = etee-crypto-test\\etee-crypto-test.csproj
 		SccProjectName4 = etee-crypto-test
 		SccLocalPath4 = etee-crypto-test
+		SccProjectUniqueName5 = api.shfbproj
+		SccLocalPath5 = .
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

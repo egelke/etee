@@ -244,7 +244,6 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>rem "$(SolutionDir)packages\OpenCover.4.5.2506\OpenCover.Console.exe" -register:user -target:"$(SolutionDir)packages\NUnit.Runners.2.6.3\tools\nunit-console.exe" -targetargs:"/noshadow \"$(ProjectDir)\Etee.nunit\"" -filter:"+[Egelke*]* -[*Test]*" -output:"$(TargetDir)opencover-nunit.xml" &amp;&amp; "$(SolutionDir)packages\ReportGenerator.1.9.1.0\reportgenerator.exe" -reports:"$(TargetDir)opencover-nunit.xml" -targetdir:"$(TargetDir)coverage"</PostBuildEvent>
   </PropertyGroup>
 </Project>

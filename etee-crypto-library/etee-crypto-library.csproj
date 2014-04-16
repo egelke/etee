@@ -8,8 +8,8 @@
     <ProjectGuid>{58029749-3EC1-4D76-8D0C-7BFED160F918}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Egelke.EHealth.Etee.Crypto.Library</RootNamespace>
-    <AssemblyName>Egelke.EHealth.Etee.Crypto.Library</AssemblyName>
+    <RootNamespace>Egelke.EHealth.Etee.Crypto.Wf</RootNamespace>
+    <AssemblyName>Egelke.EHealth.Etee.Crypto.Wf</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -60,10 +60,24 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto">
-      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+    <Reference Include="crypto, Version=1.8.5194.33298, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\BouncyCastle-Patch.1.7.0\lib\net40\crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Egelke.EHealth.Client.Pki, Version=1.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.EHealth.Client.Pki.1.0.0-Beta2\lib\net40-Client\Egelke.EHealth.Client.Pki.dll</HintPath>
+    </Reference>
+    <Reference Include="Egelke.EHealth.Etee.Crypto, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.EHealth.Etee.Crypto.2.0.0-Beta2\lib\net40-Client\Egelke.EHealth.Etee.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Egelke.Eid.Client, Version=0.1.0.0, Culture=neutral, PublicKeyToken=18ae13636b1f0f9d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.Eid.Client.0.1.0-Beta1\lib\net40\Egelke.Eid.Client.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Activities" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -88,38 +102,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ITransport.cs" />
-    <Compile Include="KnownRecipient.cs" />
-    <Compile Include="Letter.cs" />
+    <Compile Include="EhP12Seal.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PostMaster.cs" />
-    <Compile Include="Recipient.cs" />
     <Compile Include="Service References\ServiceClient\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
     <Compile Include="ServiceException.cs" />
-    <Compile Include="UnknownRecipient.cs" />
+    <Compile Include="TimeInfoType.cs" />
     <Compile Include="VerifyException.cs" />
-    <Compile Include="Xsd\V1\kgss-protocolcontent.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>kgss-protocolcontent.xsd</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="etee-crypto-core.nuspec">
+    <None Include="etee-crypto-library.nuspec">
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
-    <None Include="Service References\ServiceClient\Egelke.EHealth.Etee.Crypto.Library.ServiceClient.GetEtkResponse.datasource">
+    <None Include="Service References\ServiceClient\Egelke.EHealth.Etee.Crypto.Wf.ServiceClient.GetEtkResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\ServiceClient\Egelke.EHealth.Etee.Crypto.Library.ServiceClient.GetKeyResponse.datasource">
+    <None Include="Service References\ServiceClient\Egelke.EHealth.Etee.Crypto.Wf.ServiceClient.GetKeyResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\ServiceClient\Egelke.EHealth.Etee.Crypto.Library.ServiceClient.GetNewKeyResponse.datasource">
+    <None Include="Service References\ServiceClient\Egelke.EHealth.Etee.Crypto.Wf.ServiceClient.GetNewKeyResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Wsdl\V1\commons-core.xsd" />
@@ -150,10 +155,12 @@
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
     <None Include="Xsd\V1\kgss-protocolcontent.xsd">
-      <Generator>Xsd2CodeCustomTool</Generator>
-      <LastGenOutput>kgss-protocolcontent.Designer.cs</LastGenOutput>
+      <Generator>xsd2Code</Generator>
     </None>
     <None Include="Service References\ServiceClient\configuration91.svcinfo" />
+    <Content Include="Contributors.html" />
+    <Content Include="License.html" />
+    <Content Include="Readme.html" />
     <Content Include="Wsdl\eHealth.disco" />
   </ItemGroup>
   <ItemGroup>
@@ -175,12 +182,6 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\etee-crypto-core\etee-crypto-core.csproj">
-      <Project>{cdd132d9-1dcb-49c4-b6d7-bd5c52620c64}</Project>
-      <Name>etee-crypto-core</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

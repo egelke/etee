@@ -389,7 +389,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(TrustStatus.Full, result.SecurityInformation.TrustStatus);
         }
 
-        [Test, Ignore("Doesn't find the decryption certificate because of incorrect issue")]
+        [Test, Ignore("Doesn't find the decryption certificate because of incorrect issuer")]
         public void NotValidYetAuth()
         {
             UnsealResult result;
