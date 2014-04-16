@@ -44,34 +44,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     {
         private TraceSource trace = new TraceSource("Egelke.EHealth.Etee.Test");
 
-        X509Certificate2 auth;
-        X509Certificate2 sign;
         EHealthP12 bob;
 
         [TestFixtureSetUp]
         public void MyClassInitialize()
         {
             bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
-
-            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            my.Open(OpenFlags.ReadOnly);
-            try
-            {
-                auth = my.Certificates.Find(X509FindType.FindByThumbprint, File.ReadAllText("authCertTumb.txt"), false)[0];
-                if (File.Exists("signCertTumb.txt"))
-                {
-                    sign = my.Certificates.Find(X509FindType.FindByThumbprint, File.ReadAllText("signCertTumb.txt"), false)[0];
-                }
-                else
-                {
-                    sign = null;
-                }
-            }
-            finally
-            {
-                my.Close();
-            }
-
         }
 
         private String RunJava(String program)

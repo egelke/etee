@@ -24,9 +24,9 @@ using System.Security;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ETEE for eHealth, Extension")]
-[assembly: AssemblyDescription("Extension for .Net End-To-End Encryption Library for eHealth")]
-[assembly: AssemblyConfiguration("Beta")]
+[assembly: AssemblyTitle("ETEE for eHealth as WF")]
+[assembly: AssemblyDescription("Windows Workflow Foundation version of the End-To-End Encryption Library for eHealth")]
+[assembly: AssemblyConfiguration("Alfa")]
 [assembly: AssemblyCompany("Egelke BVBA")]
 [assembly: AssemblyProduct(".Net ETEE")]
 [assembly: AssemblyCopyright("Copyright © Egelke BVBA 2013")]
@@ -53,7 +53,7 @@ using System.Security;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.0.0")]
 [assembly: AssemblyFileVersion("2.0.0")]
-[assembly: AssemblyInformationalVersion("2.0.0-Beta2")]
+[assembly: AssemblyInformationalVersion("2.0.0-Alfa1")]
 
 [assembly: CLSCompliant(true)]
 

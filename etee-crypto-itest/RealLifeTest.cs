@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.IO;
-using Egelke.EHealth.Etee.Crypto.Library;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using NUnit.Framework;
@@ -36,13 +35,7 @@ namespace Egelke.EHealth.Etee.ITest
         X509Certificate2 eid;
         X509Certificate2 rootct2;
 
-        private static PostMaster outgoing;
-        private static PostMaster incommingAddressed;
-        private static PostMaster incommingUnaddressed;
-
-        FileTransport sharedFileOut;
-        FileTransport sharedFileIn;
-
+        /*
         [TestFixtureSetUp]
         public void SetUpClass()
         {
@@ -155,12 +148,9 @@ namespace Egelke.EHealth.Etee.ITest
             msg.Read(msgBytes, 0, msgBytes.Length);
             String msgText = Encoding.UTF8.GetString(msgBytes);
 
-
-            /*
-             * Test Verification
-             */
             Assert.AreEqual(orgMsgText, msgText); //check if the text wasn't changed
             Assert.IsTrue(sender.Subject.Contains(user)); //check if it actualy comes from SIS
         }
+    */
     }
 }

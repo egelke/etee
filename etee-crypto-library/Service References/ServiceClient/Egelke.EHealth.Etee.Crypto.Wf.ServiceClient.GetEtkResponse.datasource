@@ -6,5 +6,5 @@
     cause the file to be unrecognizable by the program.
 -->
 <GenericObjectDataSource DisplayName="GetEtkResponse" Version="1.0" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
-   <TypeInfo>Egelke.EHealth.Etee.Crypto.Library.ServiceClient.GetEtkResponse, Service References.ServiceClient.Reference.cs, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+   <TypeInfo>Egelke.EHealth.Etee.Crypto.Wf.ServiceClient.GetEtkResponse, Service References.ServiceClient.Reference.cs, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
 </GenericObjectDataSource>

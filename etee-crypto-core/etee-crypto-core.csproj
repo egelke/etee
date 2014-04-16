@@ -128,7 +128,6 @@
     <Compile Include="Utils\WindowsTempFileStream.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="COPYING" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -152,10 +151,6 @@
     <None Include="etee-crypto-core.nuspec">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="License.html" />
-    <Content Include="Readme.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
