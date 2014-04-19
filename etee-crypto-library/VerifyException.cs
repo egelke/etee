@@ -1,5 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
+ * Copyright (C) 2014 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +22,7 @@ using System.Linq;
 using System.Text;
 using Egelke.EHealth.Etee.Crypto.Status;
 
-namespace Egelke.EHealth.Etee.Crypto.Library
+namespace Egelke.EHealth.Etee.Crypto.Wf
 {
     public class VerifyException<Violation> : Exception
         where Violation : struct, IConvertible

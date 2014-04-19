@@ -433,7 +433,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// The included time-stamp was invalid or could not be trusted.
         /// </summary>
         [TrustLevel(TrustStatus.Unsure)]
-        [ValidationResult(ValidationStatus.Invalid)]
+        [ValidationResult(ValidationStatus.Valid)]
         InvalidTimestamp,
 
 

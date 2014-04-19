@@ -55,6 +55,14 @@
     <Reference Include="Egelke.EHealth.Client.Tsa">
       <HintPath>..\packages\Egelke.EHealth.Client.Tsa.1.0.0-RC5\lib\net40-Client\Egelke.EHealth.Client.Tsa.dll</HintPath>
     </Reference>
+    <Reference Include="Egelke.EHealth.Etee.Crypto, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.EHealth.Etee.Crypto.2.0.0-Beta2\lib\net40-Client\Egelke.EHealth.Etee.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Egelke.Eid.Client, Version=0.1.0.0, Culture=neutral, PublicKeyToken=18ae13636b1f0f9d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.Eid.Client.0.1.0-Beta1\lib\net40\Egelke.Eid.Client.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -67,6 +75,7 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
@@ -89,6 +98,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Contributors.html" />
+    <Content Include="Input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="itest.config">
       <SubType>Designer</SubType>
     </Content>

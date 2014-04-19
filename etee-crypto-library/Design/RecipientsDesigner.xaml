@@ -1,0 +1,15 @@
+﻿<sap:ActivityDesigner x:Class="Egelke.EHealth.Etee.Crypto.Wf.Design.RecipientsDesigner"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:l="clr-namespace:Egelke.EHealth.Etee.Crypto.Wf.Design"
+    xmlns:sap="clr-namespace:System.Activities.Presentation;assembly=System.Activities.Presentation"
+    xmlns:sapv="clr-namespace:System.Activities.Presentation.View;assembly=System.Activities.Presentation">
+    <sap:ActivityDesigner.Resources>
+        <ResourceDictionary>
+            <l:ArgumentConverter x:Key="streamConverter"/>
+        </ResourceDictionary>
+    </sap:ActivityDesigner.Resources>
+    <Grid>
+        <TextBox Text="{Binding Path=ModelItem.To, Mode=OneWay, Converter={StaticResource streamConverter}}" IsEnabled="False" ToolTip="The variable to assign the Recipients to"/>
+    </Grid>
+</sap:ActivityDesigner>
