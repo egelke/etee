@@ -24,6 +24,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using NUnit.Framework;
+using System.Activities;
 
 namespace Egelke.EHealth.Etee.ITest
 {
@@ -32,125 +33,135 @@ namespace Egelke.EHealth.Etee.ITest
     {
         private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
-        X509Certificate2 eid;
-        X509Certificate2 rootct2;
+        [Test]
+        public void EndToEnd()
+        {
+            var wf = new Egelke.EHealth.Etee.ITest.EndToEnd();
+
+            WorkflowInvoker.Invoke(wf);
+
+        }
 
         /*
-        [TestFixtureSetUp]
-        public void SetUpClass()
+X509Certificate2 eid;
+X509Certificate2 rootct2;
+
+
+[TestFixtureSetUp]
+public void SetUpClass()
+{
+    rootct2 = new X509Certificate2("../../rootct2.crt");
+
+    X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
+    store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
+    try
+    {
+        if (!store.Certificates.Contains(rootct2))
         {
-            rootct2 = new X509Certificate2("../../rootct2.crt");
+            store.Add(rootct2);
+        }
+    }
+    finally
+    {
+        store.Close();
+    }
 
-            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
-            store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
-            try
-            {
-                if (!store.Certificates.Contains(rootct2))
-                {
-                    store.Add(rootct2);
-                }
-            }
-            finally
-            {
-                store.Close();
-            }
+    X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+    my.Open(OpenFlags.ReadOnly);
+    try
+    {
 
-            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            my.Open(OpenFlags.ReadOnly);
-            try
-            {
+        Crypto.Library.ServiceClient.EtkDepotPortTypeClient etkDepot = new Crypto.Library.ServiceClient.EtkDepotPortTypeClient("etk");
+        Crypto.Library.ServiceClient.KgssPortTypeClient kgssForSendOnly = new Crypto.Library.ServiceClient.KgssPortTypeClient("kgss-anon");
+        Crypto.Library.ServiceClient.KgssPortTypeClient kgssForMe = new Crypto.Library.ServiceClient.KgssPortTypeClient("kgss-79021802145");
 
-                Crypto.Library.ServiceClient.EtkDepotPortTypeClient etkDepot = new Crypto.Library.ServiceClient.EtkDepotPortTypeClient("etk");
-                Crypto.Library.ServiceClient.KgssPortTypeClient kgssForSendOnly = new Crypto.Library.ServiceClient.KgssPortTypeClient("kgss-anon");
-                Crypto.Library.ServiceClient.KgssPortTypeClient kgssForMe = new Crypto.Library.ServiceClient.KgssPortTypeClient("kgss-79021802145");
+        eid = my.Certificates.Find(X509FindType.FindByThumbprint, "1ac02600f2f2b68f99f1e8eeab2e780470e0ea4c", false)[0];
+        X509Certificate2 auth = my.Certificates.Find(X509FindType.FindByThumbprint, "566FD3FE13E3AB185A7224BCEC8AD9CFFBF9E9C2", false)[0];
+        X509Certificate2Collection dataEncipherment = my.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.DataEncipherment, false);
 
-                eid = my.Certificates.Find(X509FindType.FindByThumbprint, "1ac02600f2f2b68f99f1e8eeab2e780470e0ea4c", false)[0];
-                X509Certificate2 auth = my.Certificates.Find(X509FindType.FindByThumbprint, "566FD3FE13E3AB185A7224BCEC8AD9CFFBF9E9C2", false)[0];
-                X509Certificate2Collection dataEncipherment = my.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.DataEncipherment, false);
-
-                X509Certificate2Collection decryption = new X509Certificate2Collection();
-                foreach(X509Certificate2 cert in dataEncipherment) {
-                    if (cert.HasPrivateKey) decryption.Add(cert);
-                }
-
-                sharedFileOut = new OutFileTransport(Path.GetTempFileName(), Path.GetTempFileName());
-                sharedFileIn = new InFileTransport(sharedFileOut.Content, sharedFileOut.KekId);
-
-                outgoing = new PostMaster(sharedFileOut, auth, decryption, etkDepot, kgssForSendOnly);
-                incommingAddressed = new PostMaster(sharedFileIn, decryption, etkDepot);
-                incommingAddressed.Test = true;
-                incommingUnaddressed = new PostMaster(sharedFileIn, auth, decryption, etkDepot, kgssForMe);
-                incommingUnaddressed.Test = true;
-            }
-            finally
-            {
-                my.Close();
-            }
+        X509Certificate2Collection decryption = new X509Certificate2Collection();
+        foreach(X509Certificate2 cert in dataEncipherment) {
+            if (cert.HasPrivateKey) decryption.Add(cert);
         }
 
-        [TestFixtureTearDown]
-        public void TearDownClass()
+        sharedFileOut = new OutFileTransport(Path.GetTempFileName(), Path.GetTempFileName());
+        sharedFileIn = new InFileTransport(sharedFileOut.Content, sharedFileOut.KekId);
+
+        outgoing = new PostMaster(sharedFileOut, auth, decryption, etkDepot, kgssForSendOnly);
+        incommingAddressed = new PostMaster(sharedFileIn, decryption, etkDepot);
+        incommingAddressed.Test = true;
+        incommingUnaddressed = new PostMaster(sharedFileIn, auth, decryption, etkDepot, kgssForMe);
+        incommingUnaddressed.Test = true;
+    }
+    finally
+    {
+        my.Close();
+    }
+}
+
+[TestFixtureTearDown]
+public void TearDownClass()
+{
+    X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
+    store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
+    try
+    {
+        if (store.Certificates.Contains(rootct2))
         {
-            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
-            store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
-            try
-            {
-                if (store.Certificates.Contains(rootct2))
-                {
-                    store.Remove(rootct2);
-                }
-            }
-            finally
-            {
-                store.Close();
-            }
+            store.Remove(rootct2);
         }
+    }
+    finally
+    {
+        store.Close();
+    }
+}
 
 
-        [Test]
-        public async void Full()
-        {
-            string msg = "My secret message to myself";
+[Test]
+public async void Full()
+{
+    string msg = "My secret message to myself";
 
 
-            //sending the message
-            Letter outbound = new Letter();
-            outbound.Content = new MemoryStream(Encoding.UTF8.GetBytes(msg));
-            outbound.Sender = eid;
-            outbound.Recipients = new List<Recipient>();
-            outbound.Recipients.Add(new KnownRecipient(new KnownRecipient.IdType("SSIN", "79021802145")));
-            outbound.Recipients.Add(new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:person:ssin", null));
+    //sending the message
+    Letter outbound = new Letter();
+    outbound.Content = new MemoryStream(Encoding.UTF8.GetBytes(msg));
+    outbound.Sender = eid;
+    outbound.Recipients = new List<Recipient>();
+    outbound.Recipients.Add(new KnownRecipient(new KnownRecipient.IdType("SSIN", "79021802145")));
+    outbound.Recipients.Add(new UnknownRecipient("urn:be:fgov:identification-namespace", "urn:be:fgov:person:ssin", null));
 
-            await outgoing.TransferAsync(outbound, true, false); //there is not relevant response so we ignore it.
+    await outgoing.TransferAsync(outbound, true, false); //there is not relevant response so we ignore it.
 
-            Letter inbound;
+    Letter inbound;
 
-            //getting the message (addressed)
-            inbound = await incommingAddressed.TransferAsync(null, false, true);
-            using (inbound)
-            {
-                VerifyReceive(inbound.Content, inbound.Sender, msg, "");
-            }
+    //getting the message (addressed)
+    inbound = await incommingAddressed.TransferAsync(null, false, true);
+    using (inbound)
+    {
+        VerifyReceive(inbound.Content, inbound.Sender, msg, "");
+    }
             
 
-            //getting the message (unaddressed)
-            inbound = await incommingUnaddressed.TransferAsync(null, false, true);
-            using (inbound)
-            {
-                VerifyReceive(inbound.Content, inbound.Sender, msg, "");
-            }
-        }
+    //getting the message (unaddressed)
+    inbound = await incommingUnaddressed.TransferAsync(null, false, true);
+    using (inbound)
+    {
+        VerifyReceive(inbound.Content, inbound.Sender, msg, "");
+    }
+}
 
-        public void VerifyReceive(Stream msg, X509Certificate2 sender, String orgMsgText, String user)
-        {
-            //Post Treat
-            byte[] msgBytes = new byte[msg.Length];
-            msg.Read(msgBytes, 0, msgBytes.Length);
-            String msgText = Encoding.UTF8.GetString(msgBytes);
+public void VerifyReceive(Stream msg, X509Certificate2 sender, String orgMsgText, String user)
+{
+    //Post Treat
+    byte[] msgBytes = new byte[msg.Length];
+    msg.Read(msgBytes, 0, msgBytes.Length);
+    String msgText = Encoding.UTF8.GetString(msgBytes);
 
-            Assert.AreEqual(orgMsgText, msgText); //check if the text wasn't changed
-            Assert.IsTrue(sender.Subject.Contains(user)); //check if it actualy comes from SIS
-        }
-    */
+    Assert.AreEqual(orgMsgText, msgText); //check if the text wasn't changed
+    Assert.IsTrue(sender.Subject.Contains(user)); //check if it actualy comes from SIS
+}
+*/
     }
 }
