@@ -1,5 +1,6 @@
-﻿<sap:ActivityDesigner Collapsible="False"
-    x:Class="Egelke.EHealth.Etee.Crypto.Wf.Design.eIDSenderDesigner"
+﻿<sap:ActivityDesigner 
+    Collapsible="False"
+    x:Class="Egelke.EHealth.Etee.Crypto.Wf.Design.eHealthP12SenderDesigner"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:s="clr-namespace:System;assembly=mscorlib"
@@ -15,13 +16,24 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Label Grid.Row="0" Grid.Column="0" Content="To" HorizontalAlignment="Right" />
-        <sapv:ExpressionTextBox Grid.Row="0" Grid.Column="1"
+        <Label Grid.Row="0" Grid.Column="0" Content="File" HorizontalAlignment="Right" />
+        <sapv:ExpressionTextBox  Grid.Row="0" Grid.Column="1" 
+            Expression="{Binding Path=ModelItem.FileName, 
+                                 Mode=TwoWay, 
+                                 Converter={StaticResource ArgumentToExpressionConverter}, 
+                                 ConverterParameter=In }"
+            ExpressionType="s:String"
+            OwnerActivity="{Binding Path=ModelItem}"
+            Width="200" />
+        
+        <Label Grid.Row="1" Grid.Column="0" Content="To" HorizontalAlignment="Right" />
+        <sapv:ExpressionTextBox Grid.Row="1" Grid.Column="1"
               Expression="{Binding Path=ModelItem.To, 
                                    Mode=TwoWay, 
                                    Converter={StaticResource ArgumentToExpressionConverter}, 
@@ -31,5 +43,7 @@
               UseLocationExpression="True" 
               Width="200"
         />
+       
+        
     </Grid>
 </sap:ActivityDesigner>

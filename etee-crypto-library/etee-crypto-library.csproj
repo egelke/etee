@@ -110,8 +110,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activity\eHealthP12Sender.cs" />
     <Compile Include="Activity\eIDSender.cs" />
     <Compile Include="Activity\Recipients.cs" />
+    <Compile Include="Design\eHealthP12SenderDesigner.xaml.cs">
+      <DependentUpon>eHealthP12SenderDesigner.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Design\RecipientsDesigner.xaml.cs">
       <DependentUpon>RecipientsDesigner.xaml</DependentUpon>
     </Compile>
@@ -121,8 +125,7 @@
     <Compile Include="Design\SealDesigner.xaml.cs">
       <DependentUpon>SealDesigner.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Design\ArgumentConverter.cs" />
-    <Compile Include="eHealthP12Sender.cs" />
+    <Compile Include="EHealthP12Sender.cs" />
     <Compile Include="KnownRecipient.cs" />
     <Compile Include="Recipients.cs" />
     <Compile Include="Activity\Seal.cs" />
@@ -214,6 +217,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Page Include="Design\eHealthP12SenderDesigner.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Design\RecipientsDesigner.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
