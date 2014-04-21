@@ -19,11 +19,11 @@ namespace Egelke.EHealth.Etee.Crypto.Wf.Activity
 
         public OutArgument<Wf.Recipients> To { get; set; }
 
-        public InArgument<ICollection<String>> Addressed { get; set; }
+        public InArgument<String[]> Addressed { get; set; }
 
-        public InArgument<ICollection<String>> UnaddressedAllowed { get; set; }
+        public InArgument<String[]> UnaddressedAllowed { get; set; }
 
-        public InArgument<ICollection<String>> UnaddressedExcluded { get; set; }
+        public InArgument<String[]> UnaddressedExcluded { get; set; }
 
         protected override void Execute(CodeActivityContext context)
         {

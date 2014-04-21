@@ -205,6 +205,23 @@ namespace Egelke.EHealth.Etee.Crypto.Wf.Activity
                         throw new NotImplementedException();
                 }
             }
+
+            if (sender is Wf.EHealthP12Sender)
+            {
+                EHealthP12 p12 = ((Wf.EHealthP12Sender)sender).ToEHealthP12();
+
+                if ((level & Level.T_Level) != Level.T_Level)
+                    return EhDataSealerFactory.Create(level, p12);
+                switch (TimeInfoType)
+                {
+                    case Wf.TimeInfoType.TimeMarkAuthority:
+                        return EhDataSealerFactory.CreateForTimemarkAuthority(level, p12);
+                    case Wf.TimeInfoType.TimeStampAuthrity_Rfc3161:
+                        return EhDataSealerFactory.Create(level, new Rfc3161TimestampProvider(TimeStampAuthorityUri), p12);
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
             throw new NotImplementedException();
         }
     }

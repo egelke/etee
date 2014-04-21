@@ -1,20 +1,19 @@
 ﻿<sap:ActivityDesigner
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:s="clr-namespace:System;assembly=mscorlib"
+    xmlns:i="clr-namespace:System.IO;assembly=mscorlib"
+    xmlns:e="clr-namespace:Egelke.EHealth.Etee.Crypto.Wf"
     xmlns:sap="clr-namespace:System.Activities.Presentation;assembly=System.Activities.Presentation"
-    xmlns:sapv="clr-namespace:System.Activities.Presentation.View;assembly=System.Activities.Presentation" 
-    xmlns:l="clr-namespace:Egelke.EHealth.Etee.Crypto.Wf.Design"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-    mc:Ignorable="d" 
-    x:Class="Egelke.EHealth.Etee.Crypto.Wf.Design.SealDesigner"
-    d:DesignWidth="320" d:DesignHeight="149">
+    xmlns:sapv="clr-namespace:System.Activities.Presentation.View;assembly=System.Activities.Presentation"
+    xmlns:sapc="clr-namespace:System.Activities.Presentation.Converters;assembly=System.Activities.Presentation"
+    x:Class="Egelke.EHealth.Etee.Crypto.Wf.Design.SealDesigner" Collapsible="False">
     <sap:ActivityDesigner.Icon>
         <DrawingBrush>
             <DrawingBrush.Drawing>
                 <ImageDrawing>
                     <ImageDrawing.Rect>
-                        <Rect Location="0,0" Size="16,16" ></Rect>
+                        <Rect Location="0,0" Size="16,16" />
                     </ImageDrawing.Rect>
                     <ImageDrawing.ImageSource>
                         <BitmapImage UriSource="Lock-Locked.png" />
@@ -25,7 +24,7 @@
     </sap:ActivityDesigner.Icon>
     <sap:ActivityDesigner.Resources>
         <ResourceDictionary>
-            <l:ArgumentConverter x:Key="streamConverter"/>
+            <sapc:ArgumentToExpressionConverter x:Key="ArgumentToExpressionConverter" />
         </ResourceDictionary>
     </sap:ActivityDesigner.Resources>
     <Grid >
@@ -41,18 +40,46 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Label Content="Sender" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" />
-        <TextBox Grid.Row="0"  Grid.Column="1" Height="23" Width="100" IsEnabled="False"  Text="{Binding Path=ModelItem.Sender, Mode=OneWay, Converter={StaticResource streamConverter}}" />
+        <sapv:ExpressionTextBox  Grid.Row="0" Grid.Column="1" 
+            Expression="{Binding Path=ModelItem.Sender, 
+                                 Mode=TwoWay, 
+                                 Converter={StaticResource ArgumentToExpressionConverter}, 
+                                 ConverterParameter=In }"
+            ExpressionType="e:Sender"
+            OwnerActivity="{Binding Path=ModelItem}"
+            Width="150" />
 
         <Label Content="Recipients" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Right"  />
-        <TextBox Grid.Row="0"  Grid.Column="4" Height="23" Width="100" IsEnabled="False"  Text="{Binding Path=ModelItem.Recipients, Mode=OneWay, Converter={StaticResource streamConverter}}" />
-
+        <sapv:ExpressionTextBox  Grid.Row="0" Grid.Column="4" 
+            Expression="{Binding Path=ModelItem.Recipients, 
+                                 Mode=TwoWay, 
+                                 Converter={StaticResource ArgumentToExpressionConverter}, 
+                                 ConverterParameter=In }"
+            ExpressionType="e:Recipients"
+            OwnerActivity="{Binding Path=ModelItem}"
+            Width="150" />
+        
         <Label Content="->" Grid.Column="2" Grid.RowSpan="2" VerticalAlignment="Center" />
 
         <Label Content="In" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" />
-        <TextBox x:Name="In" Grid.Row="1"  Grid.Column="1" Height="23" Width="100" Text="{Binding Path=ModelItem.InMessage, Mode=OneWay, Converter={StaticResource streamConverter}}" IsEnabled="False" />
+        <sapv:ExpressionTextBox  Grid.Row="1" Grid.Column="1" 
+            Expression="{Binding Path=ModelItem.InMessage, 
+                                 Mode=TwoWay, 
+                                 Converter={StaticResource ArgumentToExpressionConverter}, 
+                                 ConverterParameter=In }"
+            ExpressionType="i:Stream"
+            OwnerActivity="{Binding Path=ModelItem}"
+            Width="150" />
 
         <Label Content="Out" Grid.Row="1" Grid.Column="3" HorizontalAlignment="Right"  />
-        <TextBox x:Name="Out" Grid.Row="1" Grid.Column="4" Height="23" Width="100" Text="{Binding Path=ModelItem.OutMessage, Mode=OneWay, Converter={StaticResource streamConverter}}" IsEnabled="False" />
-
+        <sapv:ExpressionTextBox  Grid.Row="1" Grid.Column="4" 
+            Expression="{Binding Path=ModelItem.OutMessage, 
+                                 Mode=TwoWay, 
+                                 Converter={StaticResource ArgumentToExpressionConverter}, 
+                                 ConverterParameter=In }"
+            ExpressionType="i:Stream"
+            OwnerActivity="{Binding Path=ModelItem}"
+            Width="150" />
+        
     </Grid>
 </sap:ActivityDesigner>
