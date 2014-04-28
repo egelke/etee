@@ -13,13 +13,13 @@ using System.Security.Cryptography.Xml;
 using IM.Xades.Extra;
 using System.Xml.Serialization;
 using System.Xml;
-using Siemens.EHealth.Client.Sso;
+using Egelke.EHealth.Client.Sso;
 using System.ServiceModel;
-using Siemens.EHealth.Client.Sso.Sts;
+using Egelke.EHealth.Client.Sso.Sts;
 using System.ServiceModel.Security.Tokens;
 using System.IdentityModel.Tokens;
 using System.ServiceModel.Description;
-using Siemens.EHealth.Client.Sso.WA;
+using Egelke.EHealth.Client.Sso.WA;
 using System.Threading;
 using NUnit.Framework;
 

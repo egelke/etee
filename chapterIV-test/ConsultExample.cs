@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
-using Siemens.EHealth.Client.Sso;
+using Egelke.EHealth.Client.Sso;
 using System.ServiceModel;
 using System.IdentityModel.Tokens;
-using Siemens.EHealth.Client.Sso.Sts;
+using Egelke.EHealth.Client.Sso.Sts;
 using System.Xml;
 using System.ServiceModel.Description;
 using System.ServiceModel.Security.Tokens;
