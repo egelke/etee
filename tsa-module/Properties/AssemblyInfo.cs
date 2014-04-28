@@ -26,7 +26,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle("eH-I PKI")]
 [assembly: AssemblyDescription("PKI tools useful for eHealth")]
-[assembly: AssemblyConfiguration("Beta")]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany("Egelke BVBA")]
 [assembly: AssemblyProduct("eHealth-Interoperability")]
 [assembly: AssemblyCopyright("Copyright © Egelke 2014")]
@@ -53,7 +57,7 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0")]
 [assembly: AssemblyFileVersion("1.0.0")]
-[assembly: AssemblyInformationalVersion("1.0.0-Beta2")]
+[assembly: AssemblyInformationalVersion("1.0.0")]
 
 [assembly: CLSCompliant(true)]
 
