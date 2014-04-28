@@ -37,13 +37,13 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// use an instance that implements this interface.
     /// </para>
     /// <para>
-    /// The <see cref="EidDataSealerFactory"/> class should be used to get an instance that implements
-    /// this interface.
+    /// The <see cref="EidDataSealerFactory"/> or <see cref="EhDataSealerFactory"/> class should be 
+    /// used to get an instance that implements this interface.
     /// </para>
     /// <para>
-    /// This interface assumes you have access to the required artififacts: the receivers ETK 
-    /// or a KGSS generated key.  Retreiving the artifacts isn't part of this assembly, but this
-    /// assembly is bundleled with source code that show how it can be done.
+    /// This interface assumes you have access to the required artifacts: the receivers ETK 
+    /// or a KGSS generated key.  Retrieving the artifacts isn't part of this assembly, but this
+    /// assembly is bundled with source code that show how it can be done.
     /// </para>
     /// <para>
     /// The library does not occupy itself with the message itself.  It is always treated as an
@@ -86,9 +86,9 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// </list>
         /// </para>
         /// <para>
-        /// In case size of a message exteeds <see cref="Egelke.EHealth.Etee.Crypto.Configuration.Settings.InMemorySize"/> temporary files are used.  It uses the standard temporary
-        /// file directory of you machine for this.  Except for catastrofical failures, these temorary files
-        /// are removed when no longer needed.  It is important that you have sufficient storage in your temporaly
+        /// In case size of a message exceeds <see cref="Egelke.EHealth.Etee.Crypto.Configuration.Settings.InMemorySize"/> temporary files are used.  It uses the standard temporary
+        /// file directory of you machine for this.  Except for catastrophically failures, these temporary files
+        /// are removed when no longer needed.  It is important that you have sufficient storage in your temporally
         /// path, about 3 times the size of the input is needed.
         /// </para>
         /// </remarks>
@@ -100,21 +100,21 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// </para>
         /// <para>
         /// The stream that is returned is a FileStream to a file in the temporary folder of your machine.  The
-        /// file is automaticly deleted when you dispose of the stream instance.
+        /// file is automatically deleted when you dispose of the stream instance.
         /// </para>
         /// </returns>
         /// <seealso cref="Path.GetTempFileName()"/>
         /// <example>
         /// Sealing a message for several known recipient.
         /// <code lang="cs">
-        /// //Create a IDataSealer instance, selfAuth is the eHealth authentication certificate of the user
-        /// IDataSealer sealer = DataSealerFactory.Create(eidAuth, eidSign, Level.B_Level);
+        /// //Create a IDataSealer instance
+        /// IDataSealer sealer = EidDataSealerFactory.Create(Level.B_Level);
         /// 
-        /// //Read the etk of a specific reciever
+        /// //Read the etk of a specific receiver
         /// EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully("other1.etk"));
         /// Utils.Check(receiver1.Verify()); //verify if it is (still) correct
         /// 
-        /// //Read the etk of another specific reciever
+        /// //Read the etk of another specific receiver
         /// EncryptionToken receiver2 = new EncryptionToken(Utils.ReadFully("other2.etk"));
         /// Utils.Check(receiver2.Verify()); //verify if it is (still) correct
         /// 
@@ -134,11 +134,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// </summary>
         /// <remarks>
         /// This method can be used with any encryption certificates, including certificates that aren't issued by eHealth.
-        /// This should not be used in an eHealth environement!
+        /// This should not be used in an eHealth environment!
         /// </remarks>
         /// <seealso cref="Seal(Stream, EncryptionToken[])"/>
         /// <param name="unsealed">The clear message that must be protected</param>
-        /// <param name="certificates">The encryptiion certificates of the known recipients, without private key</param>
+        /// <param name="certificates">The encryption certificates of the known recipients, without private key</param>
         /// <returns>The sealed message, this should be transported to the receivers.</returns>
         Stream Seal(Stream unsealed, params X509Certificate2[] certificates);
 
@@ -176,9 +176,9 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// can be retrieved from the ETK-Depot.
         /// </para>
         /// <para>
-        /// In case size of a message exteeds <see cref="Egelke.EHealth.Etee.Crypto.Configuration.Settings.InMemorySize"/> temporary files are used.  It uses the standard temporary
-        /// file directory of you machine for this.  Except for catastrofical failures, these temorary files
-        /// are removed when no longer needed.  It is important that you have sufficient storage in your temporaly
+        /// In case size of a message exceeds <see cref="Egelke.EHealth.Etee.Crypto.Configuration.Settings.InMemorySize"/> temporary files are used.  It uses the standard temporary
+        /// file directory of you machine for this.  Except for catastrophically failures, these temporary files
+        /// are removed when no longer needed.  It is important that you have sufficient storage in your temporally
         /// path, about 3 times the size of the input is needed.
         /// </para>
         /// </remarks>
@@ -191,26 +191,26 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// </para>
         /// <para>
         /// The stream that is returned is a FileStream to a file in the temporary folder of your machine.  The
-        /// file is automaticly deleted when you dispose of the stream instance.
+        /// file is automatically deleted when you dispose of the stream instance.
         /// </para>
         /// </returns>
         /// <seealso cref="Path.GetTempFileName()"/>
         /// <example>
         /// Sealing a message for both known and unknown recipient.
         /// <code lang="cs">
-        /// //Create a IDataSealer instance, selfAuth is the eHealth authentication certificate of the user
-        /// IDataSealer sealer = DataSealerFactory.Create(eidAuth, eidSign, Level.B_Level);
+        /// //Create a IDataSealer instance
+        /// IDataSealer sealer = EidDataSealerFactory.Create(Level.B_Level);
         /// 
-        /// //Create a secret key, keyId and Key are retreived from KGSS
+        /// //Create a secret key, keyId and Key are retrieved from KGSS
         /// byte[] keyId;
         /// byte[] key = Utils.GetNewSecretKey(out keyId);
         /// SecretKey skey = new SecretKey(keyId, key);
         /// 
-        /// //Read the etk of a specific reciever
+        /// //Read the etk of a specific receiver
         /// EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully("other1.etk"));
         /// Utils.Check(receiver1.Verify()); //verify if it is (still) correct
         /// 
-        /// //Read the etk of another specific reciever
+        /// //Read the etk of another specific receiver
         /// EncryptionToken receiver2 = new EncryptionToken(Utils.ReadFully("other2.etk"));
         /// Utils.Check(receiver2.Verify()); //verify if it is (still) correct
         /// 

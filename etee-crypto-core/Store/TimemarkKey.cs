@@ -34,7 +34,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// </summary>
         /// <remarks>
         /// The entire certificate is provided so the time-mark authority can
-        /// decide itself how to identify the signer, e.g. thumpprint, 
+        /// decide itself how to identify the signer, e.g. thump-print, 
         /// serial+issuer, ...
         /// </remarks>
         public X509Certificate2 Signer { get; set; }

@@ -113,9 +113,11 @@
     <Compile Include="Activity\eHealthP12Sender.cs" />
     <Compile Include="Activity\eIDSender.cs" />
     <Compile Include="Activity\Recipients.cs" />
+    <Compile Include="Activity\Unseal.cs" />
     <Compile Include="Design\eHealthP12SenderDesigner.xaml.cs">
       <DependentUpon>eHealthP12SenderDesigner.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Design\GSCTypeExtension.cs" />
     <Compile Include="Design\RecipientsDesigner.xaml.cs">
       <DependentUpon>RecipientsDesigner.xaml</DependentUpon>
     </Compile>
@@ -125,8 +127,12 @@
     <Compile Include="Design\SealDesigner.xaml.cs">
       <DependentUpon>SealDesigner.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Design\UnsealDesigner.xaml.cs">
+      <DependentUpon>UnsealDesigner.xaml</DependentUpon>
+    </Compile>
     <Compile Include="EHealthP12Sender.cs" />
     <Compile Include="KnownRecipient.cs" />
+    <Compile Include="Receiver.cs" />
     <Compile Include="Recipients.cs" />
     <Compile Include="Activity\Seal.cs" />
     <Compile Include="EidSender.cs" />
@@ -193,6 +199,12 @@
     <Resource Include="Design\Lock-Locked.png" />
     <Resource Include="Design\Lock-Unlocked.png" />
     <EmbeddedResource Include="Design\SealDesigner.bmp" />
+    <EmbeddedResource Include="Design\UnsealDesigner.bmp" />
+    <EmbeddedResource Include="Design\eHealthP12SenderDesigner.bmp" />
+    <EmbeddedResource Include="Design\eIDSenderDesigner.bmp" />
+    <Resource Include="Design\Person-Multi.png" />
+    <Resource Include="Design\Person-Single.png" />
+    <EmbeddedResource Include="Design\RecipientsDesigner.bmp" />
     <Content Include="Wsdl\eHealth.disco" />
   </ItemGroup>
   <ItemGroup>
@@ -230,6 +242,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Design\SealDesigner.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Design\UnsealDesigner.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

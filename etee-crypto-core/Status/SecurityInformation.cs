@@ -93,7 +93,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         }
 
         /// <summary>
-        /// Detail printout to incopreate in the parent printout.
+        /// Detail printout to incorporate in the parent printout.
         /// </summary>
         /// <param name="level">The number of parent</param>
         /// <returns>String representation of the instance</returns>

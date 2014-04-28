@@ -38,53 +38,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     {
         
         /// <summary>
-        /// Creates an instance of the <see cref="IDataSealer"/> interface suitable for B-Level only.
+        /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for B-Level only.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// Each instances has an authentication and optionally a signing certificate.  Which can either be eID or eHealth certificates.
-        /// In case of eHealth certificates, only the authentication certificate must be provided, it also be used as signing certificate.
-        /// In case of eID certificates, both the authentication and signing certificate of the same person should be provided, the PIN will
-        /// only be requested twice because of a windows limitation.
-        /// </para>
-        /// <para>
-        /// eHealth certificate can only be loaded from the standard windows certificate store, the eHealth provided .p12 must
-        /// be imported into the windows certificate store with <strong>exportable</strong> key.  It isn't possible to use the eHealth .p12 directly, because
-        /// <see cref="X509Certificate2.X509Certificate2(System.Byte[], System.String)"/>
-        /// only supports files with one private key, the standard eHealth .p12 files have two.  For compatibility with the .Net Xades
-        /// library, the eHealth .p12 library should be imported via the <c>EHealthP12</c>-class of the eH-I library.
-        /// </para>
-        /// </remarks>
-        /// <example>
-        /// Requesting the user to select his own authentication certificate
-        /// <code lang="cs">
-        /// IDataSealer sealer;
-        /// 
-        /// //Open the Windows certificate store, in this case my own certificates specific for my windows users.
-        /// X509Store myStore = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-        /// myStore.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
-        /// try
-        /// {
-        ///     //Filter out all non signature certificates.
-        ///     X509Certificate2Collection myEhCerts = myStore.Certificates.Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, true);
-        ///     
-        ///     //Allow the user to select its own certificate
-        ///     X509Certificate2Collection selected = X509Certificate2UI.SelectFromCollection(myEhCerts, "Sender Certificate", "Select your eHealth certificate", X509SelectionFlag.SingleSelection);
-        /// 
-        ///     //if user did not select a certificate, notify him he should
-        ///     if (selected.Count != 1) throw new Exception("You must select a certificate");
-        ///    
-        ///     sealer = DataSealerFactory.Create(Level.B_Level, selected[0]);
-        /// }
-        /// finally
-        /// {
-        ///     myStore.Close();
-        /// }
-        /// </code>
-        /// </example>
         /// <param name="authSign">The eHealth certificate to use for proving the origin of the message.  The certificate key must be <strong>exportable</strong>!</param>
         /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
-        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender (i.e. authentication and signature certificate)</returns>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
         public static IDataSealer Create(Level level, X509Certificate2 authSign)
         {
             ValidateCertificates(authSign);
@@ -94,6 +52,19 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             return new TripleWrapper(level, authSign, null, null, null);
         }
 
+        /// <summary>
+        /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for B-Level only.
+        /// </summary>
+        /// <example>
+        /// B-Level for alice:
+        /// <code lang="cs">
+        /// var alice = new EHealthP12("alices_private_key_store.p12", "test");
+        /// IDataSealer sealer = DataSealerFactory.Create(Level.B_Level, alice);
+        /// </code>
+        /// </example>
+        /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
+        /// <param name="p12">The eHealth certificate as wrapper of the pkcs12 file</param>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
         public static IDataSealer Create(Level level, EHealthP12 p12)
         {
             ValidateCertificates(p12["authentication"]);
@@ -103,17 +74,13 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         }
 
         /// <summary>
-        /// Creates an instance of the <see cref="IDataSealer"/> interface suitable for all levels except for B-Level.
+        /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for all levels except for B-Level.
         /// </summary>
-        /// <remarks>
-        /// Uses a time-stamp authority to indicate the time when the message was created. See the eH-I TSA module for possible implementation of existing authorities.
-        /// See the message definition for which authority must be used if any, the eH-I TSA module provides clients for both eHealth and Fedict but can be extended to any
-        /// authority that returns compliant time-stamp-tokens.
-        /// </remarks>
+        /// <seealso cref="Create(Level, ITimestampProvider, EHealthP12)"/>
         /// <param name="authSign">The eHealth certificate to use for proving the origin of the message.  The certificate key must be <strong>exportable</strong>!</param>
-        /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
+        /// <param name="level">The level of the sealing, B-Level not allowed</param>
         /// <param name="timestampProvider">The client of the time-stamp authority</param>
-        /// <seealso cref="Create(X509Certificate2, X509Certificate2, Level)"/>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
         public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, X509Certificate2 authSign)
         {
             ValidateCertificates(authSign);
@@ -124,6 +91,26 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             return new TripleWrapper(level, authSign, null, timestampProvider, null);
         }
 
+        /// <summary>
+        /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for all levels except for B-Level.
+        /// </summary>
+        /// <remarks>
+        /// Uses a time-stamp authority to indicate the time when the message was created. See the eH-I TSA module for possible implementation of existing authorities.
+        /// See the message definition for which authority must be used if any, the eH-I TSA module provides clients for both eHealth and Fedict but can be extended to any
+        /// authority that returns compliant time-stamp-tokens.
+        /// </remarks>
+        /// <example>
+        /// LTA-Level for alice, with Fedict TSA:
+        /// <code lang="cs">
+        /// var alice = new EHealthP12("alices_private_key_store.p12", "test");
+        /// var tsa = new Rfc3161TimestampProvider(); //not representative, should be eHealth DSS.
+        /// IDataSealer sealer = DataSealerFactory.Create(Level.LTA_Level, tsa, alice);
+        /// </code>
+        /// </example>
+        /// <param name="p12">The eHealth certificate as wrapper of the pkcs12 file</param>
+        /// <param name="level">The level of the sealing, B-Level not allowed</param>
+        /// <param name="timestampProvider">The client of the time-stamp authority</param>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
         public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, EHealthP12 p12)
         {
             ValidateCertificates(p12["authentication"]);
@@ -134,15 +121,12 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         }
 
         /// <summary>
-        /// Creates an instance of the <see cref="IDataSealer"/> interface suitable for all levels except for B-Level.
+        /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for all levels except for B-Level.
         /// </summary>
-        /// <remarks>
-        /// The returned data sealer assumes that the messages will be send via a time-mark authority and will therefore not attempt to add a time-stamp.
-        /// The data sealer has not direct dependency to this time-mark authority, it is the caller that must send it himself.
-        /// </remarks>
+        /// <seealso cref="CreateForTimemarkAuthority(Level, EHealthP12)"/>
         /// <param name="authSign">The eHealth certificate to use for proving the origin of the message.  The certificate key must be <strong>exportable</strong>!</param>
-        /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
-        /// <seealso cref="Create(X509Certificate2, X509Certificate2, Level)"/>
+        /// <param name="level">The level of the sealing, not allowed for B-Level</param>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender for a time-mark authority</returns>
         public static IDataSealer CreateForTimemarkAuthority(Level level, X509Certificate2 authSign)
         {
             ValidateCertificates(authSign);
@@ -152,6 +136,23 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             return new TripleWrapper(level, authSign, null, null, null);
         }
 
+        /// <summary>
+        /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for all levels except for B-Level.
+        /// </summary>
+        /// <remarks>
+        /// The returned data sealer assumes that the messages will be send via a time-mark authority and will therefore not attempt to add a time-stamp.
+        /// The data sealer has not direct dependency to this time-mark authority, it is the caller that must send it himself.
+        /// </remarks>
+        /// <example>
+        /// LTA-Level for alice, TMA (any):
+        /// <code lang="cs">
+        /// var alice = new EHealthP12("alices_private_key_store.p12", "test");
+        /// IDataSealer sealer = DataSealerFactory.CreateForTimemarkAuthority(Level.LTA_Level, alice);
+        /// </code>
+        /// </example>
+        /// <param name="p12">The eHealth certificate as wrapper of the pkcs12 file</param>
+        /// <param name="level">The level of the sealing, B-Level not allowed</param>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender for a time-mark authority</returns>
         public static IDataSealer CreateForTimemarkAuthority(Level level, EHealthP12 p12)
         {
             ValidateCertificates(p12["authentication"]);

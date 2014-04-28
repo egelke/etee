@@ -208,7 +208,7 @@ namespace Egelke.EHealth.Etee.Crypto.Wf.Activity
 
             if (sender is Wf.EHealthP12Sender)
             {
-                EHealthP12 p12 = ((Wf.EHealthP12Sender)sender).ToEHealthP12();
+                EHealthP12 p12 = ((Wf.EHealthP12Sender)sender).P12;
 
                 if ((level & Level.T_Level) != Level.T_Level)
                     return EhDataSealerFactory.Create(level, p12);

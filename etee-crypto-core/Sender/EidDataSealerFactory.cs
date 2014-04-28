@@ -33,37 +33,24 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// <summary>
     /// <see cref="IDataSealer"/> factory class for sealed message creators/senders.
     /// </summary>
-    /// <remarks>
-    /// This instance is specific for a sender, so if your program supports multiple senders it will need multiple instance.
-    /// </remarks>
     public static class EidDataSealerFactory
     {
+        /// <summary>
+        /// Event fired when eID card is requested.
+        /// </summary>
         public static event EventHandler<EventArgs> EidCardRequest;
 
+        /// <summary>
+        /// Even fired when eID card is no longer requested, normally on insert.
+        /// </summary>
         public static event EventHandler<EventArgs> EidCardRequestCancellation;
 
         /// <summary>
-        /// Creates an instance of the <see cref="IDataSealer"/> interface suitable for B-Level only.
+        /// Creates an instance of the <see cref="IDataSealer"/> interface with eID certificate as sender suitable for B-Level only.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// Each instances has an authentication and optionally a signing certificate.  Which can either be eID or eHealth certificates.
-        /// In case of eHealth certificates, only the authentication certificate must be provided, it also be used as signing certificate.
-        /// In case of eID certificates, both the authentication and signing certificate of the same person should be provided, the PIN will
-        /// only be requested twice because of a windows limitation.
-        /// </para>
-        /// <para>
-        /// eHealth certificate can only be loaded from the standard windows certificate store, the eHealth provided .p12 must
-        /// be imported into the windows certificate store with <strong>exportable</strong> key.  It isn't possible to use the eHealth .p12 directly, because
-        /// <see cref="X509Certificate2.X509Certificate2(System.Byte[], System.String)"/>
-        /// only supports files with one private key, the standard eHealth .p12 files have two.  For compatibility with the .Net Xades
-        /// library, the eHealth .p12 library should be imported via the <c>EHealthP12</c>-class of the eH-I library.
-        /// </para>
-        /// </remarks>
-        /// <param name="authentication">The eID Authentication certificate to use for proving the origin of the message.</param>
-        /// <param name="signature">The eID Signature certificate to protect the content of the message</param>
         /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
-        /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender (i.e. authentication and signature certificate)</returns>
+        /// <param name="timeout">The time to wait for an eID to be inserted before failing</param>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
         public static IDataSealer Create(Level level, TimeSpan timeout)
         {
             X509Certificate2 authentication;
@@ -75,16 +62,17 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         }
 
         /// <summary>
-        /// Creates an instance of the <see cref="IDataSealer"/> interface suitable for all levels except for B-Level.
+        /// Creates an instance of the <see cref="IDataSealer"/> interface with eID certificate as sender suitable for all levels except for B-Level.
         /// </summary>
         /// <remarks>
         /// Uses a time-stamp authority to indicate the time when the message was created. See the eH-I TSA module for possible implementation of existing authorities.
         /// See the message definition for which authority must be used if any, the eH-I TSA module provides clients for both eHealth and Fedict but can be extended to any
         /// authority that returns compliant time-stamp-tokens.
         /// </remarks>
-        /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
+        /// <param name="level">The level of the sealing, B-Level not allowed</param>
         /// <param name="timestampProvider">The client of the time-stamp authority</param>
-        /// <seealso cref="Create(X509Certificate2, X509Certificate2, Level)"/>
+        /// <param name="timeout">The time to wait for an eID to be inserted before failing</param>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
         public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, TimeSpan timeout)
         {
             X509Certificate2 authentication;
@@ -97,16 +85,15 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         }
 
         /// <summary>
-        /// Creates an instance of the <see cref="IDataSealer"/> interface suitable for all levels except for B-Level.
+        /// Creates an instance of the <see cref="IDataSealer"/> interface with eID certificate as sender suitable for all levels except for B-Level.
         /// </summary>
         /// <remarks>
         /// The returned data sealer assumes that the messages will be send via a time-mark authority and will therefore not attempt to add a time-stamp.
         /// The data sealer has not direct dependency to this time-mark authority, it is the caller that must send it himself.
         /// </remarks>
-        /// <param name="authentication">The eID Authentication certificate to use for proving the origin of the message.</param>
-        /// <param name="signature">The eID Signature certificate to protect the content of the message</param>
-        /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
-        /// <seealso cref="Create(X509Certificate2, X509Certificate2, Level)"/>
+        /// <param name="level">The level of the sealing, B-Level not allowed</param>
+        /// <param name="timeout">The time to wait for an eID to be inserted before failing</param>
+        /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
         public static IDataSealer CreateForTimemarkAuthority(Level level, TimeSpan timeout)
         {
             X509Certificate2 authentication;

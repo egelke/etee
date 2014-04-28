@@ -37,7 +37,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// <para>
         /// Completes the authentication part of the message, it does not decrypt the message
         /// or changes the signature (non-repudiation) part.  It does not require the 
-        /// possession of any decryption key and keeps the confidiality of the content.
+        /// possession of any decryption key and keeps the confidentiality of the content.
         /// </para>
         /// <para>
         /// The level of the returned messages depends on the level specified during creation. When required

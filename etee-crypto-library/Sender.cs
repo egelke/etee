@@ -8,5 +8,6 @@ namespace Egelke.EHealth.Etee.Crypto.Wf
 {
     public abstract class Sender
     {
+
     }
 }

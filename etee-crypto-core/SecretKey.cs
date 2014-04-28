@@ -90,7 +90,6 @@ namespace Egelke.EHealth.Etee.Crypto
         /// Use this representation of the KEK id if the transport support binary information.
         /// </para>
         /// </remarks>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
         public byte[] Id
         {
             get

@@ -31,52 +31,55 @@ namespace Egelke.EHealth.Etee.Crypto
     {
 
         /// <summary>
-        /// Baseline level.
+        /// Baseline level:
+        /// <para>
+        /// No time based on current time, no time-stamp or time-mark is required (but time-stamps are processed if encountered).
+        /// </para>
+        /// <para>
+        /// No revocation information is embedded, revocation is verified via embedded and/or on-line information (but the embedded info will be quickly outdated).
+        /// </para>
         /// </summary>
-        /// <remarks>
-        /// No time validation, no time-stamp or time-mark is required (but time-stamps are processed if encountered)
-        /// No revocation information is embedded, revocation is verified via embedded and/or online information (but the embedded info will be quicly outdated).
-        /// </remarks>
         B_Level = 0x000,
 
         /// <summary>
-        /// Time stamped/marked level.
-        /// </summary>
-        /// <remarks>
+        /// Time stamped/marked level:
+        /// <para>
         /// Same as <see cref="B_Level"/> with time validation, requires a time-stamp or time-mark from a time-mark authority (e.g. ehBox, Recip-e... or intenal).
-        /// </remarks>
+        /// </para>
+        /// </summary>
         T_Level = 0x001,
 
         /// <summary>
-        /// For internal use only
+        /// For internal use only.
         /// </summary>
         L_Level = 0x010,
 
         /// <summary>
-        /// For internal use only
+        /// For internal use only.
         /// </summary>
         A_level = 0x100,
 
         /// <summary>
-        /// Long lived time stamped/marked level.
+        /// Long lived time stamped/marked level:
+        /// <para>
+        /// Same as <see cref="T_Level"/> where revocation information is embedded during sealing, unsealing will still resolve on-line information if needed.
+        /// </para>
+        /// <para>
+        /// <strong>Warning:</strong> use only with stores that aren't time-marks but which your trust anyway.  You always need to use <see cref="LTA_Level"/>
+        /// in case of arbitration.
+        /// </para>
         /// </summary>
-        /// <remarks>
-        /// Same as <see cref="T_Level"/> where revocation information is embedded during sealing, unsealing will still resolve online information if needed.
-        /// </remarks>
         LT_Level = L_Level | T_Level,
 
         /// <summary>
         /// Long lived archivable time stamped/marked level.
+        /// <para>
+        /// Same as <see cref="LT_Level"/> for sealing, unsealing will check the time-stamp chain is still valid at the time of validation (not applicable with time-marks).
+        /// </para>
+        /// <para>
+        /// The library does not support adding or verifying a archive time-stamp, but does already indicate when it is required <see cref="Egelke.EHealth.Etee.Crypto.Status.SignatureSecurityInformation.TimestampRenewalTime"/>
+        /// </para>
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// Same as <see cref="LT_Level"/> for sealing, unsealing will check the timestamp chain is still valid (timemarks check remains the same).
-        /// </para>
-        /// <para>
-        /// This means that the origin of the message becomes unsure at one point.  This can be avoided by adding additional timestamps, but that isn't 
-        /// supported (yet) by this library.
-        /// </para>
-        /// </remarks>
         LTA_Level = LT_Level | A_level
     }
 }

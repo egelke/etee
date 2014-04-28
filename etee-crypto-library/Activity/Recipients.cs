@@ -7,23 +7,25 @@ using System.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using Egelke.EHealth.Etee.Crypto.Wf.Design;
+using System.Drawing;
 
 namespace Egelke.EHealth.Etee.Crypto.Wf.Activity
 {
 
     [Designer(typeof(RecipientsDesigner))]
+    [ToolboxBitmap(typeof(RecipientsDesigner))]
     public sealed class Recipients : CodeActivity
     {
         private const string AddressedRegEx = "(?<type>.*)=(?<value>\\d*)(, (?<app>\\w+))?";
-        private const string UnaddressedRegEx = "[{](?<ns>.*)[}](?<name>.*)=(?<value>.*)";
+        //private const string UnaddressedRegEx = "[{](?<ns>.*)[}](?<name>.*)=(?<value>.*)";
 
         public OutArgument<Wf.Recipients> To { get; set; }
 
-        public InArgument<String[]> Addressed { get; set; }
+        public InArgument<ICollection<String>> Addressed { get; set; }
 
-        public InArgument<String[]> UnaddressedAllowed { get; set; }
+        //public InArgument<String[]> UnaddressedAllowed { get; set; }
 
-        public InArgument<String[]> UnaddressedExcluded { get; set; }
+        //public InArgument<String[]> UnaddressedExcluded { get; set; }
 
         protected override void Execute(CodeActivityContext context)
         {
@@ -36,7 +38,7 @@ namespace Egelke.EHealth.Etee.Crypto.Wf.Activity
                 foreach (String address in addressed)
                 {
                     MatchCollection matches = regex.Matches(address);
-                    if (matches.Count != 1) new ArgumentException("In Argument Addressed contains an invalid address: " + address);
+                    if (matches.Count != 1) throw new ArgumentException("In Argument Addressed contains an invalid address: " + address);
 
                     var recipient = new KnownRecipient();
                     recipient.Type = matches[0].Groups["type"].Value;
@@ -45,6 +47,7 @@ namespace Egelke.EHealth.Etee.Crypto.Wf.Activity
                     recipients.Addressed.Add(recipient);
                 }
             }
+            /*
             ICollection<String> unaddressedAllowed = UnaddressedAllowed.Get(context);
             if (unaddressedAllowed != null)
             {
@@ -76,6 +79,7 @@ namespace Egelke.EHealth.Etee.Crypto.Wf.Activity
                     }
                 }
             }
+            */
 
             To.Set(context, recipients);
         }
