@@ -41,8 +41,8 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         ///  <see cref="SecurityInformation"/> is the data is valid and can be trusted or not.
         /// </para>
         /// <para>
-        /// The property is always a stream, but can eighter be a MemoryStream or a Temporaly FileStream, depending
-        /// on the Unseal method that was invoked.  The FileStream does clean up the temporaly file on closing.
+        /// The property is always a stream, but can either be a MemoryStream or a Temporally FileStream, depending
+        /// on the Unseal method that was invoked.  The FileStream does clean up the temporally file on closing.
         /// </para>
         /// </value>
         public Stream UnsealedData { get; internal set; }
@@ -51,9 +51,9 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// The results of the security checks.
         /// </summary>
         /// <value>
-        /// This propery must be used to check if the data of the <see cref="UnsealedData"/> is
+        /// This property must be used to check if the data of the <see cref="UnsealedData"/> is
         /// valid and can be trusted is not.  You should not accept any messages that have a
-        /// validation status different from <see cref="ValidationStatus.Valid"/> or a truststatus
+        /// validation status different from <see cref="ValidationStatus.Valid"/> or a trust-status
         /// different from <see cref="TrustStatus.Full"/>.
         /// </value>
         public UnsealSecurityInformation SecurityInformation { get; internal set; }
@@ -65,11 +65,11 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// <para>
         /// This provides information about the entity that sent the message, without vouching for the content.
         /// The information about the entity that vouches for the content can be found in <see cref="SigningCertificate"/>
-        /// In general these represent the same entity, but aren't nesesary the same certificate.
+        /// In general these represent the same entity, but aren't necessary the same certificate.
         /// </para>
         /// <para>
-        /// The application is supposed to verify that the sender is actualy
-        /// allowed, the libray only validate
+        /// The application is supposed to verify that the sender is actually
+        /// allowed, the library only validate
         /// that the sender information can be used (=trusted) or not.  The definition 
         /// an validation against the list of allowed senders is out of scope
         /// for this library.
@@ -88,9 +88,9 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This provides information about the entity that voiching for the content of the message message, without indicating who sent it.
+        /// This provides information about the entity that vouching for the content of the message message, without indicating who sent it.
         /// The information about the entity that send the message can be found in <see cref="AuthenticationCertificate"/>
-        /// In general these represent the same entity, but aren't nesesary the same certificate.
+        /// In general these represent the same entity, but aren't necessary the same certificate.
         /// </para>
         /// </remarks>
         public X509Certificate2 SigningCertificate

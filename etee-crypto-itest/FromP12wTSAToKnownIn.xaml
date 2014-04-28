@@ -1,7 +1,6 @@
-﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="Egelke.EHealth.Etee.ITest.EndToEnd" sap2010:ExpressionActivityEditor.ExpressionActivityEditor="C#" sap2010:WorkflowViewState.IdRef="Egelke.EHealth.Etee.ITest.EndToEnd_1"
+﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="Egelke.EHealth.Etee.ITest.FromP12wTSAToKnownIn" sap2010:ExpressionActivityEditor.ExpressionActivityEditor="C#" sap2010:WorkflowViewState.IdRef="Egelke.EHealth.Etee.ITest.FromP12wTSAToKnownIn_1"
  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
  xmlns:eeecw="clr-namespace:Egelke.EHealth.Etee.Crypto.Wf;assembly=Egelke.EHealth.Etee.Crypto.Wf"
- xmlns:eeecwa="clr-namespace:Egelke.EHealth.Etee.Crypto.Wf.Activity;assembly=Egelke.EHealth.Etee.Crypto.Wf"
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mca="clr-namespace:Microsoft.CSharp.Activities;assembly=System.Activities"
  xmlns:s="clr-namespace:System;assembly=mscorlib"
@@ -54,85 +53,46 @@
       <AssemblyReference>Egelke.EHealth.Etee.Crypto.ITest</AssemblyReference>
     </sco:Collection>
   </TextExpression.ReferencesForImplementation>
-  <Sequence sap2010:WorkflowViewState.IdRef="Sequence_2">
+  <Sequence sap2010:WorkflowViewState.IdRef="Sequence_1">
     <Sequence.Variables>
       <Variable x:TypeArguments="si:Stream" Name="inMsg">
         <Variable.Default>
-          <mca:CSharpValue x:TypeArguments="si:Stream">File.OpenRead("Input.txt")</mca:CSharpValue>
+          <mca:CSharpValue x:TypeArguments="si:Stream">File.OpenRead("sealed.msg")</mca:CSharpValue>
         </Variable.Default>
       </Variable>
       <Variable x:TypeArguments="si:Stream" Name="outMsg">
         <Variable.Default>
-          <mca:CSharpValue x:TypeArguments="si:Stream">File.OpenWrite("Output.msg")</mca:CSharpValue>
+          <mca:CSharpValue x:TypeArguments="si:Stream">File.OpenWrite("Output.txt")</mca:CSharpValue>
         </Variable.Default>
       </Variable>
-      <Variable x:TypeArguments="eeecw:Sender" Name="SenderVar" />
-      <Variable x:TypeArguments="eeecw:Recipients" Name="RecipientsVar" />
+      <Variable x:TypeArguments="s:String[]" Name="SenderPatterns" />
+      <Variable x:TypeArguments="eeecw:Receiver" Name="Receiver" />
     </Sequence.Variables>
-    <eeecwa:eIDSender sap2010:WorkflowViewState.IdRef="eIDSender_1" WaitTime="00:05:00">
-      <eeecwa:eIDSender.To>
-        <OutArgument x:TypeArguments="eeecw:Sender">
-          <mca:CSharpReference x:TypeArguments="eeecw:Sender">SenderVar</mca:CSharpReference>
+    <Assign DisplayName="From Iryna (by SSIN)" sap2010:WorkflowViewState.IdRef="Assign_1">
+      <Assign.To>
+        <OutArgument x:TypeArguments="s:String[]">
+          <mca:CSharpReference x:TypeArguments="s:String[]">SenderPatterns</mca:CSharpReference>
         </OutArgument>
-      </eeecwa:eIDSender.To>
-    </eeecwa:eIDSender>
-    <eeecwa:Recipients UnaddressedAllowed="{x:Null}" UnaddressedExcluded="{x:Null}">
-      <eeecwa:Recipients.Addressed>
+      </Assign.To>
+      <Assign.Value>
         <InArgument x:TypeArguments="s:String[]">
-          <mca:CSharpValue x:TypeArguments="s:String[]">new String[] { "SSIN=83121034221"}</mca:CSharpValue>
+          <mca:CSharpValue x:TypeArguments="s:String[]">new String[] { ".*SSIN=83121034221.*"}</mca:CSharpValue>
         </InArgument>
-      </eeecwa:Recipients.Addressed>
-      <eeecwa:Recipients.To>
-        <OutArgument x:TypeArguments="eeecw:Recipients">
-          <mca:CSharpReference x:TypeArguments="eeecw:Recipients">RecipientsVar</mca:CSharpReference>
-        </OutArgument>
-      </eeecwa:Recipients.To>
-      <sap2010:WorkflowViewState.IdRef>Recipients_1</sap2010:WorkflowViewState.IdRef>
-    </eeecwa:Recipients>
-    <eeecwa:Seal EtkDepotUri="https://services.ehealth.fgov.be/EtkDepot/v1" sap2010:WorkflowViewState.IdRef="Seal_1" TimeInfoType="TimeStampAuthrity_Rfc3161" TimeStampAuthorityUri="http://tsa.belgium.be/connect">
-      <eeecwa:Seal.InMessage>
-        <InArgument x:TypeArguments="si:Stream">
-          <mca:CSharpValue x:TypeArguments="si:Stream">inMsg</mca:CSharpValue>
-        </InArgument>
-      </eeecwa:Seal.InMessage>
-      <eeecwa:Seal.OutMessage>
-        <InArgument x:TypeArguments="si:Stream">
-          <mca:CSharpValue x:TypeArguments="si:Stream">outMsg</mca:CSharpValue>
-        </InArgument>
-      </eeecwa:Seal.OutMessage>
-      <eeecwa:Seal.Recipients>
-        <InArgument x:TypeArguments="eeecw:Recipients">
-          <mca:CSharpValue x:TypeArguments="eeecw:Recipients">RecipientsVar</mca:CSharpValue>
-        </InArgument>
-      </eeecwa:Seal.Recipients>
-      <eeecwa:Seal.Sender>
-        <InArgument x:TypeArguments="eeecw:Sender">
-          <mca:CSharpValue x:TypeArguments="eeecw:Sender">SenderVar</mca:CSharpValue>
-        </InArgument>
-      </eeecwa:Seal.Sender>
-    </eeecwa:Seal>
-    <sads:DebugSymbol.Symbol>d1lDOlxVc2Vyc1xhZG1pblxEb2N1bWVudHNcVmlzdWFsIFN0dWRpbyAyMDEyXFByb2plY3RzXEVURUVcZXRlZS1jcnlwdG8taXRlc3RcRW5kVG9FbmQueGFtbA05A3MOAgEBPQs9ZAIBB0ILQmYCAQJIBU4YAgEsTwVbGQIBIVwFcRMCAQxLC0teAgEtVwtXZgIBJ1ILUm0CASJkC2RQAgEcaQtpXgIBF24LblYCARJfC19PAgEN</sads:DebugSymbol.Symbol>
+      </Assign.Value>
+    </Assign>
+    <sads:DebugSymbol.Symbol>d2VDOlxVc2Vyc1xhZG1pblxEb2N1bWVudHNcVmlzdWFsIFN0dWRpbyAyMDEyXFByb2plY3RzXEVURUVcZXRlZS1jcnlwdG8taXRlc3RcRnJvbVAxMndUU0FUb0tub3duSW4ueGFtbAY4A1QOAgEBPAs8ZQIBB0ELQWYCAQJHBVIOAgEMTwtPcQIBEkoLSmECAQ0=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="eIDSender_1" sap:VirtualizedContainerService.HintSize="447,62" />
-      <sap2010:ViewStateData Id="Recipients_1" sap:VirtualizedContainerService.HintSize="447,114" />
-      <sap2010:ViewStateData Id="Seal_1" sap:VirtualizedContainerService.HintSize="447,88" />
-      <sap2010:ViewStateData Id="Sequence_2" sap:VirtualizedContainerService.HintSize="469,468">
+      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,62" />
+      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="264,186">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Egelke.EHealth.Etee.ITest.EndToEnd_1" sap:VirtualizedContainerService.HintSize="509,548">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="ShouldCollapseAll">False</x:Boolean>
-            <x:Boolean x:Key="ShouldExpandAll">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Egelke.EHealth.Etee.ITest.FromP12wTSAToKnownIn_1" sap:VirtualizedContainerService.HintSize="304,266" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>

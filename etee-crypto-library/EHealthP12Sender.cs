@@ -9,9 +9,7 @@ namespace Egelke.EHealth.Etee.Crypto.Wf
 {
     public sealed class EHealthP12Sender : Sender
     {
-        public String FileName { get; set; }
-
-        public String Password { get; set; }
+        public EHealthP12 P12 { get; set; }
 
         public EHealthP12Sender()
         {
@@ -20,13 +18,13 @@ namespace Egelke.EHealth.Etee.Crypto.Wf
 
         public EHealthP12Sender(String fileName, String password)
         {
-            this.FileName = fileName;
-            this.Password = password;
+            P12 = new EHealthP12(fileName, password);
         }
 
-        internal EHealthP12 ToEHealthP12()
+        public EHealthP12Sender(EHealthP12 p12)
         {
-            return new EHealthP12(FileName, Password);
+            P12 = p12;
         }
+
     }
 }

@@ -39,9 +39,9 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
     /// this interface.
     /// </para>
     /// <para>
-    /// This interface assumes you have access to the required artififacts: your decryption certificate
-    /// with private key or a KGSS generated key.  Retreiving the artifacts isn't part of this assembly, but this
-    /// assembly is bundleled with source code that show how it can be done.
+    /// This interface assumes you have access to the required artifacts: your decryption certificate
+    /// with private key or a KGSS generated key.  Retrieving the artifacts isn't part of this assembly, but this
+    /// assembly is bundled with source code that show how it can be done.
     /// </para>
     /// <para>
     /// The library does not occupy itself with the message itself.  It is always treated as an
@@ -62,7 +62,7 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// This method takes a sealed/protected message in the form of a stream and unseals it so it
         /// can be read.  It uses the key provided in the <paramref name="key"/> parameter for decryption,
         /// even if the instance contains a personal private key.  In other words, the secret key
-        /// take precendence over the private key.
+        /// take precedence over the private key.
         /// </para>
         /// <param name="sealedData">The protected message that must be unsealed</param>
         /// <param name="key">The secret (but shared) key retrieved from the KGSS</param>
@@ -80,19 +80,19 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// </list>
         /// </returns>
         /// <exception cref="ArgumentNullException">When sealedData and/or key is null</exception>
-        /// <exception cref="InvalidMessageException">When the protected message isn't an correctly constructed or when secret key does't correspond with message</exception>
-        /// <exception cref="NotSupportedException">When the message contains multiple signatures</exception>
+        /// <exception cref="InvalidMessageException">When the message can't be processed because it isn't a valid CMS message</exception>
+        /// <exception cref="NotSupportedException">When the message can't be processed, but is a valid CMS message (but not necessary eHealth ETEE valid)</exception>
         /// <example>
         /// Unseal an unaddressed message
         /// <code lang="cs">
         /// //Create a IAnonymousDataSealer instance
-        /// IAnonymousDataSealer unsealer = DataUnsealerFactory.Create();
+        /// IDataSealer unsealer = DataUnsealerFactory.Create(Level.B_Level);
         /// 
         /// //Read the key id send by the sender
         /// byte[] keyId = Utils.ReadFully("protectedForGroup.kid");
         /// //Get the key from the KGSS
         /// byte[] key = GetKeyFromKGSS(keyId);
-        /// //Create a secrte key object
+        /// //Create a secret key object
         /// SecretKey skey = new SecretKey(keyId, key);
         /// 
         /// UnsealResult result;
@@ -109,35 +109,6 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// VerifySender(result.Sender);
         /// //Use the message (application specific)
         /// ImportMessage(result.UnsealedData);
-        /// </code>
-        /// <code lang="vbnet">
-        /// 'Create a IAnonymousDataSealer instance
-        /// Dim unsealer As IAnonymousDataUnsealer = DataUnsealerFactory.Create()
-        /// 
-        /// 'Read the key id send by the sender
-        /// Dim keyId As Byte() = Utils.ReadFully("protectedForGroup.kid")
-        /// 'Get the key from the KGSS
-        /// Dim key As Byte() = GetKeyFromKGSS(keyId)
-        /// 'Create a secrte key object
-        /// Dim skey As New SecretKey(keyId, key)
-        /// 
-        /// Dim result As UnsealResult
-        /// Dim file As New FileStream("protectedForGroup.msg", FileMode.Open)
-        /// Using file
-        ///     result = unsealer.Unseal(file, skey)
-        /// End Using
-        /// 'Check if the content is in order
-        /// If result.SecurityInformation.ValidationStatus &lt;&gt; ValidationStatus.Valid Then
-        ///     Throw New Exception(result.SecurityInformation.ToString())
-        /// End If
-        /// 'Check if sender and receiver used valid and up to spec certificates
-        /// If result.SecurityInformation.TrustStatus &lt;&gt; TrustStatus.Full Then
-        ///     Throw New Exception(result.SecurityInformation.ToString())
-        /// End If
-        /// 'Check if the sender is allowed to send a message (application specific)
-        /// VerifySender(result.Sender)
-        /// 'Use the message (application specific)
-        /// ImportMessage(result.UnsealedData)
         /// </code>
         /// </example>
         UnsealResult Unseal(Stream sealedData, SecretKey key);
@@ -167,14 +138,15 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// </list>
         /// </returns>
         /// <exception cref="ArgumentNullException">When sealedData is null</exception>
-        /// <exception cref="InvalidMessageException">When the protected message isn't an correctly constructed or when the message isn't intended for you</exception>
-        /// <exception cref="InvalidOperationException">When the instance of the object does not have a private key</exception>
-        /// <exception cref="NotSupportedException">When the message contains multiple signatures</exception>
+        /// <exception cref="InvalidOperationException">When the library fails because of a invalid condition</exception>
+        /// <exception cref="InvalidMessageException">When the message can't be processed because it isn't a valid CMS message</exception>
+        /// <exception cref="NotSupportedException">When the message can't be processed, but is a valid CMS message (but not necessary eHealth ETEE valid)</exception>
         /// <example>
         /// Unseal an addressed message
         /// <code lang="cs">
         /// //Create a IDataSealer instance
-        /// IDataUnsealer unsealer = DataUnsealerFactory.Create(SelfEnc, SelfAuth);
+        /// var alice = new EHealthP12("alices_private_key_store.p12", "test");
+        /// IDataUnsealer unsealer = DataUnsealerFactory.Create(Level.B_Level, alice);
         /// 
         /// UnsealResult result;
         /// FileStream file = new FileStream("protectedForMe.msg", FileMode.Open);
@@ -190,28 +162,6 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// VerifySender(result.Sender);
         /// //Use the message (application specific)
         /// ImportMessage(result.UnsealedData);
-        /// </code>
-        /// <code lang="vbnet">
-        /// 'Create a IDataSealer instance
-        /// Dim unsealer As IDataUnsealer = DataUnsealerFactory.Create(Utils.SelfEnc, Utils.SelfAuth)
-        ///
-        /// Dim result As UnsealResult
-        /// Dim file As New FileStream("protectedForMe.msg", FileMode.Open)
-        /// Using file
-        ///     result = unsealer.Unseal(file)
-        /// End Using
-        /// 'Check if the content is in order
-        /// If result.SecurityInformation.ValidationStatus &lt;&gt; ValidationStatus.Valid Then
-        ///     Throw New Exception(result.SecurityInformation.ToString())
-        /// End If
-        /// 'Check if sender and receiver used valid and up to spec certificates
-        /// If result.SecurityInformation.TrustStatus &lt;&gt; TrustStatus.Full Then
-        ///     Throw New Exception(result.SecurityInformation.ToString())
-        /// End If
-        /// 'Check if the sender is allowed to send a message (application specific)
-        /// VerifySender(result.Sender)
-        /// 'Use the message (application specific)
-        /// ImportMessage(result.UnsealedData)
         /// </code>
         /// </example>
         UnsealResult Unseal(Stream sealedData);

@@ -113,7 +113,7 @@
     <None Include="rootct2.crt" />
   </ItemGroup>
   <ItemGroup>
-    <XamlAppDef Include="EndToEnd.xaml">
+    <XamlAppDef Include="FromP12wTSAToKnownOut.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </XamlAppDef>
@@ -123,6 +123,12 @@
       <Project>{58029749-3ec1-4d76-8d0c-7bfed160f918}</Project>
       <Name>etee-crypto-library</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <XamlAppDef Include="FromP12wTSAToKnownIn.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </XamlAppDef>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

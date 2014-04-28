@@ -10,12 +10,12 @@ namespace Egelke.EHealth.Etee.Crypto.Wf
     {
         public List<KnownRecipient> Addressed { get; private set; }
 
-        public UnknownRecipients Unaddressed { get; set; }
+        //public UnknownRecipients Unaddressed { get; set; }
 
         public Recipients()
         {
             Addressed = new List<KnownRecipient>();
-            Unaddressed = new UnknownRecipients();
+            //Unaddressed = new UnknownRecipients();
         }
     }
 }

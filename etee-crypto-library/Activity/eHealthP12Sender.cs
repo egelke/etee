@@ -3,6 +3,7 @@ using System;
 using System.Activities;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 namespace Egelke.EHealth.Etee.Crypto.Wf.Activity
 {
     [Designer(typeof(eHealthP12SenderDesigner))]
+    [ToolboxBitmap(typeof(eHealthP12SenderDesigner))]
     public class eHealthP12Sender : CodeActivity
     {
         public OutArgument<Wf.Sender> To { get; set; }

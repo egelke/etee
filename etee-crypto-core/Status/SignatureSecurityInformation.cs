@@ -51,14 +51,14 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         }
 
         /// <summary>
-        /// The (UTC) time the timestamp should be renewed (if applicable).
+        /// The (UTC) time the time-stamp should be renewed (if applicable).
         /// </summary>
         public DateTime? TimestampRenewalTime { get; internal set; }
         
         /// <summary>
         /// Used in the ToString method
         /// </summary>
-        /// <param name="level">The identation level</param>
+        /// <param name="level">The indentation level</param>
         /// <returns>The string representation of the object</returns>
         internal protected override string ToString(int level)
         {

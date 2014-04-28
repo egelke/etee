@@ -45,7 +45,7 @@ namespace Egelke.EHealth.Etee.Crypto
     /// <para>
     /// This class represents an ETK retrieved from the ETK-Depot.  It can be used to seal messages so it can only be viewed by the party
     /// that owns the ETK and therefore has the private key corresponding to this.  It is possible, and even advised, to cache the ETK for
-    /// parties you will probably require in the future.
+    /// a short period of time for often used recipients.
     /// </para>
     /// </remarks>
     public class EncryptionToken
@@ -58,18 +58,6 @@ namespace Egelke.EHealth.Etee.Crypto
         /// <summary>
         /// Constructor for the string representation of the ETK. 
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// The xml representation of the "GetEtkResponse" of the ETK-Depot web service
-        /// contains an element "ETK" of which is content can be provided to this
-        /// constructor.  Normally you will not have access to the xml representation,
-        /// so it is unlikely you will need this constructor for this reason.
-        /// </para>
-        /// <para>
-        /// If you use a cache that can't handle binary data, use this constructor
-        /// to use an instance from cache.
-        /// </para>
-        /// </remarks>
         /// <param name="data">Base64 encoded representation of the ETK</param>
         public EncryptionToken(string data) : this(Convert.FromBase64String(data))
         {
@@ -79,16 +67,6 @@ namespace Egelke.EHealth.Etee.Crypto
         /// <summary>
         /// Constructor for the binary representation of the ETK.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// The binary representation of the "GetEtkResponse" of the ETK-Depot web service
-        /// contains an byte array item that can be provided to this constructor.
-        /// </para>
-        /// <para>
-        /// If you use a cache that can handle binary data, use this constructor
-        /// to use an instance from cache.
-        /// </para>
-        /// </remarks>
         /// <param name="data">raw ETK</param>
         public EncryptionToken(byte[] data)
         {
@@ -103,7 +81,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// <summary>
         /// Gets the byte representation of the ETK.
         /// </summary>
-        /// <returns>Binary form of the ETK, should be saved in a cache</returns>
+        /// <returns>Binary form of the ETK</returns>
         public byte[] GetEncoded()
         {
                 return raw.GetEncoded();
@@ -112,8 +90,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// <summary>
         /// Gets the string representation of the ETK.
         /// </summary>
-        /// <returns>String form of the ETK, should be saved in a cache</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate")]
+        /// <returns>Base64 form of the ETK</returns>
         public String GetEncodedAsString()
         {
             return Convert.ToBase64String(raw.GetEncoded());
@@ -165,7 +142,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// security compared to the previous implementation.
         /// </para>
         /// </remarks>
-        /// <param name="checkRevocation">Checks if the certificates that issued the encryption cert aren't revoked</param>
+        /// <param name="checkRevocation"><c>true</c>to check if the certificates that issued the encryption cert aren't revoked</param>
         /// <returns>Detailed information about the encryption certificate status</returns>
         public CertificateSecurityInformation Verify(bool checkRevocation)
         {

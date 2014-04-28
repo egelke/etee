@@ -34,11 +34,13 @@ namespace Egelke.EHealth.Etee.ITest
         private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         [Test]
-        public void EndToEnd()
+        public void FromP12wTSAToKnown()
         {
-            var wf = new Egelke.EHealth.Etee.ITest.EndToEnd();
+            var wfOut = new Egelke.EHealth.Etee.ITest.FromP12wTSAToKnownOut();
+            var wfIn = new Egelke.EHealth.Etee.ITest.FromP12wTSAToKnownOut();
 
-            WorkflowInvoker.Invoke(wf);
+            WorkflowInvoker.Invoke(wfOut);
+            WorkflowInvoker.Invoke(wfIn);
 
         }
 

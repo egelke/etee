@@ -24,12 +24,13 @@
     </DocumentationSources>
     <HelpFileFormat>HtmlHelp1</HelpFileFormat>
     <NamespaceSummaries>
-      <NamespaceSummaryItem name="Siemens.EHealth.Etee.Crypto.Encrypt" isDocumented="True">Classes required to seal a clear message.</NamespaceSummaryItem>
       <NamespaceSummaryItem name="(global)" isDocumented="True">eHealth End-To-End Encryption (|ETEE) Library for .Net</NamespaceSummaryItem>
-      <NamespaceSummaryItem name="Siemens.EHealth.Etee.Crypto.Decrypt" isDocumented="True">Classes required to unseal a protected message.</NamespaceSummaryItem>
-      <NamespaceSummaryItem name="Siemens.EHealth.Etee.Crypto" isDocumented="True">Generic classes of the ETEE library</NamespaceSummaryItem>
-      <NamespaceSummaryItem name="Siemens.EHealth.Etee.Crypto.Utils" isDocumented="False" />
-    </NamespaceSummaries>
+<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto" isDocumented="True">Classes representing keys, exceptions and levels</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Configuration" isDocumented="True">Global settings of the librar</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Receiver" isDocumented="True">Classes for the unsealer, i.e. receiver, of messages.</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Sender" isDocumented="True">Classes for the sealer, i.e. sender, of messages.</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Status" isDocumented="True">Status structurs returned during validation and unsealing.</NamespaceSummaryItem>
+<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Store" isDocumented="True">Classes for validators and completers, i.e. stores, of messages.</NamespaceSummaryItem></NamespaceSummaries>
     <ProjectSummary>eHealth End-To-End Encryption %28ETEE%29 Library for .Net</ProjectSummary>
     <CopyrightText>Copyright %28C%29 2014 Egelke</CopyrightText>
     <HelpTitle>eHealth ETEE Library for .Net Help</HelpTitle>
@@ -44,8 +45,9 @@
     <ComponentConfigurations />
     <HelpAttributes>
       <HelpAttribute name="DocSet" value="{@HtmlEncHelpName}" />
-<HelpAttribute name="DocSet" value="NetFramework" />
-<HelpAttribute name="TargetOS" value="Windows" /></HelpAttributes>
+      <HelpAttribute name="DocSet" value="NetFramework" />
+      <HelpAttribute name="TargetOS" value="Windows" />
+    </HelpAttributes>
     <PlugInConfigurations />
     <BuildLogFile />
     <HtmlHelp1xCompilerPath />

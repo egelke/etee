@@ -37,11 +37,11 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// <para>
         /// Verifies the authentication part of the message, it does not decrypt the message
         /// or verifies the signature (non-repudiation) part.  It does not require the 
-        /// possession of any decryption key and keeps the confidiality of the content.
+        /// possession of any decryption key and keeps the confidentiality of the content.
         /// </para>
         /// <para>
         /// The level of verification depends on the level specified during creation. When required
-        /// by the level, the siging time is validated via the embedded time-stamp or the time-mark provided
+        /// by the level, the signing time is validated via the embedded time-stamp or the time-mark provided
         /// that is specified during creation.
         /// </para>
         /// </remarks>

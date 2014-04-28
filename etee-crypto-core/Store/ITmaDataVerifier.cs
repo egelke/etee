@@ -18,7 +18,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// <remarks>
         /// Has an output parameter that will provide the time-mark key.  As a time-mark authority
         /// you are supposed use this key for the audit trail used for time-marking.  It must also
-        /// be possibel to lookup the time-mark of the message via this key.
+        /// be possible to lookup the time-mark of the message via this key.
         /// </remarks>
         /// <seealso cref="IDataVerifier.Verify(Stream)"/>
         /// <param name="sealedData">The message to verify</param>
