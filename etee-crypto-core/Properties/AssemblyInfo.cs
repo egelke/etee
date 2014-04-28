@@ -27,7 +27,11 @@ using System.Security;
 // associated with an assembly.
 [assembly: AssemblyTitle("ETEE for eHealth")]
 [assembly: AssemblyDescription(".Net End-To-End Encryption Library for eHealth")]
-[assembly: AssemblyConfiguration("Beta")]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany("Egelke BVBA")]
 [assembly: AssemblyProduct(".Net ETEE")]
 [assembly: AssemblyCopyright("Copyright © Egelke BVBA 2013-2014")]
@@ -54,7 +58,7 @@ using System.Security;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.0.0")]
 [assembly: AssemblyFileVersion("2.0.0")]
-[assembly: AssemblyInformationalVersion("2.0.0-Beta2")]
+[assembly: AssemblyInformationalVersion("2.0.0")]
 
 
 [assembly: CLSCompliant(true)]
