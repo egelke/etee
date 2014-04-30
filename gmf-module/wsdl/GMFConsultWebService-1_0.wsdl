@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="GlobalMedicalFileConsultationWebservice" targetNamespace="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:gmf="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap11="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:err="urn:be:fgov:ehealth:errors:soa:v1">
+	<documentation>Version 1.0</documentation>
+	<types>
+		<xsd:schema>
+			<xsd:import namespace="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1" schemaLocation="../XSD/gmf_services_protocol-1_0.xsd"/>
+			<xsd:import namespace="urn:be:fgov:ehealth:errors:soa:v1" schemaLocation="../../ehealth-errors/ehealth-errors-schema-soa-1_0.xsd"/>
+		</xsd:schema>
+	</types>
+	<message name="ConsultGlobalMedicalFileRequest">
+		<part name="body" element="gmf:ConsultGlobalMedicalFileRequest"/>
+	</message>
+	<message name="ConsultGlobalMedicalFileResponse">
+		<part name="body" element="gmf:ConsultGlobalMedicalFileResponse"/>
+	</message>
+	<message name="SystemError">
+		<part name="fault" element="err:SystemError"/>
+	</message>
+	<portType name="GlobalMedicalFileConsultationPortType">
+		<operation name="consultGlobalMedicalFile">
+			<input message="gmf:ConsultGlobalMedicalFileRequest"/>
+			<output message="gmf:ConsultGlobalMedicalFileResponse"/>
+			<fault message="gmf:SystemError" name="SystemError"/>
+		</operation>
+	</portType>
+	<binding name="GlobalMedicalFileConsultationSoapBinding" type="gmf:GlobalMedicalFileConsultationPortType">
+		<soap11:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="consultGlobalMedicalFile">
+			<soap11:operation style="document" soapAction="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:ConsultGlobalMedicalFile"/>
+			<input>
+				<soap11:body use="literal"/>
+			</input>
+			<output>
+				<soap11:body use="literal"/>
+			</output>
+			<fault name="SystemError">
+				<soap11:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+	</binding>
+	<service name="GlobalMedicalFileConsultationService">
+		<port name="GlobalMedicalFileConsultationServiceSOAP11" binding="gmf:GlobalMedicalFileConsultationSoapBinding">
+			<soap11:address location="https://services-int.ehealth.fgov.be/GlobalMedicalFileConsultation/v1"/>
+		</port>
+	</service>
+</definitions>

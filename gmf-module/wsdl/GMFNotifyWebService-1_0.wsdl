@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="GlobalMedicalFileNotificationWebservice" targetNamespace="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:gmf="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap11="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:err="urn:be:fgov:ehealth:errors:soa:v1">
+	<documentation>Version 1.0</documentation>
+	<types>
+		<xsd:schema>
+			<xsd:import namespace="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1" schemaLocation="gmf_services_protocol-1_0.xsd"/>
+			<xsd:import namespace="urn:be:fgov:ehealth:errors:soa:v1" schemaLocation="ehealth-errors-schema-soa-1_0.xsd"/>
+		</xsd:schema>
+	</types>
+	<message name="NotifyGlobalMedicalFileRequest">
+		<part name="body" element="gmf:NotifyGlobalMedicalFileRequest"/>
+	</message>
+	<message name="NotifyGlobalMedicalFileResponse">
+		<part name="body" element="gmf:NotifyGlobalMedicalFileResponse"/>
+	</message>
+	<message name="SystemError">
+		<part name="fault" element="err:SystemError"/>
+	</message>
+	<portType name="GlobalMedicalFileNotificationPortType">
+		<operation name="notifyGlobalMedicalFile">
+			<input message="gmf:NotifyGlobalMedicalFileRequest"/>
+			<output message="gmf:NotifyGlobalMedicalFileResponse"/>
+			<fault message="gmf:SystemError" name="SystemError"/>
+		</operation>
+	</portType>
+	<binding name="GlobalMedicalFileNotificationSoapBinding" type="gmf:GlobalMedicalFileNotificationPortType">
+		<soap11:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="notifyGlobalMedicalFile">
+			<soap11:operation style="document" soapAction="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:NotifyGlobalMedicalFile"/>
+			<input>
+				<soap11:body use="literal"/>
+			</input>
+			<output>
+				<soap11:body use="literal"/>
+			</output>
+			<fault name="SystemError">
+				<soap11:fault name="SystemError" use="literal"/>
+			</fault>
+		</operation>
+	</binding>
+	<service name="GlobalMedicalFileNotificationService">
+		<port name="GlobalMedicalFileNotificationServiceSOAP11" binding="gmf:GlobalMedicalFileNotificationSoapBinding">
+			<soap11:address location="https://services-int.ehealth.fgov.be/GlobalMedicalFileNotification/v1"/>
+		</port>
+	</service>
+</definitions>
