@@ -11,9 +11,7 @@
     <iconUrl>https://egelke-web.sharepoint.com/SiteImages/Health-care-shield-icon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>
-EHealthP12 moved to eH-I PKI module, this one deprecated.
-    </releaseNotes>
+    <releaseNotes>Added builders</releaseNotes>
     <copyright>Copyright © Egelke BVBA 2013-2014</copyright>
     <tags>eHealth STS SSO SAML</tags>
   </metadata>

@@ -21,6 +21,12 @@ namespace Egelke.EHealth.Client.Pki.Test
         {
             p12 = new EHealthP12(@"..\..\EHealthP12\dummy.p12", "test001");
         }
+       
+        [Test]
+        public void FindCorresponding()
+        {
+            Assert.AreEqual(@"C:\Users\admin\ehealth\keystore\SSIN=79021802145 20130413-104955.acc-p12", EHealthP12.FindCorresponding(new X509Certificate2(@"..\..\EHealthP12\eid.cer")));
+        }
 
         [Test]
         public void ConstuctorWithByteArray()

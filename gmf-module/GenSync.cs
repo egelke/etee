@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Egelke.EHealth.Client.Dmf
+namespace Egelke.EHealth.Client.Gmf
 {
     
     
@@ -154,15 +154,15 @@ namespace Egelke.EHealth.Client.Dmf
         
         // CODEGEN: Generating message contract since the operation consultGlobalMedicalFile is neither RPC nor document wrapped.
         [System.ServiceModel.OperationContractAttribute(Action="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:ConsultGlobalMedicalFile", ReplyAction="*")]
-        [System.ServiceModel.FaultContractAttribute(typeof(Egelke.EHealth.Client.Dmf.SystemError), Action="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:ConsultGlobalMedicalFile", Name="SystemError", Namespace="urn:be:fgov:ehealth:errors:soa:v1")]
+        [System.ServiceModel.FaultContractAttribute(typeof(Egelke.EHealth.Client.Gmf.SystemError), Action="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:ConsultGlobalMedicalFile", Name="SystemError", Namespace="urn:be:fgov:ehealth:errors:soa:v1")]
         [System.ServiceModel.XmlSerializerFormatAttribute()]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SelfRefType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(RequestType))]
-        Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileResponse consultGlobalMedicalFile(Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileRequest request);
+        Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileResponse consultGlobalMedicalFile(Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileRequest request);
         
         [System.ServiceModel.OperationContractAttribute(Action="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:ConsultGlobalMedicalFile", ReplyAction="*")]
-        System.Threading.Tasks.Task<Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileResponse> consultGlobalMedicalFileAsync(Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileRequest request);
+        System.Threading.Tasks.Task<Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileResponse> consultGlobalMedicalFileAsync(Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileRequest request);
     }
     
     /// <remarks/>
@@ -1420,13 +1420,13 @@ namespace Egelke.EHealth.Client.Dmf
     {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Name="ConsultGlobalMedicalFileRequest", Namespace="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1", Order=0)]
-        public Egelke.EHealth.Client.Dmf.SendRequestType ConsultGlobalMedicalFileRequest1;
+        public Egelke.EHealth.Client.Gmf.SendRequestType ConsultGlobalMedicalFileRequest1;
         
         public consultGlobalMedicalFileRequest()
         {
         }
         
-        public consultGlobalMedicalFileRequest(Egelke.EHealth.Client.Dmf.SendRequestType ConsultGlobalMedicalFileRequest1)
+        public consultGlobalMedicalFileRequest(Egelke.EHealth.Client.Gmf.SendRequestType ConsultGlobalMedicalFileRequest1)
         {
             this.ConsultGlobalMedicalFileRequest1 = ConsultGlobalMedicalFileRequest1;
         }
@@ -1440,26 +1440,26 @@ namespace Egelke.EHealth.Client.Dmf
     {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Name="ConsultGlobalMedicalFileResponse", Namespace="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1", Order=0)]
-        public Egelke.EHealth.Client.Dmf.SendResponseType ConsultGlobalMedicalFileResponse1;
+        public Egelke.EHealth.Client.Gmf.SendResponseType ConsultGlobalMedicalFileResponse1;
         
         public consultGlobalMedicalFileResponse()
         {
         }
         
-        public consultGlobalMedicalFileResponse(Egelke.EHealth.Client.Dmf.SendResponseType ConsultGlobalMedicalFileResponse1)
+        public consultGlobalMedicalFileResponse(Egelke.EHealth.Client.Gmf.SendResponseType ConsultGlobalMedicalFileResponse1)
         {
             this.ConsultGlobalMedicalFileResponse1 = ConsultGlobalMedicalFileResponse1;
         }
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public interface GlobalMedicalFileConsultationPortTypeChannel : Egelke.EHealth.Client.Dmf.GlobalMedicalFileConsultationPortType, System.ServiceModel.IClientChannel
+    public interface GlobalMedicalFileConsultationPortTypeChannel : Egelke.EHealth.Client.Gmf.GlobalMedicalFileConsultationPortType, System.ServiceModel.IClientChannel
     {
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public partial class GlobalMedicalFileConsultationPortTypeClient : System.ServiceModel.ClientBase<Egelke.EHealth.Client.Dmf.GlobalMedicalFileConsultationPortType>, Egelke.EHealth.Client.Dmf.GlobalMedicalFileConsultationPortType
+    public partial class GlobalMedicalFileConsultationPortTypeClient : System.ServiceModel.ClientBase<Egelke.EHealth.Client.Gmf.GlobalMedicalFileConsultationPortType>, Egelke.EHealth.Client.Gmf.GlobalMedicalFileConsultationPortType
     {
         
         public GlobalMedicalFileConsultationPortTypeClient()
@@ -1487,30 +1487,30 @@ namespace Egelke.EHealth.Client.Dmf
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileResponse Egelke.EHealth.Client.Dmf.GlobalMedicalFileConsultationPortType.consultGlobalMedicalFile(Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileRequest request)
+        Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileResponse Egelke.EHealth.Client.Gmf.GlobalMedicalFileConsultationPortType.consultGlobalMedicalFile(Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileRequest request)
         {
             return base.Channel.consultGlobalMedicalFile(request);
         }
         
-        public Egelke.EHealth.Client.Dmf.SendResponseType consultGlobalMedicalFile(Egelke.EHealth.Client.Dmf.SendRequestType ConsultGlobalMedicalFileRequest1)
+        public Egelke.EHealth.Client.Gmf.SendResponseType consultGlobalMedicalFile(Egelke.EHealth.Client.Gmf.SendRequestType ConsultGlobalMedicalFileRequest1)
         {
-            Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileRequest inValue = new Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileRequest();
+            Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileRequest inValue = new Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileRequest();
             inValue.ConsultGlobalMedicalFileRequest1 = ConsultGlobalMedicalFileRequest1;
-            Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileResponse retVal = ((Egelke.EHealth.Client.Dmf.GlobalMedicalFileConsultationPortType)(this)).consultGlobalMedicalFile(inValue);
+            Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileResponse retVal = ((Egelke.EHealth.Client.Gmf.GlobalMedicalFileConsultationPortType)(this)).consultGlobalMedicalFile(inValue);
             return retVal.ConsultGlobalMedicalFileResponse1;
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        System.Threading.Tasks.Task<Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileResponse> Egelke.EHealth.Client.Dmf.GlobalMedicalFileConsultationPortType.consultGlobalMedicalFileAsync(Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileRequest request)
+        System.Threading.Tasks.Task<Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileResponse> Egelke.EHealth.Client.Gmf.GlobalMedicalFileConsultationPortType.consultGlobalMedicalFileAsync(Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileRequest request)
         {
             return base.Channel.consultGlobalMedicalFileAsync(request);
         }
         
-        public System.Threading.Tasks.Task<Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileResponse> consultGlobalMedicalFileAsync(Egelke.EHealth.Client.Dmf.SendRequestType ConsultGlobalMedicalFileRequest1)
+        public System.Threading.Tasks.Task<Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileResponse> consultGlobalMedicalFileAsync(Egelke.EHealth.Client.Gmf.SendRequestType ConsultGlobalMedicalFileRequest1)
         {
-            Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileRequest inValue = new Egelke.EHealth.Client.Dmf.consultGlobalMedicalFileRequest();
+            Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileRequest inValue = new Egelke.EHealth.Client.Gmf.consultGlobalMedicalFileRequest();
             inValue.ConsultGlobalMedicalFileRequest1 = ConsultGlobalMedicalFileRequest1;
-            return ((Egelke.EHealth.Client.Dmf.GlobalMedicalFileConsultationPortType)(this)).consultGlobalMedicalFileAsync(inValue);
+            return ((Egelke.EHealth.Client.Gmf.GlobalMedicalFileConsultationPortType)(this)).consultGlobalMedicalFileAsync(inValue);
         }
     }
     
@@ -1521,15 +1521,15 @@ namespace Egelke.EHealth.Client.Dmf
         
         // CODEGEN: Generating message contract since the operation notifyGlobalMedicalFile is neither RPC nor document wrapped.
         [System.ServiceModel.OperationContractAttribute(Action="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:NotifyGlobalMedicalFile", ReplyAction="*")]
-        [System.ServiceModel.FaultContractAttribute(typeof(Egelke.EHealth.Client.Dmf.SystemError), Action="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:NotifyGlobalMedicalFile", Name="SystemError", Namespace="urn:be:fgov:ehealth:errors:soa:v1")]
+        [System.ServiceModel.FaultContractAttribute(typeof(Egelke.EHealth.Client.Gmf.SystemError), Action="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:NotifyGlobalMedicalFile", Name="SystemError", Namespace="urn:be:fgov:ehealth:errors:soa:v1")]
         [System.ServiceModel.XmlSerializerFormatAttribute()]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SelfRefType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(RequestType))]
-        Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileResponse notifyGlobalMedicalFile(Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileRequest request);
+        Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileResponse notifyGlobalMedicalFile(Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileRequest request);
         
         [System.ServiceModel.OperationContractAttribute(Action="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1:NotifyGlobalMedicalFile", ReplyAction="*")]
-        System.Threading.Tasks.Task<Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileResponse> notifyGlobalMedicalFileAsync(Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileRequest request);
+        System.Threading.Tasks.Task<Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileResponse> notifyGlobalMedicalFileAsync(Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileRequest request);
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -1540,13 +1540,13 @@ namespace Egelke.EHealth.Client.Dmf
     {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Name="NotifyGlobalMedicalFileRequest", Namespace="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1", Order=0)]
-        public Egelke.EHealth.Client.Dmf.SendRequestType NotifyGlobalMedicalFileRequest1;
+        public Egelke.EHealth.Client.Gmf.SendRequestType NotifyGlobalMedicalFileRequest1;
         
         public notifyGlobalMedicalFileRequest()
         {
         }
         
-        public notifyGlobalMedicalFileRequest(Egelke.EHealth.Client.Dmf.SendRequestType NotifyGlobalMedicalFileRequest1)
+        public notifyGlobalMedicalFileRequest(Egelke.EHealth.Client.Gmf.SendRequestType NotifyGlobalMedicalFileRequest1)
         {
             this.NotifyGlobalMedicalFileRequest1 = NotifyGlobalMedicalFileRequest1;
         }
@@ -1560,26 +1560,26 @@ namespace Egelke.EHealth.Client.Dmf
     {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Name="NotifyGlobalMedicalFileResponse", Namespace="urn:be:fgov:ehealth:globalmedicalfile:protocol:v1", Order=0)]
-        public Egelke.EHealth.Client.Dmf.SendResponseType NotifyGlobalMedicalFileResponse1;
+        public Egelke.EHealth.Client.Gmf.SendResponseType NotifyGlobalMedicalFileResponse1;
         
         public notifyGlobalMedicalFileResponse()
         {
         }
         
-        public notifyGlobalMedicalFileResponse(Egelke.EHealth.Client.Dmf.SendResponseType NotifyGlobalMedicalFileResponse1)
+        public notifyGlobalMedicalFileResponse(Egelke.EHealth.Client.Gmf.SendResponseType NotifyGlobalMedicalFileResponse1)
         {
             this.NotifyGlobalMedicalFileResponse1 = NotifyGlobalMedicalFileResponse1;
         }
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public interface GlobalMedicalFileNotificationPortTypeChannel : Egelke.EHealth.Client.Dmf.GlobalMedicalFileNotificationPortType, System.ServiceModel.IClientChannel
+    public interface GlobalMedicalFileNotificationPortTypeChannel : Egelke.EHealth.Client.Gmf.GlobalMedicalFileNotificationPortType, System.ServiceModel.IClientChannel
     {
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    public partial class GlobalMedicalFileNotificationPortTypeClient : System.ServiceModel.ClientBase<Egelke.EHealth.Client.Dmf.GlobalMedicalFileNotificationPortType>, Egelke.EHealth.Client.Dmf.GlobalMedicalFileNotificationPortType
+    public partial class GlobalMedicalFileNotificationPortTypeClient : System.ServiceModel.ClientBase<Egelke.EHealth.Client.Gmf.GlobalMedicalFileNotificationPortType>, Egelke.EHealth.Client.Gmf.GlobalMedicalFileNotificationPortType
     {
         
         public GlobalMedicalFileNotificationPortTypeClient()
@@ -1607,30 +1607,30 @@ namespace Egelke.EHealth.Client.Dmf
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileResponse Egelke.EHealth.Client.Dmf.GlobalMedicalFileNotificationPortType.notifyGlobalMedicalFile(Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileRequest request)
+        Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileResponse Egelke.EHealth.Client.Gmf.GlobalMedicalFileNotificationPortType.notifyGlobalMedicalFile(Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileRequest request)
         {
             return base.Channel.notifyGlobalMedicalFile(request);
         }
         
-        public Egelke.EHealth.Client.Dmf.SendResponseType notifyGlobalMedicalFile(Egelke.EHealth.Client.Dmf.SendRequestType NotifyGlobalMedicalFileRequest1)
+        public Egelke.EHealth.Client.Gmf.SendResponseType notifyGlobalMedicalFile(Egelke.EHealth.Client.Gmf.SendRequestType NotifyGlobalMedicalFileRequest1)
         {
-            Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileRequest inValue = new Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileRequest();
+            Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileRequest inValue = new Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileRequest();
             inValue.NotifyGlobalMedicalFileRequest1 = NotifyGlobalMedicalFileRequest1;
-            Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileResponse retVal = ((Egelke.EHealth.Client.Dmf.GlobalMedicalFileNotificationPortType)(this)).notifyGlobalMedicalFile(inValue);
+            Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileResponse retVal = ((Egelke.EHealth.Client.Gmf.GlobalMedicalFileNotificationPortType)(this)).notifyGlobalMedicalFile(inValue);
             return retVal.NotifyGlobalMedicalFileResponse1;
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        System.Threading.Tasks.Task<Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileResponse> Egelke.EHealth.Client.Dmf.GlobalMedicalFileNotificationPortType.notifyGlobalMedicalFileAsync(Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileRequest request)
+        System.Threading.Tasks.Task<Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileResponse> Egelke.EHealth.Client.Gmf.GlobalMedicalFileNotificationPortType.notifyGlobalMedicalFileAsync(Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileRequest request)
         {
             return base.Channel.notifyGlobalMedicalFileAsync(request);
         }
         
-        public System.Threading.Tasks.Task<Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileResponse> notifyGlobalMedicalFileAsync(Egelke.EHealth.Client.Dmf.SendRequestType NotifyGlobalMedicalFileRequest1)
+        public System.Threading.Tasks.Task<Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileResponse> notifyGlobalMedicalFileAsync(Egelke.EHealth.Client.Gmf.SendRequestType NotifyGlobalMedicalFileRequest1)
         {
-            Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileRequest inValue = new Egelke.EHealth.Client.Dmf.notifyGlobalMedicalFileRequest();
+            Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileRequest inValue = new Egelke.EHealth.Client.Gmf.notifyGlobalMedicalFileRequest();
             inValue.NotifyGlobalMedicalFileRequest1 = NotifyGlobalMedicalFileRequest1;
-            return ((Egelke.EHealth.Client.Dmf.GlobalMedicalFileNotificationPortType)(this)).notifyGlobalMedicalFileAsync(inValue);
+            return ((Egelke.EHealth.Client.Gmf.GlobalMedicalFileNotificationPortType)(this)).notifyGlobalMedicalFileAsync(inValue);
         }
     }
 }

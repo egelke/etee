@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ds:Object xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+  <QualifyingProperties
+           xmlns="http://uri.etsi.org/01903/v1.3.2#"
+           Target="">
+    <SignedProperties Id="idSignedProperties">
+      <SignedSignatureProperties>
+        <SigningTime />
+        <SigningCertificate>
+          <Cert>
+            <CertDigest>
+              <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
+              <ds:DigestValue />
+            </CertDigest>
+            <IssuerSerial>
+              <ds:X509IssuerName />
+              <ds:X509SerialNumber />
+            </IssuerSerial>
+          </Cert>
+        </SigningCertificate>
+      </SignedSignatureProperties>
+    </SignedProperties>
+    <UnsignedProperties>
+      <UnsignedSignatureProperties />
+    </UnsignedProperties>
+  </QualifyingProperties>
+</ds:Object>

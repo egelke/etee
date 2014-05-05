@@ -44,10 +44,12 @@
     <Reference Include="crypto">
       <HintPath>..\packages\BouncyCastle-Patch.1.7.0\lib\net40\crypto.dll</HintPath>
     </Reference>
-    <Reference Include="Egelke.EHealth.Client">
-      <HintPath>..\packages\Egelke.EHealth.Client.2.0.2\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
+    <Reference Include="Egelke.EHealth.Client, Version=2.1.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Egelke.EHealth.Client.2.1.0-Alfa1\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">

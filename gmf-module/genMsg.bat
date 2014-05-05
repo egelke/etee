@@ -1,0 +1,1 @@
+xsd  /c /namespace:Egelke.EHealth.Client.Gmf.Msg xsd\messageservices_protocol-1_0.xsd xsd\messageservices_core-1_0.xsd xsd\kmehr-1_5.xsd xsd\id-1_5.xsd xsd\dt-1_5.xsd xsd\cd-1_5.xsd xsd\xenc-schema.xsd xsd\xmldsig-core-schema.xsd

@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="EHealthP12\dummy.p12" />
+    <None Include="EHealthP12\eid.cer" />
     <None Include="files\ehTs1.crl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
