@@ -60,7 +60,7 @@ namespace Siemens.EHealth.Client.CodageTest
         [Test]
         public void ConfigViaConfig()
         {
-            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient("HospitalEP");
+            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient("MandateEP");
 
             DoTest(client);
         }
@@ -128,10 +128,20 @@ namespace Siemens.EHealth.Client.CodageTest
             request.CommonInput.Origin.CareProvider.Nihii.Value = new ValueRefString();
             request.CommonInput.Origin.CareProvider.Nihii.Value.Value = "19997341001";
             request.CommonInput.Origin.CareProvider.PhysicalPerson = new IdType();
-            request.CommonInput.Origin.CareProvider.PhysicalPerson.Name = new ValueRefString();
-            request.CommonInput.Origin.CareProvider.PhysicalPerson.Name.Value = "André Brouckaert";
             request.CommonInput.Origin.CareProvider.PhysicalPerson.Ssin = new ValueRefString();
             request.CommonInput.Origin.CareProvider.PhysicalPerson.Ssin.Value = "79021802145";
+        }
+
+        private static void setMandatedDoctor(GetInsurabilityAsXmlOrFlatRequestType request)
+        {
+            request.CommonInput.Origin.CareProvider = new CareProviderType();
+            request.CommonInput.Origin.CareProvider.Nihii = new NihiiType();
+            request.CommonInput.Origin.CareProvider.Nihii.Quality = "doctor";
+            request.CommonInput.Origin.CareProvider.Nihii.Value = new ValueRefString();
+            request.CommonInput.Origin.CareProvider.Nihii.Value.Value = "14460027001";
+            request.CommonInput.Origin.CareProvider.PhysicalPerson = new IdType();
+            request.CommonInput.Origin.CareProvider.PhysicalPerson.Ssin = new ValueRefString();
+            request.CommonInput.Origin.CareProvider.PhysicalPerson.Ssin.Value = "88051844822";
         }
 
         private static void DoTest(GenericInsurabilityPortTypeClient client)
@@ -153,7 +163,8 @@ namespace Siemens.EHealth.Client.CodageTest
             request.CommonInput.Origin.Package.License.Username = "siemens";
             request.CommonInput.Origin.Package.License.Password = "n7z6Y(S8+X";
             //setDoctor(request);
-            setHospital(request);
+            //setHospital(request);
+            setMandatedDoctor(request);
 
             //Create record common input, contains additional tracking info
             request.RecordCommonInput = new RecordCommonInputType();
