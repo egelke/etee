@@ -30,6 +30,7 @@ using Egelke.EHealth.Client.Sso;
 using System.Xml;
 using System.IdentityModel.Tokens;
 using System.ServiceModel.Security.Tokens;
+using System.ServiceModel.Security;
 
 
 
@@ -75,11 +76,27 @@ namespace Siemens.EHealth.Client.CodageTest
             ssoBinding.Security.Message.NegotiateServiceCredential = false;
             ssoBinding.Security.Message.EstablishSecurityContext = false;
 
-            ssoBinding.Security.Message.IssuerAddress = new EndpointAddress("https://wwwacc.ehealth.fgov.be/sts_1_1/SecureTokenService");
+            ssoBinding.Security.Message.IssuerAddress = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/Legacy/v1");
             ssoBinding.Security.Message.IssuerBinding = new StsBinding();
 
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml("<saml:Attribute xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\" AttributeNamespace=\"urn:be:fgov:identification-namespace\" AttributeName=\"urn:be:fgov:ehealth:1.0:hospital:nihii-number\"> "  +
+            bindMandate(ssoBinding);
+            //bindHospital(ssoBinding);
+
+            //Create the Consult proxy
+            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient(ssoBinding, new EndpointAddress("https://services-acpt.ehealth.fgov.be/GenericInsurability/v1"));
+            client.Endpoint.Behaviors.Remove<ClientCredentials>();
+            client.Endpoint.Behaviors.Add(new SsoClientCredentials());
+
+            authenticateSelf(client);
+            //authenticateHosptial(client);
+
+            DoTest(client);
+        }
+
+        private static void bindHospital(SsoBinding ssoBinding)
+        {
+            var doc = new XmlDocument();
+            doc.LoadXml("<saml:Attribute xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\" AttributeNamespace=\"urn:be:fgov:identification-namespace\" AttributeName=\"urn:be:fgov:ehealth:1.0:hospital:nihii-number\"> " +
                 "<saml:AttributeValue xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">71022212</saml:AttributeValue> " +
                 "</saml:Attribute>");
             ssoBinding.Security.Message.TokenRequestParameters.Add(doc.DocumentElement);
@@ -93,18 +110,60 @@ namespace Siemens.EHealth.Client.CodageTest
             ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:hospital:nihii-number"));
             ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:ehealth:1.0:certificateholder:hospital:nihii-number:recognisedhospital:boolean"));
             ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:ehealth:1.0:hospital:nihii-number:recognisedhospital:nihii11"));
+        }
 
-            //Create the Consult proxy
-            GenericInsurabilityPortTypeClient client = new GenericInsurabilityPortTypeClient(ssoBinding, new EndpointAddress("https://services-acpt.ehealth.fgov.be/GenericInsurability/v1"));
-            client.Endpoint.Behaviors.Remove<ClientCredentials>();
-            client.Endpoint.Behaviors.Add(new SsoClientCredentials());
-            //client.Endpoint.Behaviors.Add(new SessionBehavior(session, TimeSpan.FromHours(1), typeof(MemorySessionCache), null));
+        private static void bindMandate(SsoBinding ssoBinding)
+        {
+            var doc = new XmlDocument();
+            doc.LoadXml("<saml:Attribute xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\" AttributeNamespace=\"urn:be:fgov:identification-namespace\" AttributeName=\"urn:be:fgov:person:ssin\"> " +
+                "<saml:AttributeValue xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">79021802145</saml:AttributeValue> " +
+                "</saml:Attribute>");
+            ssoBinding.Security.Message.TokenRequestParameters.Add(doc.DocumentElement);
+            doc = new XmlDocument();
+            doc.LoadXml("<saml:Attribute xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\" AttributeNamespace=\"urn:be:fgov:identification-namespace\" AttributeName=\"urn:be:fgov:ehealth:1.0:certificateholder:person:ssin\"> " +
+                  "<saml:AttributeValue xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">79021802145</saml:AttributeValue> " +
+                "</saml:Attribute>");
+            ssoBinding.Security.Message.TokenRequestParameters.Add(doc.DocumentElement);
+            doc = new XmlDocument();
+            doc.LoadXml("<saml:Attribute xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\" AttributeNamespace=\"urn:be:fgov:identification-namespace\" AttributeName=\"urn:be:fgov:ehealth:1.0:servicename:external\"> " +
+                  "<saml:AttributeValue xsi:type=\"xs:string\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">insurability</saml:AttributeValue> " +
+                "</saml:Attribute>");
+            ssoBinding.Security.Message.TokenRequestParameters.Add(doc.DocumentElement);
+
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin"));
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin"));
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:servicename:external"));
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin:usersession:boolean"));
+            ssoBinding.Security.Message.ClaimTypeRequirements.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:ehealth:1.0:recognisedmandatary:boolean"));
+        }
+
+        private static void authenticateHosptial(GenericInsurabilityPortTypeClient client)
+        {
+            X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadOnly);
+
+            //get the eHealth certificate of the hospital
+            X509Certificate2 ehCert = store.Certificates.Find(X509FindType.FindByThumbprint, "415442ca384c853231e203fafa9a436f33b4043b", false)[0];
+
             XmlDocument fscConfig = new XmlDocument();
             fscConfig.LoadXml(@"<path>C:\Users\admin\Documents\tmp</path>");
-            client.Endpoint.Behaviors.Add(new SessionBehavior(session, TimeSpan.FromHours(1), typeof(FileSessionCache), fscConfig));
-            client.ClientCredentials.ClientCertificate.Certificate = auth; //must be put after the behavior
+            client.Endpoint.Behaviors.Add(new SessionBehavior(ehCert, TimeSpan.FromHours(1), typeof(FileSessionCache), fscConfig));
+            client.ClientCredentials.ClientCertificate.Certificate = ehCert; //must be put after the behavior
+        }
 
-            DoTest(client);
+        private static void authenticateSelf(GenericInsurabilityPortTypeClient client)
+        {
+            X509Store store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadOnly);
+
+            X509Certificate2 ehCert = store.Certificates.Find(X509FindType.FindByThumbprint, "c93081ddfaf2773a118791ac6c81fc11a3194014", false)[0];
+
+            XmlDocument fscConfig = new XmlDocument();
+            fscConfig.LoadXml(@"<path>C:\Users\admin\Documents\tmp</path>");
+
+            
+            client.Endpoint.Behaviors.Add(new SessionBehavior(ehCert, TimeSpan.FromHours(1), typeof(FileSessionCache), fscConfig));
+            client.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "1ac02600f2f2b68f99f1e8eeab2e780470e0ea4c");
         }
 
         private static void setHospital(GetInsurabilityAsXmlOrFlatRequestType request)
