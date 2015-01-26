@@ -1,1 +1,2 @@
-SvcUtil /noConfig /ser:XmlSerializer /namespace:*,Egelke.EHealth.Client.EBirth wsdl\*.wsdl wsdl\*.xsd
+SvcUtil /noConfig /ser:XmlSerializer /out:Notification.cs /namespace:*,Egelke.EHealth.Client.EBirth.Notification wsdl\ttp-proxy-notification-1_3.wsdl wsdl\*.xsd
+SvcUtil /noConfig /ser:XmlSerializer /out:MedicalForm.cs /namespace:*,Egelke.EHealth.Client.EBirth.MedicalForm wsdl\ttp-proxy-medicalform-1_3.wsdl wsdl\*.xsd
