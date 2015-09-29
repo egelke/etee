@@ -11,8 +11,8 @@
     <iconUrl>https://egelke-web.sharepoint.com/SiteImages/Health-care-shield-icon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Added P12 retrieval from eID</releaseNotes>
-    <copyright>Copyright © Egelke BVBA 2014</copyright>
+    <releaseNotes>Rework on BC PKIXCertPathBuilder</releaseNotes>
+    <copyright>Copyright © Egelke BVBA 2014-2015</copyright>
     <tags>eHealth eSigning TimeStamp PKI PKCS#12 X509</tags>
   </metadata>
 </package>

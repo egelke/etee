@@ -24,7 +24,7 @@ using System.Net.Security;
 using System.ServiceModel.Channels;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using Siemens.EHealth.Client.Sso.WA;
+using Egelke.EHealth.Client.Sso.WA;
 
 namespace Siemens.EHealth.Client.Codage
 {
