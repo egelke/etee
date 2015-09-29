@@ -111,15 +111,18 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
             x509Chain.Build(endCert);
 
+            CertificateList crl = null;
+            BasicOcspResponse basicOcsp = null;
+
+            //TODO: lock context...
             CERT_CHAIN_CONTEXT ccc = (CERT_CHAIN_CONTEXT) Marshal.PtrToStructure(x509Chain.ChainContext, typeof(CERT_CHAIN_CONTEXT));
             IntPtr cscPtr = Marshal.ReadIntPtr(ccc.rgpChain);
 
-            //There is only 1 so we read only one
-            //TODO: protect against short structure (http://referencesource.microsoft.com/#System/security/system/security/cryptography/x509/x509chainelement.cs,8dcf8d1dc3978ed0)
+            //There is only 1 chain, so we read only one
             CERT_SIMPLE_CHAIN csc = (CERT_SIMPLE_CHAIN) Marshal.PtrToStructure(cscPtr, typeof(CERT_SIMPLE_CHAIN));
-
             for (int i=0; i<csc.cElement; i++)
             {
+                //Loop over the elements to find the CRL or OCSP used for the revocation check
                 IntPtr csePtr = Marshal.ReadIntPtr(new IntPtr((long)csc.rgpElement + i * IntPtr.Size));
                 CERT_CHAIN_ELEMENT cse = (CERT_CHAIN_ELEMENT)Marshal.PtrToStructure(csePtr, typeof(CERT_CHAIN_ELEMENT));
                 if (cse.pRevocationInfo != IntPtr.Zero)
@@ -130,14 +133,18 @@ namespace Egelke.EHealth.Client.Pki.Test
 
                     byte[] crlBytes = new byte[cc.cbCrlEncoded];
                     Marshal.Copy(cc.pbCrlEncoded, crlBytes, 0, cc.cbCrlEncoded);
-                    CertificateList crl = CertificateList.GetInstance(Asn1Sequence.FromByteArray(crlBytes));
+                    crl = CertificateList.GetInstance(Asn1Sequence.FromByteArray(crlBytes));
 
                     TbsCertificateList tbsCrl = crl.TbsCertList;
-                    if (tbsCrl.Extensions != null) {
+                    if (tbsCrl.Extensions != null)
+                    {
                         BCax::X509Extension crlExt = tbsCrl.Extensions.GetExtension(OcspObjectIdentifiers.PkixOcspBasic);
-                        Asn1Encodable ocspAsn1 = crlExt.GetParsedValue();
-                        OcspResponse ocsp = OcspResponse.GetInstance(ocspAsn1);
-                        BasicOcspResponse basicOcsp = BasicOcspResponse.GetInstance(Asn1Object.FromByteArray(ocsp.ResponseBytes.Response.GetOctets()));
+                        if (crlExt != null)
+                        {
+                            Asn1Encodable ocspAsn1 = crlExt.GetParsedValue();
+                            OcspResponse ocsp = OcspResponse.GetInstance(ocspAsn1);
+                            basicOcsp = BasicOcspResponse.GetInstance(Asn1Object.FromByteArray(ocsp.ResponseBytes.Response.GetOctets()));
+                        }
                     }
                 }
             }
@@ -237,7 +244,7 @@ namespace Egelke.EHealth.Client.Pki.Test
 
 
     [Flags]
-    public enum CertEncodingType : uint
+    internal enum CertEncodingType : uint
     {
         CRYPT_ASN = 0x00000001,
         CRYPT_NDR = 0x00000002,
@@ -247,7 +254,7 @@ namespace Egelke.EHealth.Client.Pki.Test
         PKCS_7_NDR = 0x00020000
     }
 
-    public enum CertStoreAddDisposition : uint
+    internal enum CertStoreAddDisposition : uint
     {
         NEW = 1,
         EXISTING = 2,
