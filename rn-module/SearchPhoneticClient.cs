@@ -22,7 +22,7 @@ using System.Text;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Net.Security;
-using Siemens.EHealth.Client.Sso.WA;
+using Egelke.EHealth.Client.Sso.WA;
 
 namespace Siemens.EHealth.Client.ConsultRn
 {

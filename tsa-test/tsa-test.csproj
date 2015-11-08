@@ -67,7 +67,6 @@
   <ItemGroup>
     <Compile Include="EHealthP12TestOnDummy.cs" />
     <Compile Include="EHealthP12TestOnRealP12.cs" />
-    <Compile Include="PKIXCertPathBuilderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CertificateTests.cs" />
     <Compile Include="TimestampProviderTests.cs" />

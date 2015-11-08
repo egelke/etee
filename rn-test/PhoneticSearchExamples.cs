@@ -21,10 +21,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.ServiceModel;
-using Siemens.EHealth.Client.Sso.Sts;
+using Egelke.EHealth.Client.Sso.Sts;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Description;
-using Siemens.EHealth.Client.Sso.WA;
+using Egelke.EHealth.Client.Sso.WA;
 using Siemens.EHealth.Client.ConsultRn;
 
 

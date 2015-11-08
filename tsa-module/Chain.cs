@@ -26,7 +26,13 @@ namespace Egelke.EHealth.Client.Pki
 {
     public class Chain
     {
-        public List<ChainElement> ChainElements { get; set; }
-        public List<X509ChainStatus> ChainStatus { get; set; }
+        public Chain()
+        {
+            ChainElements = new List<ChainElement>();
+            ChainStatus = new List<X509ChainStatus>();
+        }
+
+        public List<ChainElement> ChainElements { get; }
+        public List<X509ChainStatus> ChainStatus { get; }
     }
 }

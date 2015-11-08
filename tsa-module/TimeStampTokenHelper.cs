@@ -168,7 +168,7 @@ namespace Egelke.EHealth.Client.Pki
             }
 
             //Check the chain
-            value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(signingTime, extraStore, ref crls, ref ocsps, validationTime); //we assume time-stamp signers aren't suspended, only permanently revoked
+            //value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(signingTime, extraStore, ref crls, ref ocsps, validationTime); //we assume time-stamp signers aren't suspended, only permanently revoked
 
             //get the renewal time
             value.RenewalTime = DateTime.MaxValue;

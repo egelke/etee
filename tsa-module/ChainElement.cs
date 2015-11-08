@@ -1,6 +1,6 @@
 ﻿/*
  *  This file is part of eH-I.
- *  Copyright (C) 2014 Egelke BVBA
+ *  Copyright (C) 2014-2015 Egelke BVBA
  *
  *  eH-I is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,10 @@ namespace Egelke.EHealth.Client.Pki
             : this()
         {
             this.Certificate = source.Certificate;
-            this.ChainElementStatus.AddRange(source.ChainElementStatus);
+            this.ChainElementStatus.AddRange(source.ChainElementStatus.Where(x => 
+                x.Status != X509ChainStatusFlags.OfflineRevocation
+                && x.Status !=  X509ChainStatusFlags.RevocationStatusUnknown
+                && x.Status != X509ChainStatusFlags.Revoked));
         }
 
         public X509Certificate2 Certificate { get; set; }
