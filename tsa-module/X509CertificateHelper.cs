@@ -25,6 +25,10 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Org.BouncyCastle.Ocsp;
+using System.Net;
+using System.IO;
+using Org.BouncyCastle.Security;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -119,11 +123,11 @@ namespace Egelke.EHealth.Client.Pki
             X509ChainElementEnumerator x509Elements = x509Chain.ChainElements.GetEnumerator();
             if (x509Elements.MoveNext())
             {
-                ChainElement currentElement = new ChainElement(x509Elements.Current);
-                chain.ChainElements.Add(currentElement);
+                ChainElement issuerElement = new ChainElement(x509Elements.Current);
                 while (x509Elements.MoveNext())
                 {
-                    ChainElement issuerElement = new ChainElement(x509Elements.Current);
+                    ChainElement currentElement = issuerElement;
+                    issuerElement = new ChainElement(x509Elements.Current);
 
                     //calculate a new check based on the input
                     X509CertificateStatus statusCheck = new X509CertificateStatus(currentElement.Certificate, issuerElement.Certificate);
@@ -171,8 +175,70 @@ namespace Egelke.EHealth.Client.Pki
                                     }
                                     if (!isOcspWrapper)
                                     {
-                                        statusCheck.NewCertList = crl;
-                                        trace.TraceEvent(TraceEventType.Verbose, 0, "Found new CRL response of {0} from {1} ", currentElement.Certificate.Subject, statusCheck.NewCertList.ThisUpdate.ToDateTime());
+                                        if (x509Chain.ChainPolicy.RevocationMode == X509RevocationMode.Online && index == 0 && currentElement.Certificate.Extensions[X509Extensions.AuthorityInfoAccess.Id] != null)
+                                        {
+                                            //found a cached CRL while an OCSP is needed, lets try to obtain the OCSP manually
+                                            var aia = AuthorityInformationAccess.GetInstance(Asn1Sequence.FromByteArray(currentElement.Certificate.Extensions[X509Extensions.AuthorityInfoAccess.Id].RawData));
+                                            foreach (AccessDescription ad in aia.GetAccessDescriptions())
+                                            {
+                                                if (ad.AccessMethod.Equals(AccessDescription.IdADOcsp)
+                                                    && ad.AccessLocation.TagNo == GeneralName.UniformResourceIdentifier
+                                                    && ad.AccessLocation.Name is DerStringBase)
+                                                {
+                                                    //Found an OCSP URL, lets call it.
+                                                    string location = ((DerStringBase)ad.AccessLocation.Name).GetString();
+                                                    try
+                                                    {
+                                                        var locationUri = new Uri(location);
+                                                        if (locationUri.Scheme == "http")
+                                                        {
+                                                            //Prepare the request
+                                                            OcspReqGenerator ocspReqGen = new OcspReqGenerator();
+                                                            ocspReqGen.AddRequest(
+                                                                new CertificateID(CertificateID.HashSha1,
+                                                                    DotNetUtilities.FromX509Certificate(issuerElement.Certificate),
+                                                                    DotNetUtilities.FromX509Certificate(currentElement.Certificate).SerialNumber));
+
+                                                            //Make the request & sending it.
+                                                            OcspReq ocspReq = ocspReqGen.Generate();
+                                                            WebRequest ocspWebReq = WebRequest.Create(locationUri);
+                                                            ocspWebReq.Timeout = 15000;
+                                                            ocspWebReq.Method = "POST";
+                                                            ocspWebReq.ContentType = "application/ocsp-request";
+                                                            Stream ocspWebReqStream = ocspWebReq.GetRequestStream();
+                                                            ocspWebReqStream.Write(ocspReq.GetEncoded(), 0, ocspReq.GetEncoded().Length);
+                                                            trace.TraceEvent(TraceEventType.Information, 0, "retrieving OCSP for {0} from {1}", currentElement.Certificate.Subject, location);
+                                                            WebResponse ocspWebResp = ocspWebReq.GetResponse();
+
+                                                            //Get the response
+                                                            OcspResponse ocspResponse;
+                                                            using (ocspWebResp)
+                                                            {
+                                                                ocspResponse = OcspResponse.GetInstance(new Asn1InputStream(ocspWebResp.GetResponseStream()).ReadObject());
+                                                                trace.TraceData(TraceEventType.Verbose, 0, "retrieved OCSP-response", location, Convert.ToBase64String(ocspResponse.GetEncoded()));
+                                                            }
+
+                                                            //Check the responder status
+                                                            var ocspResp = new OcspResp(ocspResponse);
+                                                            if (ocspResp.Status == 0)
+                                                            {
+                                                                statusCheck.NewOcspResponse = BasicOcspResponse.GetInstance(Asn1Object.FromByteArray(ocspResponse.ResponseBytes.Response.GetOctets()));
+                                                            }
+                                                        }
+                                                    }
+                                                    catch (Exception e)
+                                                    {
+                                                        trace.TraceEvent(TraceEventType.Warning, 0, "Failed to manually obtain OCSP response: {0}", e);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            //found a legit CRL
+                                            statusCheck.NewCertList = crl;
+                                            trace.TraceEvent(TraceEventType.Verbose, 0, "Found new CRL response of {0} from {1} ", currentElement.Certificate.Subject, statusCheck.NewCertList.ThisUpdate.ToDateTime());
+                                        }
                                     }
                                 }
                             }
@@ -203,16 +269,15 @@ namespace Egelke.EHealth.Client.Pki
                             AddErrorStatus(chain.ChainStatus, status);
                             AddErrorStatus(currentElement.ChainElementStatus, status);
                         }
-                        chain.ChainElements.Add(currentElement);
                     }                    
 
                     //Move to next
                     index++;
-                    currentElement = issuerElement;
+                    chain.ChainElements.Add(currentElement);
                 }
 
                 //add the root element (no revocation info)
-                chain.ChainElements.Add(currentElement); 
+                chain.ChainElements.Add(issuerElement); 
             }
             return chain;
         }

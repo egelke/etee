@@ -234,7 +234,7 @@ namespace Egelke.EHealth.Client.Pki.Test
          * Time: just after revocation info (within skewness)
          */
         [Test]
-        public void Success41()
+        public void Success4_1()
         {
             DateTime time = new DateTime(2014, 3, 5, 18, 14, 0, DateTimeKind.Utc);
 
@@ -295,6 +295,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             Assert.AreEqual(1, crls.Count);
             Assert.AreEqual(1, ocps.Count);
             Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(3, chain.ChainElements.Count);
             Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
@@ -363,7 +364,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             SYSTEMTIME stime = new SYSTEMTIME();
             GetSystemTime(ref stime);
             if (stime.wMinute > 55) Assert.Inconclusive("Can't run the test now, wait until at least 5 after the hour");
-            stime.wMinute = (ushort)(stime.wMinute + 3);
+            stime.wMinute = (ushort)(stime.wMinute + 1);
             if (!SetSystemTime(ref stime)) Assert.Inconclusive("Time change failed {0}", Marshal.GetLastWin32Error());
             if ((DateTime.UtcNow - orgNow) < new TimeSpan(0, 0, 50)) Assert.Inconclusive("time change not visible {2}: {0} vs {1}", orgNow, DateTime.UtcNow, DateTime.UtcNow - orgNow);
             
@@ -374,7 +375,7 @@ namespace Egelke.EHealth.Client.Pki.Test
 
             //undo go forward in time 3 minutes
             GetSystemTime(ref stime);
-            stime.wMinute = (ushort)(stime.wMinute - 3);
+            stime.wMinute = (ushort)(stime.wMinute - 1);
             SetSystemTime(ref stime);
 
             Assert.AreEqual(1, crls.Count);
