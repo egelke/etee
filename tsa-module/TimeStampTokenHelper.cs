@@ -1,6 +1,6 @@
 ﻿/*
  *  This file is part of eH-I.
- *  Copyright (C) 2014 Egelke BVBA
+ *  Copyright (C) 2014-2015 Egelke BVBA
  *  Copyright (C) 2012 I.M. vzw
  *
  *  eH-I is free software: you can redistribute it and/or modify
@@ -112,7 +112,7 @@ namespace Egelke.EHealth.Client.Pki
         /// <returns></returns>
         public static Timestamp Validate(this TimeStampToken tst, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
         {
-            return tst.Validate(ref crls, ref ocsps, tst.TimeStampInfo.GenTime);
+            return tst.Validate(ref crls, ref ocsps, null);
         }
 
         /// <summary>
@@ -121,12 +121,13 @@ namespace Egelke.EHealth.Client.Pki
         /// <param name="tst"></param>
         /// <param name="crls"></param>
         /// <param name="ocsps"></param>
-        /// <param name="trustedTime">The trusted time, <c>null</c> for the current time in case of Arbitration</param>
+        /// <param name="trustedTime">The trusted time, <c>null</c> for the timestamp time</param>
         /// <returns>The validation chain of the signing certificate</returns>
         /// <exception cref="InvalidTokenException">When the token isn't signed by the indicated certificate</exception>
         public static Timestamp Validate(this TimeStampToken tst, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
         {
             var value = new Timestamp();
+            value.Time = DateTime.SpecifyKind(tst.TimeStampInfo.GenTime, DateTimeKind.Utc);
             value.TimestampStatus = new List<X509ChainStatus>();
 
             //check if the indicated certificate is the signer
@@ -155,28 +156,23 @@ namespace Egelke.EHealth.Client.Pki
                 }
             }
 
-            //Get some info
-            DateTime now = DateTime.UtcNow;
-            value.Time = tst.TimeStampInfo.GenTime;
-            //allow for some clock skewness
-            DateTime signingTime = value.Time > now && (value.Time - ClockSkewness) < now  ? now : value.Time;
-            DateTime validationTime = trustedTime != null ? trustedTime.Value : signingTime;
+            //check the chain
             var extraStore = new X509Certificate2Collection();
             foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates("Collection").GetMatches(null))
             {
                 extraStore.Add(new X509Certificate2(cert.GetEncoded()));
             }
-
-            //Check the chain
-            //value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(signingTime, extraStore, ref crls, ref ocsps, validationTime); //we assume time-stamp signers aren't suspended, only permanently revoked
+            DateTime validationTime = trustedTime != null ? trustedTime.Value : value.Time;
+            value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(validationTime, extraStore, ref crls, ref ocsps); //we assume time-stamp signers aren't suspended, only permanently revoked
 
             //get the renewal time
             value.RenewalTime = DateTime.MaxValue;
             foreach (ChainElement chainE in value.CertificateChain.ChainElements)
             {
-                if (chainE.Certificate.NotAfter < value.RenewalTime)
+                DateTime end = chainE.Certificate.NotAfter.ToUniversalTime();
+                if (end < value.RenewalTime)
                 {
-                    value.RenewalTime = chainE.Certificate.NotAfter;
+                    value.RenewalTime = end;
                 }
             }
 

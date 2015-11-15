@@ -139,7 +139,7 @@ namespace Egelke.EHealth.Client.Pki
                     ocspExtraStore.Add(new X509Certificate2(ocspCert.GetEncoded()));
                 }
                 //check the ocsp chain at the time the OCSP was generated (time already validated during selection)
-                Chain ocspChain = ocspSigner.BuildChain(bestOcspResp.ProducedAt.ToUniversalTime(), ocspExtraStore, ref certLists, ref ocspResponses);  //We assume there is not suspension for OCSP end-certificates
+                Chain ocspChain = ocspSigner.BuildChain(DateTime.SpecifyKind(bestOcspResp.ProducedAt, DateTimeKind.Utc), ocspExtraStore, ref certLists, ref ocspResponses);  //We assume there is not suspension for OCSP end-certificates
                 if (ocspChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
                 {
                     trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response for {0} has an invalid certificate chain", Certificate.Subject);

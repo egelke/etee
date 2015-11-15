@@ -49,10 +49,19 @@ namespace Egelke.EHealth.Client.Pki.Test
             Assert.IsTrue(tst.IsMatch(new MemoryStream(msg)));
 
             //Validate
+            Timestamp ts;
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
-            tst.Validate(ref crls, ref ocps);
-            tst.Validate(ref crls, ref ocps, null); //check clock skewness
+            ts = tst.Validate(ref crls, ref ocps);
+            Assert.IsTrue(Math.Abs((DateTime.UtcNow - ts.Time).TotalSeconds) < 60);
+            Assert.AreEqual(new DateTime(2019, 1, 23, 11, 0, 0), ts.RenewalTime);
+            Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            ts = tst.Validate(ref crls, ref ocps, DateTime.UtcNow); //check clock skewness
+            Assert.IsTrue(Math.Abs((DateTime.UtcNow - ts.Time).TotalSeconds) < 60);
+            Assert.AreEqual(new DateTime(2019, 1, 23, 11, 0, 0), ts.RenewalTime);
+            Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
         [Test]
