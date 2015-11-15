@@ -457,84 +457,21 @@ namespace Egelke.EHealth.Client.Pki.Test
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
-        
-
-        /*
-         * Test: Success
-         * Cert status: OK (not expired, not revoked/suspended)
-         * Check historical suspended: true
-         * Provided revocation info: full
-         * Intermediate CA location: Win store
-         * Trust signing time: No (i.e. trusted time = now)
-         */
-        /*
-       [Test]
-       public void Success9()
-       {
-           DateTime time = new DateTime(2014, 3, 5, 18, 0, 0);
-           DateTime trustedTime = new DateTime(2014, 3, 5, 20, 30, 0);
-
-           IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { intCaCrl, rootCaCrl });
-           IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { leafOcsp, leafOcsp2 });
-           Chain chain = leafCert.BuildChain(time, null, ref crls, ref ocps, trustedTime, true, new TimeSpan(1, 0, 0));
-
-           Assert.AreEqual(2, crls.Count);
-           Assert.AreEqual(2, ocps.Count);
-           Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-           Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-           Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-           Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-       }
-       */
-
-        /*
-         * Test: Success
-         * Cert status: OK (not expired, not revoked/suspended)
-         * Check historical supspened: true
-         * Provided revocation info: none
-         * Intermedate CA location: provided
-         * Trust signing time: yes (i.e. now)
-         */
-        /*
-       [Test]
-       public void Success10()
-       {
-           DateTime time = DateTime.UtcNow;
-           if (time > new DateTime(2019, 3, 19)) Assert.Inconclusive("The cert is (or will very soon be) expired");
-
-           var cert = new X509Certificate2("files/foreigner.crt");
-           var caCert = new X509Certificate2("files/foreigner_ca.crt");
-           IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] {  });
-           IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] {  });
-           X509Certificate2Collection inter = new X509Certificate2Collection(caCert);
-           Chain chain = cert.BuildChain(time, inter, ref crls, ref ocps, time, true, new TimeSpan(1, 0, 0));
-
-           Assert.AreEqual(1, crls.Count);
-           Assert.AreEqual(1, ocps.Count);
-           Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-           Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-           Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-           Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-       }
-       */
-
         /*
          * Test: Success
          * Cert status: the certificate is revoked
-         * Check historical supspened: false
          * Provided revocation info: none
-         * Trust signing time: yes
+         * Time: before revocation
          */
-        /*
        [Test]
-       public void Success11()
+       public void NormalNoStore6()
        {
-           DateTime time = new DateTime(2014, 03, 11, 12, 0, 0);
+           DateTime time = new DateTime(2014, 03, 11, 12, 0, 0, DateTimeKind.Utc);
 
            var cert = new X509Certificate2("files/revoked.crt");
            IList<CertificateList> crls = new List<CertificateList>();
            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
-           Chain chain = cert.BuildChain(time, null, ref crls, ref ocps, time);
+           Chain chain = cert.BuildChain(time, null, ref crls, ref ocps);
 
            Assert.AreEqual(1, crls.Count);
            Assert.AreEqual(1, ocps.Count);
@@ -543,24 +480,21 @@ namespace Egelke.EHealth.Client.Pki.Test
            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
        }
-       */
 
         /*
          * Test: Fail not yet valid
          * Cert status: not yet valid, leaf only (check stops there)
-         * Check historical supspened: false
          * Provided revocation info: none
-         * Trust signing time: no (i.e. trusted time = now)
+         * Time: before cert validation
          */
-        /*
        [Test]
-       public void FailNotYetValid()
+       public void NormalNoStore7()
        {
-           DateTime time = new DateTime(2012, 1, 1, 12, 0, 0);
+           DateTime time = new DateTime(2012, 1, 1, 12, 0, 0, DateTimeKind.Utc);
 
            IList<CertificateList> crls = new List<CertificateList>();
            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
-           Chain chain = leafCert.BuildChain(time, null, ref crls, ref ocps, DateTime.UtcNow);
+           Chain chain = leafCert.BuildChain(time, null, ref crls, ref ocps);
 
            Assert.AreEqual(1, crls.Count);
            Assert.AreEqual(1, ocps.Count);
@@ -569,25 +503,22 @@ namespace Egelke.EHealth.Client.Pki.Test
            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
        }
-       */
 
         /*
-         * Test: Fail expried
+         * Test: Fail expired
          * Cert status: the certificate is expired
-         * Check historical supspened: false
          * Provided revocation info: none
-         * Trust signing time: yes
+         * Time: after expiration
          */
-        /*
        [Test]
-       public void FailExpired()
+       public void NormalNoStore8()
        {
-           DateTime time = new DateTime(2014, 03, 15, 12, 0, 0);
+           DateTime time = new DateTime(2014, 03, 15, 12, 0, 0, DateTimeKind.Utc);
 
            var cert = new X509Certificate2("files/expired.crt");
            IList<CertificateList> crls = new List<CertificateList>();
            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
-           Chain chain = cert.BuildChain(time, null, ref crls, ref ocps, time);
+           Chain chain = cert.BuildChain(time, null, ref crls, ref ocps);
 
            Assert.AreEqual(1, crls.Count);
            Assert.AreEqual(1, ocps.Count);
@@ -596,25 +527,22 @@ namespace Egelke.EHealth.Client.Pki.Test
            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
        }
-       */
 
         /*
          * Test: Fail suspended
          * Cert status: the certificate is suspended
-         * Check historical supspened: false
          * Provided revocation info: none
-         * Trust signing time: yes
+         * Time: fixed point
          */
-        /*
        [Test]
-       public void FailSuspended()
+       public void NormalNoStore9()
        {
-           DateTime time = new DateTime(2014, 03, 15, 12, 0, 0);
+           DateTime time = new DateTime(2014, 03, 15, 12, 0, 0, DateTimeKind.Utc);
 
            var cert = new X509Certificate2("files/suspended.crt");
            IList<CertificateList> crls = new List<CertificateList>();
            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
-           Chain chain = cert.BuildChain(time, null, ref crls, ref ocps, time);
+           Chain chain = cert.BuildChain(time, null, ref crls, ref ocps);
 
            Assert.AreEqual(1, crls.Count);
            Assert.AreEqual(1, ocps.Count);
@@ -623,25 +551,22 @@ namespace Egelke.EHealth.Client.Pki.Test
            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
        }
-       */
 
         /*
          * Test: Fail revoked
          * Cert status: the certificate is revoked
-         * Check historical supspened: false
          * Provided revocation info: none
-         * Trust signing time: yes
+         * Time: fixed point
          */
-        /*
-       [Test]
-       public void FailRevoked()
+        [Test]
+       public void NormalNoStore10()
        {
-           DateTime time = new DateTime(2014, 03, 15, 12, 0, 0);
+           DateTime time = new DateTime(2014, 03, 15, 12, 0, 0, DateTimeKind.Utc);
 
            var cert = new X509Certificate2("files/revoked.crt");
            IList<CertificateList> crls = new List<CertificateList>();
            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
-           Chain chain = cert.BuildChain(time, null, ref crls, ref ocps, time);
+           Chain chain = cert.BuildChain(time, null, ref crls, ref ocps);
 
            Assert.AreEqual(1, crls.Count);
            Assert.AreEqual(1, ocps.Count);
@@ -650,60 +575,33 @@ namespace Egelke.EHealth.Client.Pki.Test
            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
        }
-       */
 
         /*
-         * Test: Fail historical suspended
+         * Test: Success
          * Cert status: OK (not expired, not revoked/suspended)
-         * Check historical supspened: true
-         * Provided revocation info: non relevant
-         * Trust signing time: yes (i.e. trusted time = signing time)
+         * Provided revocation info: none
+         * Signing time: now
          */
-        /*
-       [Test]
-       public void FailHistoricalSuspended1()
-       {
-           DateTime time = new DateTime(2013, 1, 1, 12, 0, 0);
+        [Test]
+        public void HistorialStore()
+        {
+            DateTime time = DateTime.UtcNow;
+            if (time > new DateTime(2019, 3, 19)) Assert.Inconclusive("The cert is (or will very soon be) expired");
 
-           IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { intCaCrl, rootCaCrl });
-           IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { leafOcsp });
-           Chain chain = leafCert.BuildChain(time, null, ref crls, ref ocps, time, true, new TimeSpan(1, 0, 0));
+            var cert = new X509Certificate2("files/foreigner.crt");
+            var caCert = new X509Certificate2("files/foreigner_ca.crt");
+            IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { });
+            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { });
+            X509Certificate2Collection inter = new X509Certificate2Collection(caCert);
+            Chain chain = cert.BuildChain(time, inter, ref crls, ref ocps, true, new TimeSpan(1, 0, 0));
 
-           Assert.AreEqual(2, crls.Count);
-           Assert.AreEqual(1, ocps.Count);
-           Assert.AreEqual(1, chain.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
-           Assert.AreEqual(1, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
-           Assert.AreEqual(1, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
-           Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-       }
-       */
-
-        /*
-         * Test: Fail historical suspended
-         * Cert status: OK (not expired, not revoked/suspended)
-         * Check historical supspened: true
-         * Provided revocation info: partial (signing time, but not trusted time)
-         * Trust signing time: yes (i.e. trusted time = signing time)
-         */
-        /*
-       [Test]
-       public void FailHistoricalSuspended2()
-       {
-           DateTime time = new DateTime(2014, 3, 5, 18, 0, 0);
-           DateTime trustedTime = new DateTime(2014, 3, 5, 20, 30, 0);
-
-           IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { intCaCrl, rootCaCrl });
-           IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { leafOcsp });
-           Chain chain = leafCert.BuildChain(time, null, ref crls, ref ocps, trustedTime, true, new TimeSpan(1, 0, 0));
-
-           Assert.AreEqual(2, crls.Count);
-           Assert.AreEqual(2, ocps.Count);
-           Assert.AreEqual(1, chain.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
-           Assert.AreEqual(1, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
-           Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError)); //is created on 1/1/2014, so status known.
-           Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-       }
-       */
+            Assert.AreEqual(1, crls.Count);
+            Assert.AreEqual(1, ocps.Count);
+            Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+        }
 
         [DllImport("Kernel32.dll")]
         private extern static void GetSystemTime(ref SYSTEMTIME lpSystemTime);
