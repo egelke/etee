@@ -134,8 +134,7 @@ namespace Egelke.EHealth.Client.Pki
 
                     //set basic info
                     statusCheck.ValidationTime = validationTime;
-                    statusCheck.OcspOnly = index == 0;
-                    statusCheck.CheckSuspend = index == 0 && checkHistoricalSuspend;
+                    statusCheck.CheckSuspend = checkHistoricalSuspend && index == 0;
                     statusCheck.MaxDelay = maxDelay;
                     statusCheck.ClockSkewness = ClockSkewness;
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Checking revocation of {0} on {1} ", currentElement.Certificate.Subject, validationTime);
@@ -166,6 +165,7 @@ namespace Egelke.EHealth.Client.Pki
                                         Org.BouncyCastle.Asn1.X509.X509Extension crlExt = tbsCrl.Extensions.GetExtension(OcspObjectIdentifiers.PkixOcspBasic);
                                         if (crlExt != null)
                                         {
+                                            //found a OCSP wrapped in an CRL
                                             isOcspWrapper = true;
                                             Asn1Encodable ocspAsn1 = crlExt.GetParsedValue();
                                             OcspResponse ocsp = OcspResponse.GetInstance(ocspAsn1);
@@ -175,71 +175,74 @@ namespace Egelke.EHealth.Client.Pki
                                     }
                                     if (!isOcspWrapper)
                                     {
-                                        if (x509Chain.ChainPolicy.RevocationMode == X509RevocationMode.Online && index == 0 && currentElement.Certificate.Extensions[X509Extensions.AuthorityInfoAccess.Id] != null)
+                                        //found a legit CRL
+                                        statusCheck.NewCertList = crl;
+                                        trace.TraceEvent(TraceEventType.Verbose, 0, "Found new CRL response of {0} from {1} ", currentElement.Certificate.Subject, statusCheck.NewCertList.ThisUpdate.ToDateTime());
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //check if OCSP is required
+                    if (currentElement.Certificate.Extensions[X509Extensions.AuthorityInfoAccess.Id] != null)
+                    {
+                        var aia = AuthorityInformationAccess.GetInstance(Asn1Sequence.FromByteArray(currentElement.Certificate.Extensions[X509Extensions.AuthorityInfoAccess.Id].RawData));
+                        if (aia.GetAccessDescriptions().Count(x => x.AccessMethod.Equals(AccessDescription.IdADOcsp)) > 0)
+                        {
+                            //There is OCSP info, so we need to use it
+                            statusCheck.OcspOnly = true;
+
+                            //see if we can obtain the OCSP response in case it is missing (only in online mode)
+                            AccessDescription ad = aia.GetAccessDescriptions().First(x => x.AccessMethod.Equals(AccessDescription.IdADOcsp));
+                            if (x509Chain.ChainPolicy.RevocationMode == X509RevocationMode.Online 
+                                    && statusCheck.NewOcspResponse == null
+                                    && ad.AccessLocation.TagNo == GeneralName.UniformResourceIdentifier
+                                    && ad.AccessLocation.Name is DerStringBase)
+                            {
+                                string location = ((DerStringBase)ad.AccessLocation.Name).GetString();
+                                try
+                                {
+                                    var locationUri = new Uri(location);
+                                    if (locationUri.Scheme == "http")
+                                    {
+                                        //Prepare the request
+                                        OcspReqGenerator ocspReqGen = new OcspReqGenerator();
+                                        ocspReqGen.AddRequest(
+                                            new CertificateID(CertificateID.HashSha1,
+                                                DotNetUtilities.FromX509Certificate(issuerElement.Certificate),
+                                                DotNetUtilities.FromX509Certificate(currentElement.Certificate).SerialNumber));
+
+                                        //Make the request & sending it.
+                                        OcspReq ocspReq = ocspReqGen.Generate();
+                                        WebRequest ocspWebReq = WebRequest.Create(locationUri);
+                                        ocspWebReq.Timeout = 15000;
+                                        ocspWebReq.Method = "POST";
+                                        ocspWebReq.ContentType = "application/ocsp-request";
+                                        Stream ocspWebReqStream = ocspWebReq.GetRequestStream();
+                                        ocspWebReqStream.Write(ocspReq.GetEncoded(), 0, ocspReq.GetEncoded().Length);
+                                        trace.TraceEvent(TraceEventType.Information, 0, "retrieving OCSP for {0} from {1}", currentElement.Certificate.Subject, location);
+                                        WebResponse ocspWebResp = ocspWebReq.GetResponse();
+
+                                        //Get the response
+                                        OcspResponse ocspResponse;
+                                        using (ocspWebResp)
                                         {
-                                            //found a cached CRL while an OCSP is needed, lets try to obtain the OCSP manually
-                                            var aia = AuthorityInformationAccess.GetInstance(Asn1Sequence.FromByteArray(currentElement.Certificate.Extensions[X509Extensions.AuthorityInfoAccess.Id].RawData));
-                                            foreach (AccessDescription ad in aia.GetAccessDescriptions())
-                                            {
-                                                if (ad.AccessMethod.Equals(AccessDescription.IdADOcsp)
-                                                    && ad.AccessLocation.TagNo == GeneralName.UniformResourceIdentifier
-                                                    && ad.AccessLocation.Name is DerStringBase)
-                                                {
-                                                    //Found an OCSP URL, lets call it.
-                                                    string location = ((DerStringBase)ad.AccessLocation.Name).GetString();
-                                                    try
-                                                    {
-                                                        var locationUri = new Uri(location);
-                                                        if (locationUri.Scheme == "http")
-                                                        {
-                                                            //Prepare the request
-                                                            OcspReqGenerator ocspReqGen = new OcspReqGenerator();
-                                                            ocspReqGen.AddRequest(
-                                                                new CertificateID(CertificateID.HashSha1,
-                                                                    DotNetUtilities.FromX509Certificate(issuerElement.Certificate),
-                                                                    DotNetUtilities.FromX509Certificate(currentElement.Certificate).SerialNumber));
-
-                                                            //Make the request & sending it.
-                                                            OcspReq ocspReq = ocspReqGen.Generate();
-                                                            WebRequest ocspWebReq = WebRequest.Create(locationUri);
-                                                            ocspWebReq.Timeout = 15000;
-                                                            ocspWebReq.Method = "POST";
-                                                            ocspWebReq.ContentType = "application/ocsp-request";
-                                                            Stream ocspWebReqStream = ocspWebReq.GetRequestStream();
-                                                            ocspWebReqStream.Write(ocspReq.GetEncoded(), 0, ocspReq.GetEncoded().Length);
-                                                            trace.TraceEvent(TraceEventType.Information, 0, "retrieving OCSP for {0} from {1}", currentElement.Certificate.Subject, location);
-                                                            WebResponse ocspWebResp = ocspWebReq.GetResponse();
-
-                                                            //Get the response
-                                                            OcspResponse ocspResponse;
-                                                            using (ocspWebResp)
-                                                            {
-                                                                ocspResponse = OcspResponse.GetInstance(new Asn1InputStream(ocspWebResp.GetResponseStream()).ReadObject());
-                                                                trace.TraceData(TraceEventType.Verbose, 0, "retrieved OCSP-response", location, Convert.ToBase64String(ocspResponse.GetEncoded()));
-                                                            }
-
-                                                            //Check the responder status
-                                                            var ocspResp = new OcspResp(ocspResponse);
-                                                            if (ocspResp.Status == 0)
-                                                            {
-                                                                statusCheck.NewOcspResponse = BasicOcspResponse.GetInstance(Asn1Object.FromByteArray(ocspResponse.ResponseBytes.Response.GetOctets()));
-                                                            }
-                                                        }
-                                                    }
-                                                    catch (Exception e)
-                                                    {
-                                                        trace.TraceEvent(TraceEventType.Warning, 0, "Failed to manually obtain OCSP response: {0}", e);
-                                                    }
-                                                }
-                                            }
+                                            ocspResponse = OcspResponse.GetInstance(new Asn1InputStream(ocspWebResp.GetResponseStream()).ReadObject());
+                                            trace.TraceData(TraceEventType.Verbose, 0, "retrieved OCSP-response", location, Convert.ToBase64String(ocspResponse.GetEncoded()));
                                         }
-                                        else
+
+                                        //Check the responder status
+                                        var ocspResp = new OcspResp(ocspResponse);
+                                        if (ocspResp.Status == 0)
                                         {
-                                            //found a legit CRL
-                                            statusCheck.NewCertList = crl;
-                                            trace.TraceEvent(TraceEventType.Verbose, 0, "Found new CRL response of {0} from {1} ", currentElement.Certificate.Subject, statusCheck.NewCertList.ThisUpdate.ToDateTime());
+                                            statusCheck.NewOcspResponse = BasicOcspResponse.GetInstance(Asn1Object.FromByteArray(ocspResponse.ResponseBytes.Response.GetOctets()));
                                         }
                                     }
+                                }
+                                catch (Exception e)
+                                {
+                                    trace.TraceEvent(TraceEventType.Warning, 0, "Failed to manually obtain OCSP response: {0}", e);
                                 }
                             }
                         }

@@ -50,7 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CertificateListEqualityComparer.cs" />
+    <Compile Include="Asn1EqualityComparer.cs" />
     <Compile Include="Chain.cs" />
     <Compile Include="ChainElement.cs" />
     <Compile Include="CurrentTimemarkProvider.cs" />

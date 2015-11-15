@@ -314,6 +314,11 @@ namespace Egelke.EHealth.Client.Pki
             BasicOcspResp ocspResp = new BasicOcspResp(ocspResponse);
             IEnumerable<SingleResp> matchingSingleResps = ocspResp.Responses.Where(x => x.GetCertID().SerialNumber.Equals(certificateBC.SerialNumber) && x.GetCertID().MatchesIssuer(issuerBC)
                  && ((x.NextUpdate != null && x.NextUpdate.Value > minTime) || x.ThisUpdate > minTime));
+            if (CheckSuspend)
+            {
+                //filter out responses that are to recent in case suspend is important
+                matchingSingleResps = matchingSingleResps.Where(x => x.ThisUpdate <= (maxTime + MaxDelay));
+            }
 
             bool updated = false;
             foreach (SingleResp singleResp in matchingSingleResps)
