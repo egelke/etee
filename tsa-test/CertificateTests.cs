@@ -91,12 +91,12 @@ namespace Egelke.EHealth.Client.Pki.Test
         [Test]
         public void Expired()
         {
-            DateTime time = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            DateTime time = new DateTime(2010, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             Chain chain = leafCert.BuildChain(time, null);
 
-            Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(1, chain.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.NotTimeValid));
+            Assert.AreEqual(1, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status == X509ChainStatusFlags.NotTimeValid));
             Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
