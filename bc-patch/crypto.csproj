@@ -67,7 +67,7 @@
     <BaseAddress>285212672</BaseAddress>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile />
-    <DefineConstants>TRACE;INCLUDE_IDEA;NET_1_1</DefineConstants>
+    <DefineConstants>TRACE;NET_1_1</DefineConstants>
     <DocumentationFile>doc\crypto.xml</DocumentationFile>
     <DebugSymbols>false</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
@@ -2409,6 +2409,7 @@
     <Compile Include="src\crypto\parameters\ParametersWithSBox.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\crypto\parameters\ProxyRSAKeyParameters.cs" />
     <Compile Include="src\crypto\parameters\RC2Parameters.cs">
       <SubType>Code</SubType>
     </Compile>

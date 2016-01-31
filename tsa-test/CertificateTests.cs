@@ -75,6 +75,50 @@ namespace Egelke.EHealth.Client.Pki.Test
             leafOcsp2 = BasicOcspResponse.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes("files/eid79021802145-2.ocsp")));
         }
 
+        [Test]
+        public void Basic()
+        {
+            DateTime time = new DateTime(2014, 3, 5, 18, 0, 0, DateTimeKind.Utc);
+
+            Chain chain = leafCert.BuildChain(time, null);
+
+            Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+        }
+
+        [Test]
+        public void Expired()
+        {
+            DateTime time = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            Chain chain = leafCert.BuildChain(time, null);
+
+            Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+        }
+
+        [Test]
+        public void Special()
+        {
+            var cert = new X509Certificate2("files/foreigner.crt");
+            var caCert = new X509Certificate2("files/foreigner_ca.crt");
+            DateTime time = new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            X509Certificate2Collection inter = new X509Certificate2Collection(caCert);
+
+            Chain chain = cert.BuildChain(time, inter);
+
+            Assert.AreEqual(0, chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[0].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[1].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, chain.ChainElements[2].ChainElementStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+        }
+
+        
+
         /*
          * Test: Success
          * Cert status: OK (not expired, not revoked/suspended)

@@ -38,7 +38,37 @@ namespace Egelke.EHealth.Client.Pki
 
         private static readonly TimeSpan ClockSkewness = new TimeSpan(0, 1, 0);
         private static readonly TraceSource trace = new TraceSource("Egelke.EHealth.Tsa");
-        
+
+        public static Chain BuildChain(this X509Certificate2 cert, DateTime validationTime, X509Certificate2Collection extraStore)
+        {
+            DateTime now = DateTime.UtcNow;
+            if (validationTime > (now + ClockSkewness))
+            {
+                throw new ArgumentException("validation can't occur in the future", "validationTime");
+            }
+
+            X509Chain x509Chain = new X509Chain();
+            if (extraStore != null) x509Chain.ChainPolicy.ExtraStore.AddRange(extraStore);
+            x509Chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            x509Chain.ChainPolicy.VerificationTime = validationTime;
+            x509Chain.Build(cert);
+
+            Chain chain = new Chain();
+            foreach (var status in x509Chain.ChainStatus)
+            {
+                trace.TraceEvent(status.Status != X509ChainStatusFlags.NoError ? TraceEventType.Warning : TraceEventType.Information, 0,
+                    "The certificate chain for {0} has a status {1}: {2}", cert.Subject, status.Status, status.StatusInformation);
+                chain.ChainStatus.Add(status);
+            }
+
+            foreach(X509ChainElement x509Element in x509Chain.ChainElements)
+            {
+                chain.ChainElements.Add(new ChainElement(x509Element));
+            }
+
+            return chain;
+        }
+
         public static Chain BuildChain(this X509Certificate2 cert, DateTime validationTime, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
         {
             return cert.BuildChain(validationTime, extraStore, ref crls, ref ocsps, false, new TimeSpan(1, 0, 0));

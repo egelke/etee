@@ -12,7 +12,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>Rework on BC PKIXCertPathBuilder</releaseNotes>
-    <copyright>Copyright © Egelke BVBA 2014-2015</copyright>
+    <copyright>Copyright © Egelke BVBA 2014-2016</copyright>
     <tags>eHealth eSigning TimeStamp PKI PKCS#12 X509</tags>
   </metadata>
 </package>

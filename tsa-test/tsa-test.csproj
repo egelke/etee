@@ -75,6 +75,7 @@
   <ItemGroup>
     <None Include="EHealthP12\dummy.p12" />
     <None Include="EHealthP12\eid.cer" />
+    <None Include="files\belgium-root-ct2.crl" />
     <None Include="files\Citizen201204-2.crl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -114,6 +115,8 @@
     <None Include="files\foreigner_ca.crt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="files\govct-revoked.crt" />
+    <None Include="files\govct-selfsigned.crt" />
     <None Include="files\revoked.crt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
