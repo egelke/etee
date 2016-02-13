@@ -29,8 +29,6 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
         private ReadOnlyCollection<Oid> keyEncryptionAlgorithms;
         private ReadOnlyCollection<SignatureAlgorithm> signatureAlgorithms;
         private ReadOnlyCollection<Oid> encryptionAlgorithms;
-        private int[] signatureKeyUsages;
-
 
         public UnsealActiveConfig()
         {
@@ -55,22 +53,6 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
             }
         }
 
-        public int[] SignatureKeyUsages
-        {
-            get
-            {
-                if (signatureKeyUsages == null)
-                {
-                    signatureKeyUsages = new int[] { 1 }; //non repudiation;
-                }
-                return signatureKeyUsages;
-            }
-            internal set
-            {
-                signatureKeyUsages = value;
-            }
-        }
-
         public ReadOnlyCollection<SignatureAlgorithm> SignatureAlgorithms
         {
             get
@@ -78,8 +60,10 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
                 if (signatureAlgorithms == null)
                 {
                     signatureAlgorithms = new ReadOnlyCollection<SignatureAlgorithm>(new SignatureAlgorithm[] { 
-                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS")), 
-                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.1", "RSA")) 
+                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS")),
+                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.3", "SHA512"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS")),
+                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.1", "RSA")),
+                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.3", "SHA512"), new Oid("1.2.840.113549.1.1.1", "RSA"))
                     });
                 }
                 return signatureAlgorithms;
@@ -93,7 +77,9 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
                 if (encryptionAlgorithms == null)
                 {
                     encryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] { 
-                        new Oid("2.16.840.1.101.3.4.1.2", "AES128") 
+                        new Oid("2.16.840.1.101.3.4.1.2", "AES128"),
+                        new Oid("2.16.840.1.101.3.4.1.22", "AES192"),
+                        new Oid("2.16.840.1.101.3.4.1.42", "AES256")
                     });
                 }
                 return encryptionAlgorithms;
@@ -108,7 +94,9 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
                 {
                     keyEncryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] { 
                         new Oid("1.2.840.113549.1.1.1","rsa"), 
-                        new Oid("2.16.840.1.101.3.4.1.5", "aes128wrap") 
+                        new Oid("2.16.840.1.101.3.4.1.5", "aes128wrap"),
+                        new Oid("2.16.840.1.101.3.4.1.25", "aes192wrap"),
+                        new Oid("2.16.840.1.101.3.4.1.45", "aes256wrap")
                     });
                 }
                 return keyEncryptionAlgorithms;

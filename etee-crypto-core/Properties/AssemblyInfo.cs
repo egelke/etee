@@ -34,7 +34,7 @@ using System.Security;
 #endif
 [assembly: AssemblyCompany("Egelke BVBA")]
 [assembly: AssemblyProduct(".Net ETEE")]
-[assembly: AssemblyCopyright("Copyright © Egelke BVBA 2013-2014")]
+[assembly: AssemblyCopyright("Copyright © Egelke BVBA 2013-2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -56,9 +56,9 @@ using System.Security;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.0")]
-[assembly: AssemblyFileVersion("2.0.0")]
-[assembly: AssemblyInformationalVersion("2.0.0")]
+[assembly: AssemblyVersion("2.1.0")]
+[assembly: AssemblyFileVersion("2.1.0.1")]
+[assembly: AssemblyInformationalVersion("2.1.0-Beta1")]
 
 
 [assembly: CLSCompliant(true)]

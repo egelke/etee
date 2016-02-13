@@ -35,6 +35,8 @@ using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
+using Egelke.EHealth.Etee.Crypto.Configuration;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
@@ -146,33 +148,32 @@ namespace Egelke.EHealth.Etee.Crypto
         /// <returns>Detailed information about the encryption certificate status</returns>
         public CertificateSecurityInformation Verify(bool checkRevocation)
         {
-            BC::X509Certificate encCert;
-            BC::X509Certificate authCert = null;
+            IList<CertificateList> crls;
+            IList<BasicOcspResponse> ocps;
 
             //Get encryption cert
-            encCert = DotNetUtilities.FromX509Certificate(ToCertificate());
+            BC::X509Certificate encCert = DotNetUtilities.FromX509Certificate(ToCertificate());
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying ETK: {0}", encCert.SubjectDN.ToString());
 
-            //Get authentication cert
+            //Check the certificate
             IX509Store certs = raw.GetCertificates("COLLECTION");
-            SignerID authCertSelector = new SignerID();
-            authCertSelector.Subject = encCert.IssuerDN;
-            ICollection authCertMatch = certs.GetMatches(authCertSelector);
-            IEnumerator iterator = authCertMatch.GetEnumerator();
-            while (iterator.MoveNext())
+            if (checkRevocation)
             {
-                if (authCert == null || ((BC::X509Certificate)iterator.Current).IsValid(DateTime.UtcNow))
-                {
-                    authCert = (BC::X509Certificate)iterator.Current;
-                }
+                crls = new List<CertificateList>();
+                ocps = new List<BasicOcspResponse>();
             }
-            if (authCert == null)
+            else
             {
-                trace.TraceEvent(TraceEventType.Warning, 0, "Authentication certificate not found in ETK");
-                throw new InvalidMessageException("The ETK does not contain the authentication certificate");
+                crls = null;
+                ocps = null;
             }
-
-            return CertVerifier.VerifyEnc(encCert, authCert, DateTime.UtcNow, certs, checkRevocation);
+            CertificateSecurityInformation certInfo = encCert.Verify(DateTime.UtcNow, new int[] { 2, 3 }, EteeActiveConfig.Unseal.MinimumEncryptionKeySize.AsymmerticRecipientKey, certs, ref crls, ref ocps);
+            if (!(encCert.GetPublicKey() is RsaKeyParameters))
+            {
+                certInfo.securityViolations.Add(CertSecurityViolation.NotValidKeyType);
+                trace.TraceEvent(TraceEventType.Warning, 0, "Only RSA keys can be used for sealing");
+            }
+            return certInfo;
         }
 
     }

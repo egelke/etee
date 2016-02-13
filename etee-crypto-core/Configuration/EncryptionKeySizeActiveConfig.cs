@@ -43,6 +43,8 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
             }
         }
 
+        //Determined by algo, no need to check
+        /*
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
         public int MessageKey
         {
@@ -51,5 +53,6 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
                 return 128;
             }
         }
+        */
     }
 }

@@ -300,7 +300,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 {
                     BC::X509.X509Certificate bcCert = DotNetUtilities.FromX509Certificate(cert);
                     encryptGenerator.AddKeyTransRecipient(bcCert);
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "Added known recipient: {0}", bcCert.SubjectDN.ToString());
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Added known recipient: {0} ({1})", bcCert.SubjectDN.ToString(), bcCert.IssuerDN.ToString());
                 }
             }
             if (key != null)
@@ -404,7 +404,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 trace.TraceEvent(TraceEventType.Verbose, 0, "The message does not contains certificates, adding the chain of {0}", timemarkKey.Signer.Subject);
 
                 //Construct the chain of certificates
-                Chain chain = timemarkKey.Signer.BuildBasicChain(timemarkKey.SigningTime, extraStore);
+                Chain chain = timemarkKey.Signer.BuildChain(timemarkKey.SigningTime, extraStore);
                 if (chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
                 {
                     trace.TraceEvent(TraceEventType.Error, 0, "The certification chain of {0} failed with errors", chain.ChainElements[0].Certificate.Subject);
