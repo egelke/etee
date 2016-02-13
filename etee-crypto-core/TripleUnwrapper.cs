@@ -51,52 +51,21 @@ namespace Egelke.EHealth.Etee.Crypto
 {
     internal class TripleUnwrapper : IDataUnsealer, IDataVerifier, ITmaDataVerifier
     {
-        private class WinX509CollectionStore : IX509Store
-        {
-            private X509Certificate2Collection win;
-            private IList bc;
-
-            public WinX509CollectionStore(X509Certificate2Collection collection)
-            {
-                win = collection;
-                bc = new List<Org.BouncyCastle.X509.X509Certificate>();
-                for (int i = 0; i < collection.Count; i++ )
-                {
-                    bc.Add(DotNetUtilities.FromX509Certificate(collection[i]));
-                }
-            }
-
-            public ICollection GetMatches(IX509Selector selector)
-            {
-                if (selector == null)
-                {
-                    return win;
-                }
-
-                IList result = new ArrayList();
-                for (int i = 0; i < win.Count; i++)
-                {
-                    if (selector.Match(bc[i]))
-                        result.Add(win[i]);
-                }
-                return result;
-            }
-        }
-
         private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         private Level? level;
         private IX509Store encCertStore;
+        private IX509Store authCertStore;
         private ITimemarkProvider timemarkauthority;
 
-        internal TripleUnwrapper(Level? level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts)
+        internal TripleUnwrapper(Level? level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, IX509Store authCertStore)
         {
             if (level == Level.L_Level || level == Level.A_level ) throw new ArgumentException("level", "Only null or levels B, T, LT and LTA are allowed");
 
             this.level = level;
             this.timemarkauthority = timemarkauthority;
-            //Wrap it inside a IX509Store to (incorrectly) returns an windows x509Certificate2
-            encCertStore = encCerts == null || encCerts.Count == 0 ? null : new WinX509CollectionStore(encCerts);
+            this.encCertStore = encCerts == null || encCerts.Count == 0 ? null : new WinX509CollectionStore(encCerts);
+            this.authCertStore = authCertStore;
         }
 
         #region DataUnsealer Members
@@ -450,18 +419,20 @@ namespace Egelke.EHealth.Etee.Crypto
             }
 
             //Validating signature info
+            IList<CertificateList> crls = null;
+            IList<BasicOcspResponse> ocsps = null;
             if (this.level == null && result.Subject == null)
             {
                 if (outer == null)
-                    result.Subject = CertVerifier.VerifyAuth(signerCert, signingTime, certs, null, null, false, false);
+                    result.Subject = signerCert.Verify(signingTime, new int[] { 0 }, EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
                 else
-                    result.Subject = CertVerifier.VerifySign(signerCert, signingTime, certs, null, null, false, false);
+                    result.Subject = signerCert.Verify(signingTime, new int[] { 1 }, EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
                 return result;
             }
 
             //Get the embedded CRLs and OCSPs
-            IList<CertificateList> crls = new List<CertificateList>();
-            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
+            crls = new List<CertificateList>();
+            ocsps = new List<BasicOcspResponse>();
             if (signerInfo != null && signerInfo.UnsignedAttributes != null)
             {
                 trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
@@ -483,105 +454,87 @@ namespace Egelke.EHealth.Etee.Crypto
                 }
             }
 
-            //check for a time-stamp, even if not required
-            DateTime validationTime;
-            TimeStampToken tst = null;
-            bool isSigingTimeValidated;
-            if (signerInfo != null && signerInfo.UnsignedAttributes != null)
+            //check for a time-stamp, if we are in the outer layer
+            if ((this.level & Level.T_Level) == Level.T_Level && outer == null)
             {
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
-                Org.BouncyCastle.Asn1.Cms.Attribute tstList = signerInfo.UnsignedAttributes[PkcsObjectIdentifiers.IdAASignatureTimeStampToken];
-                if (tstList != null && tstList.AttrValues.Count > 0)
+                DateTime validatedTime;
+                TimeStampToken tst = null;
+                if (signerInfo != null && signerInfo.UnsignedAttributes != null)
                 {
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains the Signature Time Stamp Token: {0}", Convert.ToBase64String(tstList.AttrValues[0].GetEncoded()));
-                    tst = tstList.AttrValues[0].GetEncoded().ToTimeStampToken();
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
+                    Org.BouncyCastle.Asn1.Cms.Attribute tstList = signerInfo.UnsignedAttributes[PkcsObjectIdentifiers.IdAASignatureTimeStampToken];
+                    if (tstList != null && tstList.AttrValues.Count > 0)
+                    {
+                        trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains the Signature Time Stamp Token: {0}", Convert.ToBase64String(tstList.AttrValues[0].GetEncoded()));
+                        tst = tstList.AttrValues[0].GetEncoded().ToTimeStampToken();
+                    }
                 }
-            }
-            if (tst == null)
-            {
-                //Retrieve the time-mark if needed by the level only
-                if ((this.level & Level.T_Level) == Level.T_Level)
+
+                if (tst == null)
                 {
-                    if (outer == null)
+                    //we are in the outer signature, so we need a time-mark (or time-stamp, but we checked that already)
+                    if (timemarkauthority == null)
                     {
-                        //we are in the outer signature, so we need a time-mark (or time-stamp, but we checked that already)
-                        if (timemarkauthority == null)
-                        {
-                            trace.TraceEvent(TraceEventType.Error, 0, "Not time-mark authority is provided while there is not embedded time-stamp, the level includes T-Level and it isn't an inner signature");
-                            throw new InvalidMessageException("The message does not contain a time-stamp and there is not time-mark authority provided while T-Level is required");
-                        }
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "Requesting time-mark for message signed by {0}, signed on {1} and with signature value {2}", 
-                            signerCert.SubjectDN, signingTime, signerInfo.GetSignature());
-                        validationTime = timemarkauthority.GetTimemark(new X509Certificate2(signerCert.GetEncoded()), signingTime, signerInfo.GetSignature()).ToUniversalTime();
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the return time-mark which is: {0}", validationTime);
+                        trace.TraceEvent(TraceEventType.Error, 0, "Not time-mark authority is provided while there is not embedded time-stamp, the level includes T-Level and it isn't an inner signature");
+                        throw new InvalidMessageException("The message does not contain a time-stamp and there is not time-mark authority provided while T-Level is required");
                     }
-                    else
-                    {
-                        //we are in the inner signature, we check the signing time against the outer signatures signing time
-                        validationTime = outer.SigningTime.Value;
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the outer signature singing time which is: {0}", validationTime);
-                    }
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Requesting time-mark for message signed by {0}, signed on {1} and with signature value {2}",
+                        signerCert.SubjectDN, signingTime, signerInfo.GetSignature());
+                    validatedTime = timemarkauthority.GetTimemark(new X509Certificate2(signerCert.GetEncoded()), signingTime, signerInfo.GetSignature()).ToUniversalTime();
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the return time-mark which is: {0}", validatedTime);
                 }
                 else
                 {
-                    isSigingTimeValidated = false;
-                    validationTime = signingTime;
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "There is not validated provided, nor is it retrieved because of the level");
+                    //Check the time-stamp
+                    if (!tst.IsMatch(new MemoryStream(signerInfo.GetSignature())))
+                    {
+                        trace.TraceEvent(TraceEventType.Warning, 0, "The time-stamp does not match the message");
+                        result.securityViolations.Add(SecurityViolation.InvalidTimestamp);
+                    }
+
+                    Timestamp stamp;
+                    if ((this.level & Level.A_level) == Level.A_level)
+                    {
+                        //TODO::follow the chain of A-timestamps until the root (now we assume the signature time-stamp is the root)
+                        trace.TraceEvent(TraceEventType.Verbose, 0, "Validating the time-stamp against the current time for arbitration reasons");
+                        stamp = tst.Validate(ref crls, ref ocsps, null);
+                    }
+                    else {
+                        trace.TraceEvent(TraceEventType.Verbose, 0, "Validating the time-stamp against the time-stamp time since no arbitration is needed");
+                        stamp = tst.Validate(ref crls, ref ocsps);
+                    }
+                    result.TimestampRenewalTime = stamp.RenewalTime;
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "The time-stamp must be renewed on {0}", result.TimestampRenewalTime);
+
+                    //we get the time from the time-stamp
+                    validatedTime = stamp.Time;
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the time-stamp time which is on {0}", validatedTime);
+                    if (!hasSigningTime)
+                    {
+                        trace.TraceEvent(TraceEventType.Information, 0, "Implicit signing time {0} is replaced with time-stamp time {1}", signingTime, tst.TimeStampInfo.GenTime);
+                        signingTime = stamp.Time;
+                    }
+
+                    if (stamp.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
+                    {
+                        trace.TraceEvent(TraceEventType.Warning, 0, "The time-stamp is invalid with {0} errors, including {1}: {2}",
+                            stamp.TimestampStatus.Count, stamp.TimestampStatus[0].Status, stamp.TimestampStatus[0].StatusInformation);
+                        result.securityViolations.Add(SecurityViolation.InvalidTimestamp);
+                    }
                 }
-            }
-            else
-            {
-                //Check the time-stamp
-                if (!tst.IsMatch(new MemoryStream(signerInfo.GetSignature())))
+
+                //lest check if the signing time is in line with the validation time (obtained from time-mark, outer signature or time-stamp)
+                if (validatedTime > (signingTime + EteeActiveConfig.ClockSkewness + Settings.Default.TimestampGracePeriod)
+                    || validatedTime < (signingTime - EteeActiveConfig.ClockSkewness))
                 {
-                    trace.TraceEvent(TraceEventType.Warning, 0, "The time-stamp does not match the message");
-                    result.securityViolations.Add(SecurityViolation.InvalidTimestamp);
+                    trace.TraceEvent(TraceEventType.Warning, 0, "The validated time {0} is not in line with the signing time {1} with a grace period of {2}",
+                        validatedTime, signingTime, Settings.Default.TimestampGracePeriod);
+                    result.securityViolations.Add(SecurityViolation.SealingTimeInvalid);
                 }
-
-                Timestamp stamp;
-                if ((this.level & Level.A_level) == Level.A_level)
+                else
                 {
-                    //TODO::follow the chain of A-timestamps until the root (now we assume the signature time-stamp is the root)
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "Validating the time-stamp against the current time for arbitration reasons");
-                    stamp = tst.Validate(ref crls, ref ocsps, null);
-                } 
-                else {
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "Validating the time-stamp against the time-stamp time since no arbitration is needed");
-                    stamp = tst.Validate(ref crls, ref ocsps);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time {0} is in line with the signing time {1}", validatedTime, signingTime);
                 }
-                result.TimestampRenewalTime = stamp.RenewalTime;
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The time-stamp must be renewed on {0}", result.TimestampRenewalTime);
-
-                //we get the time from the time-stamp
-                validationTime = stamp.Time;
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the time-stamp time which is on {0}", validationTime);
-                if (!hasSigningTime)
-                {
-                    trace.TraceEvent(TraceEventType.Information, 0, "Implicit signing time {0} is replaced with time-stamp time {1}", signingTime, tst.TimeStampInfo.GenTime);
-                    signingTime = stamp.Time;
-                }
-
-                if (stamp.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0) {
-                    trace.TraceEvent(TraceEventType.Warning, 0, "The time-stamp is invalid with {0} errors, including {1}: {2}",
-                        stamp.TimestampStatus.Count, stamp.TimestampStatus[0].Status, stamp.TimestampStatus[0].StatusInformation);
-                    isSigingTimeValidated = false;
-                    result.securityViolations.Add(SecurityViolation.InvalidTimestamp);
-                }
-            }
-
-            //lest check if the signing time is in line with the validation time (obtained from time-mark, outer signature or time-stamp)
-            if (validationTime > (signingTime + EteeActiveConfig.ClockSkewness + Settings.Default.TimestampGracePeriod)
-                || validationTime < (signingTime - EteeActiveConfig.ClockSkewness))
-            {
-                trace.TraceEvent(TraceEventType.Warning, 0, "The validated time {0} is not in line with the signing time {1} with a grace period of {2}",
-                    validationTime, signingTime, Settings.Default.TimestampGracePeriod);
-                isSigingTimeValidated = false;
-                result.securityViolations.Add(SecurityViolation.SealingTimeInvalid);
-            }
-            else
-            {
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time {0} is in line with the signing time {1}", validationTime, signingTime);
-                isSigingTimeValidated = true;
             }
 
             //If the subject is already provided, so we don't have to do the next check
@@ -589,9 +542,9 @@ namespace Egelke.EHealth.Etee.Crypto
             
             //check the status on the available info, for unseal it does not matter if it is B-Level or LT-Level.
             if (outer == null)
-                result.Subject = CertVerifier.VerifyAuth(signerCert, signingTime, certs, crls, ocsps, true, isSigingTimeValidated);
+                result.Subject = signerCert.Verify(signingTime, new int[] { 0 }, EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
             else
-                result.Subject = CertVerifier.VerifySign(signerCert, signingTime, certs, crls, ocsps, true, isSigingTimeValidated);
+                result.Subject = signerCert.Verify(signingTime, new int[] { 1 }, EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
 
             return result;
         }
@@ -642,81 +595,46 @@ namespace Egelke.EHealth.Etee.Crypto
                 //Key size of the message should not be checked, size is determined by the algorithm
 
                 //Get recipient, should be receiver.
-                RecipientInformation recipientInfo;
-                ICipherParameters recipientKey;
+                ICipherParameters recipientKey = null;
+                RecipientInformation recipientInfo = null;
                 if (key == null)
                 {
-                    if (encCertStore != null)
-                    {
-                        //Find find a matching receiver
-                        ICollection recipients = recipientInfos.GetRecipients(); //recipients in the message
-                        IList<KeyValuePair<RecipientInformation, IList>> allMatches = new List<KeyValuePair<RecipientInformation, IList>>();
-                        foreach (RecipientInformation recipient in recipients)
-                        {
-                            trace.TraceEvent(TraceEventType.Verbose, 0, "The message is addressed to {0} ({1})", recipient.RecipientID.SerialNumber, recipient.RecipientID.Issuer);
-                            if (recipient is KeyTransRecipientInformation) {
-                                IList matches = (IList) encCertStore.GetMatches(recipient.RecipientID);
-                                if (matches.Count > 0)
-                                {
-                                    allMatches.Add(new KeyValuePair<RecipientInformation, IList>(recipient, matches));
-                                }
-                            }
-                        }
-
-                        //Did we find a receiver?
-                        if (allMatches.Count == 0)
-                        {
-                            trace.TraceEvent(TraceEventType.Error, 0, "The recipients doe not contain any of your your encryption certificates");
-                            throw new InvalidMessageException("The message isn't a message that is addressed to you.  Or it is an unaddressed message or it is addressed to somebody else");
-                        }
-
-                        //check with encryption cert matches where valid at creation time
-                        IList<KeyValuePair<RecipientInformation, IList>> validMatches = new List<KeyValuePair<RecipientInformation, IList>>();
-                        foreach (KeyValuePair<RecipientInformation, IList> match in allMatches)
-                        {
-                            IList validCertificate = new List<X509Certificate2>();
-                            foreach (X509Certificate2 cert in match.Value)
-                            {
-                                //Validate the description cert, providing minimal info to force minimal validation.
-                                CertificateSecurityInformation certVerRes = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(cert), null, date, null, false);
-                                trace.TraceEvent(TraceEventType.Verbose, 0, "Validated potential decryption certificate ({0}) : Validation Status = {1}, Trust Status = {2}",
-                                    cert.Subject, certVerRes.ValidationStatus, certVerRes.TrustStatus);
-                                if (certVerRes.SecurityViolations.Count == 0)
-                                {
-                                    validCertificate.Add(cert);
-                                }
-                            }
-
-                            if (validCertificate.Count > 0)
-                            {
-                                validMatches.Add(new KeyValuePair<RecipientInformation, IList>(match.Key, validCertificate));
-                            }
-                        }
-
-                        //If we have a valid encCert use that one, otherwise use an invalid one (at least we can read it, but should not use it)
-                        X509Certificate2 selectedCert;
-                        if (validMatches.Count > 0)
-                        {
-                            selectedCert = (X509Certificate2)validMatches[0].Value[0];
-                            recipientInfo = validMatches[0].Key;
-                            trace.TraceEvent(TraceEventType.Information, 0, "Found valid decryption certificate ({0}) that matches one the the recipients", selectedCert.Subject);
-                        }
-                        else
-                        {
-                            selectedCert = (X509Certificate2)allMatches[0].Value[0];
-                            recipientInfo = allMatches[0].Key;
-                            trace.TraceEvent(TraceEventType.Warning, 0, "Found *invalid* decryption certificate ({0}) that matches one the the recipients", selectedCert.Subject);
-                        }
-                        recipientKey = DotNetUtilities.GetKeyPair(selectedCert.PrivateKey).Private;
-
-                        //we validate the selected certificate again to inform the caller
-                        result.Subject = CertVerifier.VerifyEnc(DotNetUtilities.FromX509Certificate(selectedCert),  null, date, null, false);
-                    }
-                    else
+                    if (encCertStore == null)
                     {
                         trace.TraceEvent(TraceEventType.Error, 0, "The unsealer does not have an decryption certificate and no symmetric key was provided");
                         throw new InvalidOperationException("There should be an receiver (=yourself) and/or a key provided");
                     }
+
+                    //Find find a matching receiver
+                    result.Subject = new CertificateSecurityInformation();
+                    foreach (RecipientInformation recipient in recipientInfos.GetRecipients())
+                    {
+                        trace.TraceEvent(TraceEventType.Verbose, 0, "The message is addressed to {0} ({1})", recipient.RecipientID.SerialNumber, recipient.RecipientID.Issuer);
+                        if (recipient is KeyTransRecipientInformation) {
+                            IList matches = (IList) encCertStore.GetMatches(recipient.RecipientID);
+                            foreach (X509Certificate2 match in matches)
+                            {
+                                trace.TraceEvent(TraceEventType.Verbose, 0, "Found potential match {0} ({1})", match.Subject, match.Issuer);
+                                if (match.IsBetter(result.Subject.Certificate, date))
+                                {
+                                    recipientInfo = recipient;
+                                    recipientKey = DotNetUtilities.GetKeyPair(((X509Certificate2)matches[0]).PrivateKey).Private;
+                                    result.Subject.Certificate = match;
+                                }
+                            }
+                        }
+                    }
+
+                    //Did we find a receiver?
+                    if (recipientKey == null)
+                    {
+                        trace.TraceEvent(TraceEventType.Error, 0, "The recipients doe not contain any of your encryption certificates");
+                        throw new InvalidMessageException("The message isn't a message that is addressed to you.  Or it is an unaddressed message or it is addressed to somebody else");
+                    }
+
+                    IList<CertificateList> crls = null;
+                    IList<BasicOcspResponse> ocsps = null;
+                    result.Subject = DotNetUtilities.FromX509Certificate(result.Subject.Certificate).Verify(date, new int[] { 2, 3 }, EteeActiveConfig.Unseal.MinimumEncryptionKeySize.AsymmerticRecipientKey, authCertStore, ref crls, ref ocsps);
                 }
                 else
                 {

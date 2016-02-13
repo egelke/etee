@@ -66,8 +66,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Egelke.EHealth.Client.2.0.2\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
     </Reference>
-    <Reference Include="Egelke.EHealth.Client.Pki">
-      <HintPath>..\packages\Egelke.EHealth.Client.Pki.1.0.0-Beta2\lib\net40-Client\Egelke.EHealth.Client.Pki.dll</HintPath>
+    <Reference Include="Egelke.EHealth.Client.Pki, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
+      <HintPath>..\packages\Egelke.EHealth.Client.Pki.2.0.0-beta2\lib\net40-Client\Egelke.EHealth.Client.Pki.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>

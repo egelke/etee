@@ -46,9 +46,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [Test]
-        [Ignore]
         public void kgss()
         {
+            if (DateTime.Now > new DateTime(2015, 4, 22)) Assert.Inconclusive("KGSS token must be updated");
+
             EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/kgss.etk"));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
@@ -149,9 +150,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             Assert.IsNotNull(info.ToString());
             Assert.AreEqual(ETEE::Status.TrustStatus.None, info.TrustStatus);
-            Assert.AreEqual(ValidationStatus.Invalid, info.ValidationStatus);
+            //Assert.AreEqual(ValidationStatus.Unsure, info.ValidationStatus);
 
-            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.HasNotPermittedNameConstraint));
+            Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.InvalidBasicConstraints));
         }
 
         [Test]
@@ -271,7 +273,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(ValidationStatus.Valid, info.ValidationStatus);
 
             Assert.IsTrue(info.SecurityViolations.Contains(CertSecurityViolation.UntrustedIssuer));
-            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidKeyType)); //this is why it is invailid, not because of the key type
+            Assert.IsTrue(info.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotValidKeySize));
         }
     }
 }

@@ -8,7 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{6eec1160-a980-4425-a4ad-cac0bb35635e}</ProjectGuid>
-    <SHFBSchemaVersion>1.9.9.0</SHFBSchemaVersion>
+    <SHFBSchemaVersion>2015.6.5.0</SHFBSchemaVersion>
     <!-- AssemblyName, Name, and RootNamespace are not used by SHFB but Visual
          Studio adds them anyway -->
     <AssemblyName>Documentation</AssemblyName>
@@ -25,12 +25,13 @@
     <HelpFileFormat>HtmlHelp1</HelpFileFormat>
     <NamespaceSummaries>
       <NamespaceSummaryItem name="(global)" isDocumented="True">eHealth End-To-End Encryption (|ETEE) Library for .Net</NamespaceSummaryItem>
-<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto" isDocumented="True">Classes representing keys, exceptions and levels</NamespaceSummaryItem>
-<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Configuration" isDocumented="True">Global settings of the librar</NamespaceSummaryItem>
-<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Receiver" isDocumented="True">Classes for the unsealer, i.e. receiver, of messages.</NamespaceSummaryItem>
-<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Sender" isDocumented="True">Classes for the sealer, i.e. sender, of messages.</NamespaceSummaryItem>
-<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Status" isDocumented="True">Status structurs returned during validation and unsealing.</NamespaceSummaryItem>
-<NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Store" isDocumented="True">Classes for validators and completers, i.e. stores, of messages.</NamespaceSummaryItem></NamespaceSummaries>
+      <NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto" isDocumented="True">Classes representing keys, exceptions and levels</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Configuration" isDocumented="True">Global settings of the librar</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Receiver" isDocumented="True">Classes for the unsealer, i.e. receiver, of messages.</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Sender" isDocumented="True">Classes for the sealer, i.e. sender, of messages.</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Status" isDocumented="True">Status structurs returned during validation and unsealing.</NamespaceSummaryItem>
+      <NamespaceSummaryItem name="Egelke.EHealth.Etee.Crypto.Store" isDocumented="True">Classes for validators and completers, i.e. stores, of messages.</NamespaceSummaryItem>
+    </NamespaceSummaries>
     <ProjectSummary>eHealth End-To-End Encryption %28ETEE%29 Library for .Net</ProjectSummary>
     <CopyrightText>Copyright %28C%29 2014 Egelke</CopyrightText>
     <HelpTitle>eHealth ETEE Library for .Net Help</HelpTitle>

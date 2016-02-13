@@ -23,6 +23,9 @@ using System.Security.Cryptography.X509Certificates;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Egelke.EHealth.Client.Pki;
 using Org.BouncyCastle.Security;
+using Egelke.EHealth.Etee.Crypto.Utils;
+using Org.BouncyCastle.X509.Store;
+using System.Collections;
 
 namespace Egelke.EHealth.Etee.Crypto.Receiver
 {
@@ -37,11 +40,12 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// </summary>
         /// <seealso cref="Create(Level?, EHealthP12[])"/>
         /// <param name="encCerts">Own (eHealth issued) certificates with private key that can be used to decrypt, they must have an <strong>exportable</strong> private key</param>
+        /// <param name="authCertChains">Own eHealth issued certificate that where used to create encryption certificates, with the chain if not present in the windows store</param>
         /// <param name="level">The required level of the sender signatures or <c>null</c> for only basic validation without revocation checks</param>
         /// <returns>Instance of the IDataUnsealer</returns>
-        public static IDataUnsealer Create(Level? level, X509Certificate2Collection encCerts)
+        public static IDataUnsealer Create(Level? level, X509Certificate2Collection encCerts, X509Certificate2Collection authCertChains)
         {
-            return new TripleUnwrapper(level, null, encCerts);
+            return new TripleUnwrapper(level, null, encCerts, ToStore(authCertChains));
         }
 
         /// <summary>
@@ -61,7 +65,11 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// <returns>Instance of the IDataUnsealer</returns>
         public static IDataUnsealer Create(Level? level, params EHealthP12[] p12s)
         {
-            return Create(level, p12s.ToCollection());
+            X509Certificate2Collection encCerts;
+            X509Certificate2Collection allCerts;
+
+            Extract(p12s, out encCerts, out allCerts);
+            return Create(level, encCerts, allCerts);
         }
 
         /// <summary>
@@ -69,15 +77,16 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// </summary>
         /// <seealso cref="CreateFromTimemarkAuthority(Level, ITimemarkProvider, EHealthP12[])"/>
         /// <param name="encCerts">Own (eHealth issued) certificates with private key that can be used to decrypt, they must have an <strong>exportable</strong> private key</param>
+        /// <param name="authCertChains">Own eHealth issued certificate that where used to create encryption certificates, with the chain if not present in the windows store</param>
         /// <param name="level">The required level of the sender signatures, either T-Level, LT-Level or LTA-Level</param>
         /// <param name="timemarkauthority">The client of the time-mark authority</param>
         /// <returns>Instance of the IDataUnsealer for messages of the specified a time-mark authority</returns>
-        public static IDataUnsealer CreateFromTimemarkAuthority(Level level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts)
+        public static IDataUnsealer CreateFromTimemarkAuthority(Level level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, X509Certificate2Collection authCertChains)
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
             if (timemarkauthority == null) throw new ArgumentNullException("time-mark authority", "This method requires an time-mark authority specified");
 
-            return new TripleUnwrapper(level, timemarkauthority, encCerts);
+            return new TripleUnwrapper(level, timemarkauthority, encCerts, ToStore(authCertChains));
         }
 
         /// <summary>
@@ -103,26 +112,39 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// <returns>Instance of the IDataUnsealer for messages of the specified a time-mark authority</returns>
         public static IDataUnsealer CreateFromTimemarkAuthority(Level level, ITimemarkProvider timemarkauthority, params EHealthP12[] p12s)
         {
-            return CreateFromTimemarkAuthority(level, timemarkauthority, p12s.ToCollection());
+            X509Certificate2Collection encCerts;
+            X509Certificate2Collection allCerts;
+
+            Extract(p12s, out encCerts, out allCerts);
+            return CreateFromTimemarkAuthority(level, timemarkauthority, encCerts, allCerts);
         }
 
-        private static X509Certificate2Collection ToCollection(this EHealthP12[] p12s)
+        private static IX509Store ToStore(X509Certificate2Collection certs)
         {
-            X509Certificate2Collection encCerts = new X509Certificate2Collection();
+            ArrayList senderChainCollection = new ArrayList();
+            foreach (X509Certificate2 cert in certs)
+            {
+                senderChainCollection.Add(DotNetUtilities.FromX509Certificate(cert));
+            }
+            return X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(senderChainCollection));
+        }
 
+        private static void Extract(this EHealthP12[] p12s, out X509Certificate2Collection encCerts, out X509Certificate2Collection allCerts)
+        {
+            //split is far from prefect, but that only means that the rest of the code has to do some better lookup
+            encCerts = new X509Certificate2Collection();
+            allCerts = new X509Certificate2Collection();
             foreach (EHealthP12 p12 in p12s)
             {
-                foreach(X509Certificate2 cert in p12.Values)
+                foreach (X509Certificate2 cert in p12.Values)
                 {
-                    //very basic check, the rest is done when unsealing
                     if (cert.HasPrivateKey)
                     {
                         encCerts.Add(cert);
                     }
+                    allCerts.Add(cert);
                 }
             }
-
-            return encCerts;
         }
     }
 }
