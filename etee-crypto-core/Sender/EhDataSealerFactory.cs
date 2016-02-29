@@ -170,7 +170,7 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         {
             BC::X509.X509Certificate bcAuthentication = DotNetUtilities.FromX509Certificate(authSign);
             if (!((RSACryptoServiceProvider)authSign.PrivateKey).CspKeyContainerInfo.Exportable) throw new ArgumentException("authentication", "The authentication certificate must be exportable if no (eID) signature certificate is provided");
-            if (!bcAuthentication.GetKeyUsage()[0] || !bcAuthentication.GetKeyUsage()[1]) throw new ArgumentException("authentication", "The authentication certificate must have a key for both non-Repudiation and signing");
+            if (!bcAuthentication.GetKeyUsage()[0]) throw new ArgumentException("authentication", "The authentication certificate must have a key for signing");
         }
     }
 }

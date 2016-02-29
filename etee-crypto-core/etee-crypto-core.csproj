@@ -77,8 +77,8 @@
     <Reference Include="crypto">
       <HintPath>..\packages\BouncyCastle-Patch.1.7.0\lib\net40\crypto.dll</HintPath>
     </Reference>
-    <Reference Include="Egelke.EHealth.Client.Pki, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
-      <HintPath>..\packages\Egelke.EHealth.Client.Pki.2.0.0-beta2\lib\net40-Client\Egelke.EHealth.Client.Pki.dll</HintPath>
+    <Reference Include="Egelke.EHealth.Client.Pki, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=AMD64">
+      <HintPath>..\packages\Egelke.EHealth.Client.Pki.2.0.0\lib\net40-Client\Egelke.EHealth.Client.Pki.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Egelke.Eid.Client, Version=0.1.0.0, Culture=neutral, PublicKeyToken=18ae13636b1f0f9d, processorArchitecture=MSIL">

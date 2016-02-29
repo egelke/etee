@@ -50,15 +50,17 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// </summary>
         /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
         /// <param name="timeout">The time to wait for an eID to be inserted before failing</param>
+        /// <param name="nonRepudiate"><c>true</c> to use the signing certificate</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
-        public static IDataSealer Create(Level level, TimeSpan timeout)
+        public static IDataSealer Create(Level level, TimeSpan timeout, bool nonRepudiate = true)
         {
-            X509Certificate2 authentication;
-            X509Certificate2 signature;
-            GetCertificates(timeout, out authentication, out signature);
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
-            return new TripleWrapper(level, authentication, signature, null, null);
+            X509Certificate2 signature;
+            X509Certificate2 authentication;
+
+            GetCertificates(timeout, out authentication, out signature);
+            return new TripleWrapper(level, authentication, nonRepudiate ? signature : authentication, null, null);
         }
 
         /// <summary>
@@ -72,16 +74,18 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <param name="level">The level of the sealing, B-Level not allowed</param>
         /// <param name="timestampProvider">The client of the time-stamp authority</param>
         /// <param name="timeout">The time to wait for an eID to be inserted before failing</param>
+        /// <param name="nonRepudiate"><c>true</c> to use the signing certificate</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
-        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, TimeSpan timeout)
+        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, TimeSpan timeout, bool nonRepudiate = true)
         {
-            X509Certificate2 authentication;
-            X509Certificate2 signature;
-            GetCertificates(timeout, out authentication, out signature);
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
 
-            return new TripleWrapper(level, authentication, signature, timestampProvider, null);
+            X509Certificate2 signature;
+            X509Certificate2 authentication;
+
+            GetCertificates(timeout, out authentication, out signature);
+            return new TripleWrapper(level, authentication, nonRepudiate ? signature : authentication, timestampProvider, null);
         }
 
         /// <summary>
@@ -93,15 +97,17 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// </remarks>
         /// <param name="level">The level of the sealing, B-Level not allowed</param>
         /// <param name="timeout">The time to wait for an eID to be inserted before failing</param>
+        /// <param name="nonRepudiate"><c>true</c> to use the signing certificate</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
-        public static IDataSealer CreateForTimemarkAuthority(Level level, TimeSpan timeout)
+        public static IDataSealer CreateForTimemarkAuthority(Level level, TimeSpan timeout, bool nonRepudiate = true)
         {
-            X509Certificate2 authentication;
-            X509Certificate2 signature;
-            GetCertificates(timeout, out authentication, out signature);
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleWrapper(level, authentication, signature, null, null);
+            X509Certificate2 signature;
+            X509Certificate2 authentication;
+
+            GetCertificates(timeout, out authentication, out signature);
+            return new TripleWrapper(level, authentication, nonRepudiate ? signature : authentication, null, null);
         }
 
         private static void GetCertificates(TimeSpan timeout, out X509Certificate2 authentication, out X509Certificate2 signature)

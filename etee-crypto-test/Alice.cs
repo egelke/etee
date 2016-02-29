@@ -86,7 +86,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.IsTrue(result.IsNonRepudiatable);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
@@ -116,7 +117,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Utils.Copy(result.UnsealedData, stream);
 
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.IsTrue(result.IsNonRepudiatable);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.AreEqual(str, Encoding.UTF8.GetString(stream.ToArray()));
@@ -135,7 +137,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.IsTrue(result.IsNonRepudiatable);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.AreEqual(alice["1204544406096826217265"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
@@ -155,7 +158,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.IsTrue(result.IsNonRepudiatable);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
@@ -186,7 +190,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             //Assert.IsInstanceOfType(result.UnsealedData, typeof(WindowsTempFileStream));
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.IsTrue(result.IsNonRepudiatable);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.IsNull(result.SecurityInformation.Encryption.Subject);
@@ -217,7 +222,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Utils.Copy(result.UnsealedData, stream);
 
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.IsNull(result.SecurityInformation.Encryption.Subject);
@@ -232,7 +237,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Utils.Copy(result.UnsealedData, stream);
 
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(ETEE::Status.TrustStatus.Full, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(ETEE::Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.AuthenticationCertificate.Thumbprint);
             Assert.AreEqual(alice["Authentication"].Thumbprint, result.SigningCertificate.Thumbprint);
             Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);

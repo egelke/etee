@@ -66,6 +66,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         Level? level;
 
+        bool nonRepudiatable = true;
+
         bool useTmaInsteadOfTsa;
 
         ETEE::Status.TrustStatus trustStatus;
@@ -90,6 +92,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void NullLevel()
         {
             level = null;
+            nonRepudiatable = true;
+            useTmaInsteadOfTsa = false;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
@@ -108,9 +112,38 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [Test]
+        public void NullLevelRepudiatable()
+        {
+            level = null;
+            nonRepudiatable = false;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("Null-Level: Sealing");
+            Stream output = Seal();
+            //Do some extra seals
+            Seal();
+            Seal();
+            Seal();
+
+            trace.TraceInformation("Null-Level: Verify");
+            Verify(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("Null-Level: Unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
         public void B_Level()
         {
             level = Level.B_Level;
+            nonRepudiatable = true;
+            useTmaInsteadOfTsa = false;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
@@ -132,6 +165,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void T_Level()
         {
             level = Level.LT_Level;
+            nonRepudiatable = true;
             useTmaInsteadOfTsa = false;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
@@ -154,6 +188,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void T_LevelTma()
         {
             level = Level.LT_Level;
+            nonRepudiatable = true;
             useTmaInsteadOfTsa = true;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
@@ -181,6 +216,30 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void LT_Level()
         {
             level = Level.LT_Level;
+            nonRepudiatable = true;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("LT-Level: seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("LT-Level: verify");
+            Verify(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LT_LevelRepudiatable()
+        {
+            level = Level.LT_Level;
+            nonRepudiatable = false;
             useTmaInsteadOfTsa = false;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
@@ -203,6 +262,34 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void LT_LevelIn2Steps()
         {
             level = Level.B_Level;
+            nonRepudiatable = true;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("B-Level: seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("LT-Level: complete");
+            level = Level.LT_Level;
+            output = Complete(output);
+
+            trace.TraceInformation("LT-Level: verify");
+            Verify(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LT_LevelIn2StepsRepudiatable()
+        {
+            level = Level.B_Level;
+            nonRepudiatable = false;
             useTmaInsteadOfTsa = false;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
@@ -229,6 +316,38 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void LT_LevelIn3Steps()
         {
             level = Level.B_Level;
+            nonRepudiatable = true;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("B-Level: seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("T-Level: complete");
+            level = Level.T_Level;
+            output = Complete(output);
+
+            trace.TraceInformation("LT-Level: complete");
+            level = Level.LT_Level;
+            output = Complete(output);
+
+            trace.TraceInformation("LT-Level: verify");
+            Verify(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LT_LevelIn3StepsRepudiatable()
+        {
+            level = Level.B_Level;
+            nonRepudiatable = false;
             useTmaInsteadOfTsa = false;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
@@ -259,6 +378,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void LT_LevelTma()
         {
             level = Level.LT_Level;
+            nonRepudiatable = true;
             useTmaInsteadOfTsa = true;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
@@ -283,9 +403,70 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [Test]
+        public void LT_LevelTmaRepudiatable()
+        {
+            level = Level.LT_Level;
+            nonRepudiatable = false;
+            useTmaInsteadOfTsa = true;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("LT-Level TMA: Seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("LT-Level TMA: Verify from TMA");
+            VerifyFromTma(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level TMA: Verify as TMA");
+            VerifyAsTma(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level TMA: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
         public void LT_LevelTmaIn2Steps()
         {
             level = Level.B_Level;
+            nonRepudiatable = true;
+            useTmaInsteadOfTsa = true;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("B-Level TMA: Seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("LT-Level: complete for TMA");
+            level = Level.LT_Level;
+            output = Complete(output);
+
+            trace.TraceInformation("LT-Level TMA: Verify from TMA");
+            VerifyFromTma(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level TMA: Verify as TMA");
+            VerifyAsTma(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level TMA: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LT_LevelTmaIn2StepsRepudiatable()
+        {
+            level = Level.B_Level;
+            nonRepudiatable = false;
             useTmaInsteadOfTsa = true;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
@@ -317,6 +498,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void LTA_Level()
         {
             level = Level.LTA_Level;
+            nonRepudiatable = true;
             useTmaInsteadOfTsa = false;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
@@ -335,12 +517,62 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        
+        [Test]
+        public void LTA_LevelRepudiatable()
+        {
+            level = Level.LTA_Level;
+            nonRepudiatable = false;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("LTA-Level: seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("LT-Level: verify");
+            Verify(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LT-Level: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
 
         [Test]
         public void LTA_LevelTma()
         {
             level = Level.LTA_Level;
+            nonRepudiatable = true;
+            useTmaInsteadOfTsa = true;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("LTA-Level TMA: seal");
+            Stream output = Seal();
+
+            trace.TraceInformation("LTA-Level TMA: Verify from TMA");
+            VerifyFromTma(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LTA-Level TMA: Verify as TMA");
+            VerifyAsTma(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("LTA-Level TMA: unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [Test]
+        public void LTA_LevelTmaRepudiatable()
+        {
+            level = Level.LTA_Level;
+            nonRepudiatable = false;
             useTmaInsteadOfTsa = true;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
@@ -386,6 +618,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual((level & Level.T_Level) == Level.T_Level, result.TimestampRenewalTime > DateTime.UtcNow);
             Assert.NotNull(result.SignatureValue);
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
+            Assert.IsFalse(result.IsNonRepudiatable); //outer is never repudiatable
         }
 
         private void VerifyFromTma(Stream output)
@@ -410,6 +643,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsNull(result.TimestampRenewalTime);
             Assert.NotNull(result.SignatureValue);
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
+            Assert.IsFalse(result.IsNonRepudiatable); //outer is never repudiatable
         }
 
         private void VerifyAsTma(Stream output)
@@ -428,6 +662,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(validationStatus, result.ValidationStatus);
             Assert.AreEqual(trustStatus, result.TrustStatus);
             Assert.AreEqual(subject, result.Signer.Subject);
+            Assert.IsFalse(result.IsNonRepudiatable); //outer is never repudiatable
         }
 
         private void Unseal(Stream output)
@@ -454,7 +689,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(validationStatus, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(trustStatus, result.SecurityInformation.TrustStatus);
             Assert.AreEqual(subject, result.AuthenticationCertificate.Subject);
-            Assert.AreEqual(subject2, result.SigningCertificate.Subject);
+            if (nonRepudiatable)
+                Assert.AreEqual(subject2, result.SigningCertificate.Subject);
+            else
+                Assert.AreEqual(subject, result.SigningCertificate.Subject);
             Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(clearMessage, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
@@ -471,7 +709,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 }
                 else
                 {
-                    sealer = EidDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, new TimeSpan(0, 5, 0));
+                    sealer = EidDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, new TimeSpan(0, 5, 0), nonRepudiatable);
                 }
             }
             else
@@ -486,9 +724,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 else
                 {
                     if (useTmaInsteadOfTsa)
-                        sealer = EidDataSealerFactory.CreateForTimemarkAuthority(level.Value, new TimeSpan(0, 5, 0));
+                        sealer = EidDataSealerFactory.CreateForTimemarkAuthority(level.Value, new TimeSpan(0, 5, 0), nonRepudiatable);
                     else
-                        sealer = EidDataSealerFactory.Create(level.Value, tsa, new TimeSpan(0, 5, 0));
+                        sealer = EidDataSealerFactory.Create(level.Value, tsa, new TimeSpan(0, 5, 0), nonRepudiatable);
                 }
             }
 

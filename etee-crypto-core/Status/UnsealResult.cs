@@ -142,5 +142,16 @@ namespace Egelke.EHealth.Etee.Crypto.Status
             }
         }
 
+        /// <summary>
+        /// Indicated if the message is non repudiatable by the sender.
+        /// </summary>
+        public bool IsNonRepudiatable
+        {
+            get
+            {
+                return SecurityInformation.InnerSignature.IsNonRepudiatable;
+            }
+        }
+
     }
 }

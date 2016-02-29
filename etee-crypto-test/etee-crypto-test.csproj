@@ -66,8 +66,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Egelke.EHealth.Client.2.0.2\lib\net40-Client\Egelke.EHealth.Client.dll</HintPath>
     </Reference>
-    <Reference Include="Egelke.EHealth.Client.Pki, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3dd81f6b7de27543, processorArchitecture=MSIL">
-      <HintPath>..\packages\Egelke.EHealth.Client.Pki.2.0.0-beta2\lib\net40-Client\Egelke.EHealth.Client.Pki.dll</HintPath>
+    <Reference Include="Egelke.EHealth.Client.Pki, Version=2.0.0.0, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=AMD64">
+      <HintPath>..\packages\Egelke.EHealth.Client.Pki.2.0.0\lib\net40-Client\Egelke.EHealth.Client.Pki.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="nunit.framework">
@@ -97,6 +97,19 @@
     <Content Include="Contributors.html" />
     <Content Include="javabin\lib\bctsp-jdk15on-146.jar" />
     <Content Include="javabin\v2.0\etee-crypto-lib-2.0.0_beta-0.jar" />
+    <Content Include="javabin\v2.1\bcmail-jdk15on-1.52.jar" />
+    <Content Include="javabin\v2.1\bcpkix-jdk15on-1.52.jar" />
+    <Content Include="javabin\v2.1\bcprov-jdk15on-1.52.jar" />
+    <Content Include="javabin\v2.1\commons-codec-1.8.jar" />
+    <Content Include="javabin\v2.1\commons-eid-client-0.6.4.jar" />
+    <Content Include="javabin\v2.1\commons-eid-consumer-0.6.4.jar" />
+    <Content Include="javabin\v2.1\commons-eid-dialogs-0.6.4.jar" />
+    <Content Include="javabin\v2.1\commons-eid-jca-0.6.4.jar" />
+    <Content Include="javabin\v2.1\commons-logging-api-1.1.jar" />
+    <Content Include="javabin\v2.1\etee-crypto-eid-2.1.1.jar" />
+    <Content Include="javabin\v2.1\etee-crypto-lib-2.1.1.jar" />
+    <Content Include="javabin\v2.1\junit-4.8.1.jar" />
+    <Content Include="javabin\v2.1\log4j-1.2.17.jar" />
     <Content Include="License.html" />
     <Content Include="Readme.html" />
     <None Include="..\debug.snk">
