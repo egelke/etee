@@ -378,21 +378,17 @@ namespace Egelke.EHealth.Etee.Crypto
                 if (outer == null)
                 {
                     trace.TraceEvent(TraceEventType.Error, 0, "The outer signature does not contain any certificates");
-                    throw new InvalidMessageException("The outer signature is missing certifcates");
+                    throw new InvalidMessageException("The outer signature is missing certificates");
                 }
 
                 //The subject is the same as the outer
                 result.Subject = outer.Subject;
-                signerCert = DotNetUtilities.FromX509Certificate(result.Subject.Certificate);
+                signerCert = DotNetUtilities.FromX509Certificate(outer.Subject.Certificate);
                 trace.TraceEvent(TraceEventType.Verbose, 0, "An already validated certificates was provided: {0}", signerCert.SubjectDN.ToString());
-
-                //Additional check, is the authentication certificate also valid for signatures?
-                if (!DotNetUtilities.FromX509Certificate(result.Subject.Certificate).GetKeyUsage()[1])
-                {
-                    result.Subject.securityViolations.Add(CertSecurityViolation.NotValidForUsage);
-                    trace.TraceEvent(TraceEventType.Warning, 0, "The key usage did not have the correct usage flag set");
-                }
             }
+
+            //check if non repudiation
+            result.IsNonRepudiatable = signerCert.GetKeyUsage()[1];
 
             //verify the signature itself
             result.SignatureValue = signerInfo.GetSignature();
@@ -414,25 +410,21 @@ namespace Egelke.EHealth.Etee.Crypto
                     hasSigningTime = true;
                     result.SigningTime = Org.BouncyCastle.Asn1.Cms.Time.GetInstance(time.AttrValues[0]).Date;
                     signingTime = result.SigningTime.Value;
+                    if (signingTime.Kind == DateTimeKind.Unspecified)
+                    {
+                        signingTime = new DateTime(signingTime.Ticks, DateTimeKind.Utc);
+                    }
+                    else
+                    {
+                        signingTime = signingTime.ToUniversalTime();
+                    }
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains a signing time: {0}", result.SigningTime);
                 }
             }
 
-            //Validating signature info
-            IList<CertificateList> crls = null;
-            IList<BasicOcspResponse> ocsps = null;
-            if (this.level == null && result.Subject == null)
-            {
-                if (outer == null)
-                    result.Subject = signerCert.Verify(signingTime, new int[] { 0 }, EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
-                else
-                    result.Subject = signerCert.Verify(signingTime, new int[] { 1 }, EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
-                return result;
-            }
-
             //Get the embedded CRLs and OCSPs
-            crls = new List<CertificateList>();
-            ocsps = new List<BasicOcspResponse>();
+            IList<CertificateList> crls = new List<CertificateList>();
+            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
             if (signerInfo != null && signerInfo.UnsignedAttributes != null)
             {
                 trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
@@ -454,7 +446,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 }
             }
 
-            //check for a time-stamp, if we are in the outer layer
+            //check for a time-stamp, if needed and we are in the outer layer
             if ((this.level & Level.T_Level) == Level.T_Level && outer == null)
             {
                 DateTime validatedTime;
@@ -537,14 +529,11 @@ namespace Egelke.EHealth.Etee.Crypto
                 }
             }
 
-            //If the subject is already provided, so we don't have to do the next check
-            if (result.Subject != null) return result;
-            
-            //check the status on the available info, for unseal it does not matter if it is B-Level or LT-Level.
-            if (outer == null)
-                result.Subject = signerCert.Verify(signingTime, new int[] { 0 }, EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
-            else
-                result.Subject = signerCert.Verify(signingTime, new int[] { 1 }, EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
+            //calculate the subject status is unknown
+            if (result.Subject == null) {
+                result.Subject = signerCert.Verify(signingTime, (outer == null ? new int[] { 0 } : new int[0]),
+                    EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
+            }
 
             return result;
         }

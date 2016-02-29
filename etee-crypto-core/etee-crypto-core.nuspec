@@ -12,11 +12,11 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
-Transformed Library into NuGet Package
-Officially transfered IP from Siemens to Egelke.
-Alligned with v2.0 of eHealth version of the library
+Reworked revocation engine
+Allow repudiatable message
+(Aligned with v2.1 of eHealth version of the library)
     </releaseNotes>
-    <copyright>Copyright © Egelke BVBA 2013</copyright>
+    <copyright>Copyright © Egelke BVBA 2013-2016</copyright>
     <tags>eHealth Encrpytion</tags>
   </metadata>
 </package>

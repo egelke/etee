@@ -40,6 +40,11 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         public byte[] SignatureValue { get; internal set; }
 
         /// <summary>
+        /// Indicate if the signature can be repudiated or not.
+        /// </summary>
+        public bool IsNonRepudiatable { get; internal set; }
+
+        /// <summary>
         /// The certificate of the signer.
         /// </summary>
         public X509Certificate2 Signer

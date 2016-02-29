@@ -33,10 +33,10 @@ namespace Egelke.EHealth.Etee.Crypto
         /// <summary>
         /// Baseline level:
         /// <para>
-        /// No time based on current time, no time-stamp or time-mark is required (but time-stamps are processed if encountered).
+        /// Validation based on current time, no time-stamp or time-mark is required nor added.
         /// </para>
         /// <para>
-        /// No revocation information is embedded, revocation is verified via embedded and/or on-line information (but the embedded info will be quickly outdated).
+        /// No revocation information is embedded, revocation is (almost) always verified via on-line retrieval.
         /// </para>
         /// </summary>
         B_Level = 0x000,
@@ -44,7 +44,10 @@ namespace Egelke.EHealth.Etee.Crypto
         /// <summary>
         /// Time stamped/marked level:
         /// <para>
-        /// Same as <see cref="B_Level"/> with time validation, requires a time-stamp or time-mark from a time-mark authority (e.g. ehBox, Recip-e... or intenal).
+        /// Same as <see cref="B_Level"/> with time information.  Add time-stamp (no action for time-mark) and requires a time-stamp or time-mark authority (e.g. ehBox, Recip-e... or internal) for validation.
+        /// </para>
+        /// <para>
+        /// No revocation information is embedded during sealing, but embedded revocation information is used during unsealing if present.
         /// </para>
         /// </summary>
         T_Level = 0x001,
@@ -62,7 +65,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// <summary>
         /// Long lived time stamped/marked level:
         /// <para>
-        /// Same as <see cref="T_Level"/> where revocation information is embedded during sealing, unsealing will still resolve on-line information if needed.
+        /// Same as <see cref="T_Level"/> where revocation information is embedded during sealing, unsealing remains as is (uses embedded info when present, on-line retrieval if needed).
         /// </para>
         /// <para>
         /// <strong>Warning:</strong> use only with stores that aren't time-marks but which your trust anyway.  You always need to use <see cref="LTA_Level"/>

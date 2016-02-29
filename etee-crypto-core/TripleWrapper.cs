@@ -371,8 +371,16 @@ namespace Egelke.EHealth.Etee.Crypto
             }
             else
             {
-                hasSigningTime = false;
+                hasSigningTime = true;
                 timemarkKey.SigningTime = new BC::Asn1.Cms.Time(((DerSet)singingTimeAttr.AttrValues)[0].ToAsn1Object()).Date;
+                if (timemarkKey.SigningTime.Kind  == DateTimeKind.Unspecified)
+                {
+                    timemarkKey.SigningTime = new DateTime(timemarkKey.SigningTime.Ticks, DateTimeKind.Utc);
+                }
+                else
+                {
+                    timemarkKey.SigningTime = timemarkKey.SigningTime.ToUniversalTime();
+                }
             }
             
 
