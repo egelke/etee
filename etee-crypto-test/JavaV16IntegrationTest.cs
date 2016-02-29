@@ -93,11 +93,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             System.Console.WriteLine(result.SecurityInformation);
 
             Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.None, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(2, result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Count);
-            //v1.6 does not add the chain of certificates, only the leaf
+            Assert.AreEqual(1, result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Count);
+            //v1.6 does not add the chain of certificates, only the end certificate
             Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
             //Old bob and alice don't have the right key usage
-            Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
+            Assert.IsFalse(result.IsNonRepudiatable);
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
 
             Assert.IsTrue(result.AuthenticationCertificate.Subject.Contains("NIHII=00000000101"));
@@ -140,12 +140,13 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             }
             System.Console.WriteLine(result.SecurityInformation);
 
-            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.None, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(2, result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Count);
-            //v1.6 does not add the chain of certificates, only the leaf
+            //because of the receiver
+            Assert.AreEqual(Egelke.EHealth.Etee.Crypto.Status.TrustStatus.Unsure, result.SecurityInformation.TrustStatus);
+            Assert.AreEqual(1, result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Count);
+            //v1.6 does not add the chain of certificates, only the end
             Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.IssuerTrustUnknown));
             //Old bob and alice don't have the right key usage
-            Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.NotValidForUsage));
+            Assert.IsFalse(result.IsNonRepudiatable);
             Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
 
             Assert.IsTrue(result.AuthenticationCertificate.Subject.Contains("NIHII=00000000101"));
