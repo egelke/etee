@@ -197,6 +197,11 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         [ValidationResult(ValidationStatus.Valid)]
         UntrustedRecipient,
 
+
+        [TrustLevel(TrustStatus.Unsure)]
+        [ValidationResult(ValidationStatus.Valid)]
+        RecipientTrustUnknown,
+
         /// <summary>
         /// <para>
         /// The data is invalid.
