@@ -109,7 +109,8 @@ namespace Egelke.EHealth.Etee.Crypto.Status
                     {
                         case TrustStatus.Unsure:
                             //since we don't do many checks, we are pritty sure
-                            throw new InvalidOperationException("The encryption trust status should not be unsure");
+                            violations.Add(UnsealSecurityViolation.RecipientTrustUnknown);
+                            break;
                         case TrustStatus.None:
                             violations.Add(UnsealSecurityViolation.UntrustedRecipient);
                             break;

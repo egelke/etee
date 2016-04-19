@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="JavaV21IntegrationTest.cs" />
     <Compile Include="JavaV20IntegrationTest.cs" />
     <Compile Include="JavaV16IntegrationTest.cs" />
     <Compile Include="SelectCert.cs" />
@@ -97,19 +98,19 @@
     <Content Include="Contributors.html" />
     <Content Include="javabin\lib\bctsp-jdk15on-146.jar" />
     <Content Include="javabin\v2.0\etee-crypto-lib-2.0.0_beta-0.jar" />
-    <Content Include="javabin\v2.1\bcmail-jdk15on-1.52.jar" />
-    <Content Include="javabin\v2.1\bcpkix-jdk15on-1.52.jar" />
-    <Content Include="javabin\v2.1\bcprov-jdk15on-1.52.jar" />
-    <Content Include="javabin\v2.1\commons-codec-1.8.jar" />
-    <Content Include="javabin\v2.1\commons-eid-client-0.6.4.jar" />
-    <Content Include="javabin\v2.1\commons-eid-consumer-0.6.4.jar" />
-    <Content Include="javabin\v2.1\commons-eid-dialogs-0.6.4.jar" />
-    <Content Include="javabin\v2.1\commons-eid-jca-0.6.4.jar" />
-    <Content Include="javabin\v2.1\commons-logging-api-1.1.jar" />
-    <Content Include="javabin\v2.1\etee-crypto-eid-2.1.1.jar" />
-    <Content Include="javabin\v2.1\etee-crypto-lib-2.1.1.jar" />
-    <Content Include="javabin\v2.1\junit-4.8.1.jar" />
-    <Content Include="javabin\v2.1\log4j-1.2.17.jar" />
+    <Content Include="javabin\v2.1\etee-crypto-test.jar" />
+    <Content Include="javabin\v2.1\lib\bcmail-jdk15on-1.52.jar" />
+    <Content Include="javabin\v2.1\lib\bcpkix-jdk15on-1.52.jar" />
+    <Content Include="javabin\v2.1\lib\bcprov-jdk15on-1.52.jar" />
+    <Content Include="javabin\v2.1\lib\commons-codec-1.8.jar" />
+    <Content Include="javabin\v2.1\lib\commons-eid-client-0.6.4.jar" />
+    <Content Include="javabin\v2.1\lib\commons-eid-consumer-0.6.4.jar" />
+    <Content Include="javabin\v2.1\lib\commons-eid-dialogs-0.6.4.jar" />
+    <Content Include="javabin\v2.1\lib\commons-eid-jca-0.6.4.jar" />
+    <Content Include="javabin\v2.1\lib\commons-logging-api-1.1.jar" />
+    <Content Include="javabin\v2.1\lib\etee-crypto-eid-2.1.1.jar" />
+    <Content Include="javabin\v2.1\lib\etee-crypto-lib-2.1.1.jar" />
+    <Content Include="javabin\v2.1\lib\log4j-1.2.17.jar" />
     <Content Include="License.html" />
     <Content Include="Readme.html" />
     <None Include="..\debug.snk">
