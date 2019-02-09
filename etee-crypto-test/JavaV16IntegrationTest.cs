@@ -34,6 +34,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class JavaV16IntegrationTest
     {
+
+        private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
+        private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
+
         private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         private IDataSealer aliceSealer;
@@ -42,12 +46,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         private IDataUnsealer anonUnsealer;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void MyClassInitialize()
         {
 
-            var alice = new EHealthP12("../../alice/old_alices_private_key_store.p12", "test");
-            var bob = new EHealthP12("../../bob/old_bobs_private_key_store.p12", "test");
+            var alice = new EHealthP12(GetAbsoluteTestFilePath("../../alice/old_alices_private_key_store.p12"), "test");
+            var bob = new EHealthP12(GetAbsoluteTestFilePath("../../bob/old_bobs_private_key_store.p12"), "test");
 
 
             aliceSealer = EhDataSealerFactory.Create(Level.B_Level, alice);
@@ -65,7 +69,14 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.FileName = "java.exe";
-            p.StartInfo.Arguments = @"-cp ..\..\javabin\v1.6\SIGNED-etee-crypto-1.6.1-tests.jar;..\..\javabin\v1.6\SIGNED-etee-crypto-1.6.1.jar;..\..\javabin\lib\bcmail-jdk16-145.jar;..\..\javabin\lib\bcprov-jdk16-145.jar;..\..\javabin\lib\junit-4.8.2.jar;..\..\javabin\lib\log4j-1.2.16.jar " + program;
+            p.StartInfo.Arguments = @"-cp "+ GetAbsoluteTestFilePath(@"..\..\javabin\v1.6\SIGNED-etee-crypto-1.6.1-tests.jar") + ";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\v1.6\SIGNED-etee-crypto-1.6.1.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\bcmail-jdk16-145.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\bcprov-jdk16-145.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\junit-4.8.2.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\log4j-1.2.16.jar") +" " + program;
+
+            p.StartInfo.WorkingDirectory = _basePath;
             p.Start();
 
             result = p.StandardOutput.ReadToEnd();
@@ -85,7 +96,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             RunJava("be.smals.ehealth.etee.crypto.examples.Seal");
 
             UnsealResult result;
-            FileStream file = new FileStream("message_from_alice_for_bob.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("message_from_alice_for_bob.msg"), FileMode.Open);
             using (file)
             {
                 result = bobUnsealer.Unseal(file);
@@ -114,9 +125,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
-            Stream msg = aliceSealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/old_bobs_public_key.etk")));
+            Stream msg = aliceSealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/old_bobs_public_key.etk"))));
 
-            FileStream msgFile = new FileStream("message_from_alice_for_bob.msg", FileMode.OpenOrCreate);
+            FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_from_alice_for_bob.msg"), FileMode.OpenOrCreate);
             msg.CopyTo(msgFile);
            
             String output = RunJava("be.smals.ehealth.etee.crypto.examples.Unseal");
@@ -133,7 +144,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             UnsealResult result;
             SecretKey kek = new SecretKey(Convert.FromBase64String("btSefztkXjZmlZyHQIumLA=="), Convert.FromBase64String("aaUnRynIwd3GFQmhXfW+VQ=="));
-            FileStream fs = new FileStream("message_from_alice_for_unknown.msg", FileMode.Open);
+            FileStream fs = new FileStream(GetAbsoluteTestFilePath("message_from_alice_for_unknown.msg"), FileMode.Open);
             using(fs)
             {
                 result = anonUnsealer.Unseal(fs, kek);
@@ -167,7 +178,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             
             Stream msg = aliceSealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), kek);
 
-            FileStream msgFile = new FileStream("message_from_alice_for_unknown.msg", FileMode.OpenOrCreate);
+            FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_from_alice_for_unknown.msg"), FileMode.OpenOrCreate);
             msg.CopyTo(msgFile);
 
             String output = RunJava("be.smals.ehealth.etee.crypto.examples.UnsealByUnknown");

@@ -63,7 +63,9 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
                         new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS")),
                         new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.3", "SHA512"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS")),
                         new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.1", "RSA")),
-                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.3", "SHA512"), new Oid("1.2.840.113549.1.1.1", "RSA"))
+                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.3", "SHA512"), new Oid("1.2.840.113549.1.1.1", "RSA")),
+                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.11", "sha256WithRSA")),
+                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.3", "SHA512"), new Oid("1.2.840.113549.1.1.13", "sha512WithRSA"))
                     });
                 }
                 return signatureAlgorithms;

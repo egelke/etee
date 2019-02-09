@@ -42,14 +42,17 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class JavaV20IntegrationTest
     {
+        private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
+        private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
+
         private TraceSource trace = new TraceSource("Egelke.EHealth.Etee.Test");
 
         EHealthP12 bob;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void MyClassInitialize()
         {
-            bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
+            bob = new EHealthP12(GetAbsoluteTestFilePath("../../bob/bobs_private_key_store.p12"), "test");
         }
 
         private String RunJava(String program)
@@ -62,7 +65,19 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.FileName = "java.exe";
-            p.StartInfo.Arguments = @"-cp ..\..\javabin\v2.0\etee-crypto-test.jar;..\..\javabin\v2.0\etee-crypto-lib-2.0.0_beta-0.jar;..\..\javabin\lib\bcmail-jdk15on-146.jar;..\..\javabin\lib\bcprov-jdk15on-146.jar;..\..\javabin\lib\bctsp-jdk15on-146.jar;..\..\javabin\lib\junit-4.8.2.jar;..\..\javabin\lib\log4j-1.2.16.jar;..\..\javabin\lib\commons-logging-1.1.3.jar;..\..\javabin\lib\commons-eid-client-0.4.0.jar;..\..\javabin\lib\commons-eid-dialogs-0.4.0.jar;..\..\javabin\lib\commons-eid-jca-0.4.0.jar " + program;
+            p.StartInfo.Arguments = @"-cp "
+                + GetAbsoluteTestFilePath(@"..\..\javabin\v2.0\etee-crypto-test.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\v2.0\etee-crypto-lib-2.0.0_beta-0.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\bcmail-jdk15on-146.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\bcprov-jdk15on-146.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\bctsp-jdk15on-146.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\junit-4.8.2.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\log4j-1.2.16.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\commons-logging-1.1.3.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\commons-eid-client-0.4.0.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\commons-eid-dialogs-0.4.0.jar")+";"
+                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\commons-eid-jca-0.4.0.jar") + " " + program;
+            p.StartInfo.WorkingDirectory = _basePath;
             p.Start();
 
             result = p.StandardOutput.ReadToEnd();
@@ -82,7 +97,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             RunJava("etee.crypto.test.Seal NONE");
 
             UnsealResult result;
-            FileStream file = new FileStream("message_to_bob.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.Open);
             using (file)
             {
                 IDataUnsealer unsealer = DataUnsealerFactory.Create(null, bob);
@@ -106,7 +121,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         {
             RunJava("etee.crypto.test.Seal NONE");
 
-            File.Copy("message_to_bob.msg", "message_to_store.msg", true);
+            File.Copy(GetAbsoluteTestFilePath("message_to_bob.msg"), GetAbsoluteTestFilePath("message_to_store.msg"), true);
 
             String output = RunJava("etee.crypto.test.Verify OPTIONAL");
 
@@ -121,12 +136,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             var tsProvider = new EHealthTimestampProvider(tsa);
             byte[] tst = tsProvider.GetTimestampFromDocumentHash(hash, "http://www.w3.org/2001/04/xmlenc#sha256");
 
-            File.Copy("message_to_bob.msg", "message_to_store.msg", true);
+            File.Copy(GetAbsoluteTestFilePath("message_to_bob.msg"), GetAbsoluteTestFilePath("message_to_store.msg"), true);
 
             RunJava("etee.crypto.test.Stamp " + Convert.ToBase64String(tst));
 
             UnsealResult result;
-            FileStream file = new FileStream("message_to_bob.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.Open);
             using (file)
             {
                 IDataUnsealer unsealer = DataUnsealerFactory.Create(Level.LT_Level, bob);
@@ -151,7 +166,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             RunJava("etee.crypto.test.Seal MANDATORY");
 
             UnsealResult result;
-            FileStream file = new FileStream("message_to_bob.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.Open);
             using (file)
             {
                 IDataUnsealer unsealer = DataUnsealerFactory.CreateFromTimemarkAuthority(Level.LT_Level, new CurrentTimemarkProvider(), bob);
@@ -175,7 +190,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         {
             RunJava("etee.crypto.test.Seal NONE");
 
-            File.Copy("message_to_bob.msg", "message_to_store.msg", true);
+            File.Copy(GetAbsoluteTestFilePath("message_to_bob.msg"), GetAbsoluteTestFilePath("message_to_store.msg"), true);
 
             String output = RunJava("etee.crypto.test.Verify OPTIONAL");
 
@@ -190,12 +205,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             var tsProvider = new EHealthTimestampProvider(tsa);
             byte[] tst = tsProvider.GetTimestampFromDocumentHash(hash, "http://www.w3.org/2001/04/xmlenc#sha256");
 
-            File.Copy("message_to_bob.msg", "message_to_store.msg", true);
+            File.Copy(GetAbsoluteTestFilePath("message_to_bob.msg"), GetAbsoluteTestFilePath("message_to_store.msg"), true);
 
             RunJava("etee.crypto.test.Stamp " + Convert.ToBase64String(tst));
 
             UnsealResult result;
-            FileStream file = new FileStream("message_to_bob.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.Open);
             using (file)
             {
                 IDataUnsealer unsealer = DataUnsealerFactory.Create(Level.LTA_Level, bob);
@@ -218,7 +233,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void Java2NetAddressedLTALevelCached()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/LTA_eHTSA.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/LTA_eHTSA.msg"), FileMode.Open);
             using (file)
             {
                 IDataUnsealer unsealer = DataUnsealerFactory.Create(Level.LTA_Level, bob);
@@ -243,7 +258,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             RunJava("etee.crypto.test.Seal MANDATORY");
 
             UnsealResult result;
-            FileStream file = new FileStream("message_to_bob.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.Open);
             using (file)
             {
                 IDataUnsealer unsealer = DataUnsealerFactory.CreateFromTimemarkAuthority(Level.LTA_Level, new CurrentTimemarkProvider(), bob);
@@ -266,7 +281,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void Java2NetAddressedLTALevelTmaCached()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/LTA_Tma.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/LTA_Tma.msg"), FileMode.Open);
             using (file)
             {
                 IDataUnsealer unsealer = DataUnsealerFactory.CreateFromTimemarkAuthority(Level.LTA_Level, new FixedTimemarkProvider(new DateTime(2014, 4, 8, 20, 36, 30, DateTimeKind.Local)), bob);
@@ -291,9 +306,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
             IDataSealer sealer = EidDataSealerFactory.Create(Level.B_Level, new TimeSpan(0, 5, 0));
-            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
+            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk"))));
 
-            FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
+            FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.OpenOrCreate);
             using (msgFile)
             {
                 msg.CopyTo(msgFile);
@@ -326,9 +341,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
 
             IDataSealer sealer = EidDataSealerFactory.Create(Level.LT_Level, new EHealthTimestampProvider(tsa), new TimeSpan(0, 5, 0));
-            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
+            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk"))));
 
-            FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
+            FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.OpenOrCreate);
             using (msgFile)
             {
                 msg.CopyTo(msgFile);
@@ -350,12 +365,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
 
             IDataSealer sealer = EidDataSealerFactory.Create(Level.B_Level, new TimeSpan(0, 5, 0));
-            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
+            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk"))));
 
             IDataCompleter completer = DataCompleterFactory.Create(Level.LT_Level, new EHealthTimestampProvider(tsa));
             Stream msg2 = completer.Complete(msg);
 
-            FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
+            FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.OpenOrCreate);
             using (msgFile)
             {
                 msg2.CopyTo(msgFile);
@@ -372,9 +387,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
             IDataSealer sealer = EidDataSealerFactory.Create(Level.LT_Level, new Rfc3161TimestampProvider(), new TimeSpan(0, 5, 0));
-            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
+            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk"))));
 
-            FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
+            FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.OpenOrCreate);
             using (msgFile)
             {
                 msg.CopyTo(msgFile);
@@ -391,9 +406,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
             IDataSealer sealer = EidDataSealerFactory.CreateForTimemarkAuthority(Level.LT_Level, new TimeSpan(0, 5, 0));
-            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk")));
+            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk"))));
 
-            FileStream msgFile = new FileStream("message_to_bob.msg", FileMode.OpenOrCreate);
+            FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.OpenOrCreate);
             using (msgFile)
             {
                 msg.CopyTo(msgFile);
@@ -407,7 +422,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void OldNet2JavaAddressedLTLevel()
         {
-            File.Copy("../../msg/LT_eHTSA.msg", "message_to_bob.msg", true);
+            File.Copy(GetAbsoluteTestFilePath("../../msg/LT_eHTSA.msg"), GetAbsoluteTestFilePath("message_to_bob.msg"), true);
 
             String output = RunJava("etee.crypto.test.Unseal MANDATORY");
 
@@ -417,7 +432,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void OldNet2JavaAddressedLTLevelFedict()
         {
-            File.Copy("../../msg/LT_FedictTSA.msg", "message_to_bob.msg", true);
+            File.Copy(GetAbsoluteTestFilePath("../../msg/LT_FedictTSA.msg"), GetAbsoluteTestFilePath("message_to_bob.msg"), true);
 
             String output = RunJava("etee.crypto.test.Unseal MANDATORY");
 

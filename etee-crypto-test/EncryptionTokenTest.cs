@@ -25,6 +25,7 @@ using NUnit.Framework;
 using ETEE = Egelke.EHealth.Etee.Crypto;
 using System.Security.Cryptography.X509Certificates;
 using Egelke.EHealth.Etee.Crypto.Status;
+using System.IO;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
@@ -34,6 +35,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class EncryptionTokenTest
     {
+   
+        private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
+        private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
 
         private void LoadNewCert(X509Store store, String certPath)
         {
@@ -50,7 +54,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         {
             if (DateTime.Now > new DateTime(2015, 4, 22)) Assert.Inconclusive("KGSS token must be updated");
 
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/kgss.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/kgss.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -62,7 +66,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void Bob()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -77,7 +81,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void Bob2()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/Bob2_public_key.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/Bob2_public_key.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -92,7 +96,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void Bob3()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/Bob3_public_key.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/Bob3_public_key.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -107,7 +111,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void Alice()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../alice/alices_public_key.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../alice/alices_public_key.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -122,7 +126,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void ValidButScrambledDN()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/valid_but_scrambledDN.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/valid_but_scrambledDN.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -135,16 +139,15 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [Test]
-        [ExpectedException(typeof(CmsException))]
-        public void EncorrectEncoding()
+        public void IncorrectEncoding()
         {
-            new EncryptionToken(Utils.ReadFully("../../etk/incorrectly_encoded.etk"));
+            Assert.Throws<CmsException>(() => new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/incorrectly_encoded.etk"))));
         }
 
         [Test]
         public void DifferentDN()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/auth_and_encr_not_same_DN.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/auth_and_encr_not_same_DN.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -159,7 +162,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void ExpiredEnc()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/expired_encr.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/expired_encr.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -173,7 +176,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void ExpiredAuth()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/expired_auth.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/expired_auth.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -188,7 +191,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void NotYetAuth()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/not_yet_auth.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/not_yet_auth.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -203,7 +206,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void InvalidEncKeyUsage()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_encrkey_usage.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/invalid_encrkey_usage.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -217,7 +220,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void InvalidAuthKeyUsage()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_authkey_usage.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/invalid_authkey_usage.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -232,7 +235,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void InvalidKeySize()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_key_size.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/invalid_key_size.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -248,7 +251,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void InvalidChain()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_cert_chain.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/invalid_cert_chain.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 
@@ -264,7 +267,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test]
         public void MixedKeyAlgorithm()
         {
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../etk/invalid_key_algorithm.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../etk/invalid_key_algorithm.etk")));
             CertificateSecurityInformation info = receiver.Verify();
             Console.WriteLine(info.ToString());
 

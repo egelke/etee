@@ -46,6 +46,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestFixture, Explicit, Category("Manual")]
     public class SelectCert
     {
+        private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
+        private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
+
         public TraceSource trace = new TraceSource("Egelke.EHealth.Etee.Test");
 
         const String clearMessage = "This is a secret message from Alice for Bob";
@@ -74,15 +77,15 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         ValidationStatus validationStatus;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public static void InitializeClass()
         {
             //Bob as decryption
-            bobEtk = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
+            bobEtk = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
 
             //Bob (and Alice) used for decryption
-            alice = new EHealthP12("../../alice/alices_private_key_store.p12", "test");
-            bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
+            alice = new EHealthP12(GetAbsoluteTestFilePath("../../alice/alices_private_key_store.p12"), "test");
+            bob = new EHealthP12(GetAbsoluteTestFilePath("../../bob/bobs_private_key_store.p12"), "test");
 
             //create a tsa (fedict in this case)
             tsa = new Rfc3161TimestampProvider();

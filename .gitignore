@@ -1,0 +1,15 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/packages
+/etee-crypto-core/bin
+/etee-crypto-core/obj
+/etee-crypto-itest/bin
+/etee-crypto-itest/obj
+/etee-crypto-itest/obj
+/etee-crypto-library/bin
+/etee-crypto-library/obj
+/etee-crypto-test/bin
+/etee-crypto-test/obj

@@ -42,6 +42,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class Alice
     {
+        private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
+        private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
 
         static EHealthP12 alice;
 
@@ -51,12 +53,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         static X509Certificate2Collection aliceOnly;
         static X509Certificate2Collection bobOnly;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public static void InitializeClass()
         {
             //Load eHealth certificates
-            alice = new EHealthP12("../../alice/alices_private_key_store.p12", "test");
-            bob = new EHealthP12("../../bob/bobs_private_key_store.p12", "test");
+            alice = new EHealthP12(GetAbsoluteTestFilePath("../../alice/alices_private_key_store.p12"), "test");
+            bob = new EHealthP12(GetAbsoluteTestFilePath("../../bob/bobs_private_key_store.p12"), "test");
 
 
         }
@@ -72,7 +74,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String str = "This is a secret message from Alice for Bob";
 
             //Get ETK
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
 
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), receiver);
 
@@ -101,8 +103,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String str = "This is a secret message from Alice for Bob and Herself";
 
             //Get ETK
-            EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
-            EncryptionToken receiver2 = new EncryptionToken(Utils.ReadFully("../../alice/alices_public_key.etk"));
+            EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
+            EncryptionToken receiver2 = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../alice/alices_public_key.etk")));
 
             IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), receiver1, receiver2);
@@ -211,7 +213,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             SecretKey key = new SecretKey("btSefztkXjZmlZyHQIumLA==", "aaUnRynIwd3GFQmhXfW+VQ==");
 
-            EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
+            EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
 
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), key, receiver1);
 
@@ -260,6 +262,60 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Addressed(sealer, unsealer);
         }
 
+        [Test]
+        public void Size31KFile()
+        {
+            Random rand = new Random();
+            byte[] buffer = new byte[1024]; //1k blocks
+            String file = Path.GetTempFileName();
+            FileStream hudgeFile = new FileStream(file, FileMode.Open);
+            try
+            {
+                //Write random stuff into it, exactly 32K
+                for (int i = 0; i < 31; i++)
+                {
+                    rand.NextBytes(buffer);
+                    hudgeFile.Write(buffer, 0, buffer.Length);
+                }
+                rand.NextBytes(buffer);
+                hudgeFile.Write(buffer, 0, 512);
+                //Rest
+                hudgeFile.Position = 0;
+
+                //Get ETK
+                EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
+
+                //Seal
+                IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);
+                Stream output = sealer.Seal(hudgeFile, receiver);
+                hudgeFile.Position = 0;
+
+                UnsealResult result;
+                using (output)
+                {
+                    //Unseal again
+                    IDataUnsealer unsealer = DataUnsealerFactory.Create(null, alice, bob);
+                    result = unsealer.Unseal(output);
+                }
+                Console.WriteLine(result.SecurityInformation.ToString());
+
+                //check the lenth and the first bytes
+                Assert.AreEqual(hudgeFile.Length, result.UnsealedData.Length);
+                Assert.AreEqual(hudgeFile.ReadByte(), result.UnsealedData.ReadByte());
+                Assert.AreEqual(hudgeFile.ReadByte(), result.UnsealedData.ReadByte());
+                Assert.AreEqual(hudgeFile.ReadByte(), result.UnsealedData.ReadByte());
+                Assert.AreEqual(hudgeFile.ReadByte(), result.UnsealedData.ReadByte());
+                Assert.AreEqual(hudgeFile.ReadByte(), result.UnsealedData.ReadByte());
+
+                result.UnsealedData.Dispose();
+            }
+            finally
+            {
+                hudgeFile.Close();
+                File.Delete(file);
+            }
+        }
+
         [Test, Explicit]
         public void HudgeFile()
         {
@@ -279,7 +335,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 hudgeFile.Position = 0;
 
                 //Get ETK
-                EncryptionToken receiver = new EncryptionToken(Utils.ReadFully("../../bob/bobs_public_key.etk"));
+                EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
 
                 //Seal
                 IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);

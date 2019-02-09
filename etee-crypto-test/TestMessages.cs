@@ -46,25 +46,25 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             new EHealthP12("../../other/invalid_key_size.p12", "test"),
             new EHealthP12("../../other/not_yet_auth.p12", "test"));
 
-        [Test, ExpectedException(typeof(InvalidMessageException))]
+        [Test]
         public void BrokenSignedData()
         {
             UnsealResult result;
             FileStream file = new FileStream("../../msg/brokenSignedData.msg", FileMode.Open);
             using (file)
             {
-                result = bUnsealer.Unseal(file);
+                Assert.That(result = bUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
             System.Console.WriteLine(result.SecurityInformation);
         }
 
-        [Test, ExpectedException(typeof(InvalidMessageException))]
+        [Test]
         public void Clear()
         {
             FileStream file = new FileStream("../../msg/clear.txt", FileMode.Open);
             using (file)
             {
-                bUnsealer.Unseal(file);
+                Assert.That(bUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
@@ -276,36 +276,36 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.IssuerInfo.SecurityViolations.Contains(CertSecurityViolation.NotSignatureValid));
         }
 
-        [Test, ExpectedException(typeof(InvalidMessageException))]
+        [Test]
         public void InvalidCmsSigned()
         {
             UnsealResult result;
             FileStream file = new FileStream("../../msg/triple_wrapped_invalid_cms_signed.msg", FileMode.Open);
             using (file)
             {
-                result = nullUnsealer.Unseal(file);
+                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
-        [Test, ExpectedException(typeof(InvalidMessageException))]
+        [Test]
         public void InvalidEncrypted()
         {
             UnsealResult result;
             FileStream file = new FileStream("../../msg/triple_wrapped_invalid_encrypted.msg", FileMode.Open);
             using (file)
             {
-                result = nullUnsealer.Unseal(file);
+                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
-        [Test, ExpectedException(typeof(InvalidMessageException))]
+        [Test]
         public void InvalidInnerSigned()
         {
             UnsealResult result;
             FileStream file = new FileStream("../../msg/triple_wrapped_invalid_inner_signed.msg", FileMode.Open);
             using (file)
             {
-                result = nullUnsealer.Unseal(file);
+                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
@@ -365,14 +365,14 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(result.SecurityInformation.OuterSignature.SecurityViolations.Contains(SecurityViolation.NotSignatureValid));
         }
 
-        [Test, ExpectedException(typeof(InvalidMessageException))]
+        [Test]
         public void InvalidMoreSigningTimes()
         {
             UnsealResult result;
             FileStream file = new FileStream("../../msg/triple_wrapped_more_signing_times.msg", FileMode.Open);
             using (file)
             {
-                result = nullUnsealer.Unseal(file);
+                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
@@ -482,25 +482,25 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             //???
         }
 
-        [Test, ExpectedException(typeof(InvalidMessageException))]
+        [Test]
         public void With2SignerInfos()
         {
             UnsealResult result;
             FileStream file = new FileStream("../../msg/triple_wrapped_with_2_signerinfos.msg", FileMode.Open);
             using (file)
             {
-                result = nullUnsealer.Unseal(file);
+                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
-        [Test, ExpectedException(typeof(InvalidMessageException))]
+        [Test]
         public void WithoutOuterCert()
         {
             UnsealResult result;
             FileStream file = new FileStream("../../msg/triple_wrapped_without_outer_cert.msg", FileMode.Open);
             using (file)
             {
-                result = nullUnsealer.Unseal(file);
+                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
             System.Console.WriteLine(result.SecurityInformation);
 

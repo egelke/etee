@@ -12,14 +12,17 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class Config
     {
+        private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
+        private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
+
         [Test(Description="Prepares your platform for tests"), Explicit]
         public void SetUp()
         {
-            X509Certificate2 testCA = new X509Certificate2("../../imports/CA.cer");
-            X509Certificate2 testCA2 = new X509Certificate2("../../imports/CA2.cer");
-            X509Certificate2 testCA3 = new X509Certificate2("../../imports/specimenCa.cer");
+            X509Certificate2 testCA = new X509Certificate2(GetAbsoluteTestFilePath("../../imports/CA.cer"));
+            X509Certificate2 testCA2 = new X509Certificate2(GetAbsoluteTestFilePath("../../imports/CA2.cer"));
+            X509Certificate2 testCA3 = new X509Certificate2(GetAbsoluteTestFilePath("../../imports/specimenCa.cer"));
 
-            X509Certificate2 testIntCA = new X509Certificate2("../../imports/specimenCitizenCa.cer");
+            X509Certificate2 testIntCA = new X509Certificate2(GetAbsoluteTestFilePath("../../imports/specimenCitizenCa.cer"));
 
             X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
@@ -47,9 +50,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         [Test(Description = "Cleans up any test config on your platform"), Explicit]
         public void CleanUp()
         {
-            X509Certificate2 testCA = new X509Certificate2("../../imports/CA.cer");
-            X509Certificate2 testCA2 = new X509Certificate2("../../imports/CA2.cer");
-            X509Certificate2 testCA3 = new X509Certificate2("../../imports/specimenCa.cer");
+            X509Certificate2 testCA = new X509Certificate2(GetAbsoluteTestFilePath("../../imports/CA.cer"));
+            X509Certificate2 testCA2 = new X509Certificate2(GetAbsoluteTestFilePath("../../imports/CA2.cer"));
+            X509Certificate2 testCA3 = new X509Certificate2(GetAbsoluteTestFilePath("../../imports/specimenCa.cer"));
 
             X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite | OpenFlags.OpenExistingOnly);
