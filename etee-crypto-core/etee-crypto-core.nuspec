@@ -12,11 +12,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
-Reworked revocation engine
-Allow repudiatable message
-(Aligned with v2.1 of eHealth version of the library)
+Update OID's for signing.
     </releaseNotes>
-    <copyright>Copyright © Egelke BVBA 2013-2016</copyright>
+    <copyright>Copyright © Egelke BVBA 2013-2019</copyright>
     <tags>eHealth Encrpytion</tags>
   </metadata>
 </package>
