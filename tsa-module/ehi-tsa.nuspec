@@ -15,4 +15,7 @@
     <copyright>Copyright © Egelke BVBA 2014-2019</copyright>
     <tags>eHealth eSigning TimeStamp PKI PKCS#12 X509</tags>
   </metadata>
+  <files>
+    <file src="bin\$Configuration$\*.pdb" target="lib\net40-client\" />
+  </files>
 </package>

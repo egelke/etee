@@ -16,7 +16,7 @@ namespace Egelke.EHealth.Client.Pki.Test
     {
         private static EHealthP12 p12;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public static void setup()
         {
             p12 = new EHealthP12(@"..\..\EHealthP12\SSIN=79021802145.p12", File.ReadAllText(@"..\..\EHealthP12\SSIN=79021802145.txt"));
@@ -85,7 +85,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
         }
 
-        [Test, Ignore]
+        [Test, Ignore("Only on demand")]
         public void ReinstallInCurrentUser()
         {
             //Prepare

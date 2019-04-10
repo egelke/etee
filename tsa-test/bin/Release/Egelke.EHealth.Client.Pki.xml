@@ -1,0 +1,880 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Egelke.EHealth.Client.Pki</name>
+    </assembly>
+    <members>
+        <member name="T:Egelke.EHealth.Client.Pki.CurrentTimemarkProvider">
+            <summary>
+            Time-mark provider that always returns the current time.
+            </summary>
+            <remarks>
+            Should only be used for testing purposes.
+            </remarks>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DssTimestampProvider">
+            <summary>
+            Timestamp provider for TSA's that implement the DSS Timestamp profile.
+            </summary>
+            <remarks>
+            <para>
+            Send a DSS-Sign request compliant with the timestamp profile to the TSA.
+            </para>
+            <para>
+            The call is made via a WCF client, <see cref="!:DssTimestampProvider.DssTimestampProvider(TSA.DSS.TimeStampAuthorityClient)"/>
+            </para>
+            </remarks>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DssTimestampProvider.profile">
+            <summary>
+            The profile identifier to send to the TSA to request a timestamp.
+            </summary>
+            <value>
+            The profile identifier, defaults to the standard value <literal>urn:oasis:names:tc:dss:1.0:profiles:timestamping</literal>.
+            </value>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DssTimestampProvider.Profile">
+            <summary>
+            The profile identifier to send to the TSA to request a timestamp.
+            </summary>
+            <remarks>
+            defaults to the standard value <literal>urn:oasis:names:tc:dss:1.0:profiles:timestamping</literal>.
+            </remarks>
+            <value>
+            Gets and sets the profile identifier.
+            </value>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DssTimestampProvider.#ctor">
+            <summary>
+            Default constructor using default TSA client of the application configuration.
+            </summary>
+            <remarks>
+            <para>
+            When this constructor is used, the application configuration is searched for a TSA client with the name "Xades.TSA".
+            </para>
+            <para>
+            The exact configuration requirements depend on the TSA and should be obtained from them.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DssTimestampProvider.#ctor(System.String)">
+            <summary>
+            Constructor using a TSA client with the provided configuration.
+            </summary>
+            <remarks>
+            <para>
+            When this constructor is used, the application configuration is searched for a TSA client with the provided name.
+            </para>
+            <para>
+            The exact configuration requirements depend on the TSA and should be obtained from them.
+            </para>
+            </remarks>
+            <param name="config">The configuration name of the TSA client</param>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DssTimestampProvider.#ctor(Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityClient)">
+            <summary>
+            Constructor using a provided TSA client.
+            </summary>
+            <remarks>
+            <para>
+            When this constructor is used, the application configuration isn't used.
+            </para>
+            <para>
+            The exact configuration requirements depend on the TSA and should be obtained from them.
+            </para>
+            </remarks>
+            <example>
+            <code language="C#">
+            var tsa = new TSA.DSS.TimeStampAuthorityClient(new BasicHttpBinding(), new EndpointAddress("http://www.ca.com/TSA"));
+            tsa.ClientCredentials.ClientCertificate.Certificate = certificate;
+            var tsProvider = new DssTimestampProvider(tsa);
+            </code>
+            </example>
+            <param name="client">The pre-configured instance of the TSA client.</param>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DssTimestampProvider.GetTimestampFromDocumentHash(System.Byte[],System.String)">
+            <summary>
+            Method used by the library, not not call youself.
+            </summary>
+            <param name="hash">The hash on which the digesht must be calculated</param>
+            <param name="digestMethod">The digest method with which the hash was calculated</param>
+            <returns>The RFC3161 Timestamp token</returns>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.EHealthP12.Install(System.Security.Cryptography.X509Certificates.StoreLocation)">
+            <summary>
+            Install all the certificates in the correct store.
+            </summary>
+            <remarks>
+            Installs the certificates with private keys in the "My" store.
+            Installs the root certificates in the "Root" store, if not already present.
+            Installs the intermediate certificates in the "CertificateAuthority" store, if not already present.
+            </remarks>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.EHealthTimestampProvider">
+            <summary>
+            Timestamp provider for eHealth as TSA.
+            </summary>
+            <remarks>
+            eHealth has a TSA that uses DSS but defines its own profile that is based on the DSS timestamp profile.
+            </remarks>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.EHealthTimestampProvider.#ctor">
+            <summary>
+            Default constructor using default TSA client of the application configuration.
+            </summary>
+            <remarks>
+            <para>
+            When this constructor is used, the application configuration is searched for a TSA client with the name "Xades.TSA".
+            </para>
+            <para>
+            The eHealth TSA requires the StsBinding as provided by the eH-I codeplex project.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.EHealthTimestampProvider.#ctor(System.String)">
+            <summary>
+            Constructor using a TSA client with the provided configuration.
+            </summary>
+            <remarks>
+            <para>
+            When this constructor is used, the application configuration is searched for a TSA client with the provided name.
+            </para>
+            <para>
+            The eHealth TSA requires the StsBinding as provided by the eH-I codeplex project.
+            </para>
+            </remarks>
+            <param name="config">The configuration name of the TSA client</param>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.EHealthTimestampProvider.#ctor(Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityClient)">
+            <summary>
+            Constructor using a provided TSA client.
+            </summary>
+            <remarks>
+            <para>
+            When this constructor is used, the application configuration isn't used.
+            </para>
+            <para>
+            The eHealth TSA requires the StsBinding as provided by the eH-I codeplex project.
+            </para>
+            </remarks>
+            <example>
+            <code language="C#">
+            tsa = new TSA.DSS.TimeStampAuthorityClient(new StsBinding(), new EndpointAddress("https://wwwacc.ehealth.fgov.be/timestampauthority_1_5/timestampauthority"));
+            tsa.Endpoint.Behaviors.Remove&lt;ClientCredentials&gt;();
+            tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
+            tsa.ClientCredentials.ClientCertificate.Certificate = certificate;
+            var tsProvider = new EHealthTimestampProvider(tsa);
+            </code>
+            </example>
+            <param name="client">The pre-configured instance of the TSA client.</param>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.FixedTimemarkProvider">
+            <summary>
+            Time-mark provider that always returns the provided time.
+            </summary>
+            <remarks>
+            Should only be used for testing purposes.
+            </remarks>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.ITimestampProvider">
+            <summary>
+            Interface a Timestamp Provider must implement
+            </summary>
+            <remarks>
+            The library comes with an implementation for DSS and rfc3161 (TODO), but it is always possible to
+            write your own implementation if required.
+            </remarks>
+            <seealso cref="T:Egelke.EHealth.Client.Pki.DssTimestampProvider"/>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.ITimestampProvider.GetTimestampFromDocumentHash(System.Byte[],System.String)">
+            <summary>
+            Method called to request a timestamp.
+            </summary>
+            <remarks>
+            <para>
+            For implementers, this method should call the TSA to obtain a RFC3161 compliant timestamp token.
+            </para>
+            </remarks>
+            <param name="hash">The hash of the document that must be timestamped</param>
+            <param name="digestMethod">The hasm method that was used, in XML-DSIG (and related) format e.g. <literal>http://www.w3.org/2001/04/xmlenc#sha256</literal></param>
+            <returns>Must return a binary version of a RFC3161 compliant timestamp token (not the response) valid for the provided hash</returns>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.Rfc3161TimestampProvider">
+            <summary>
+            Time-stamp provided via the RFC3161 protocol.
+            </summary>
+            <remarks>
+            Get a time-stamp via the HTTP protocol.
+            </remarks>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.Rfc3161TimestampProvider.#ctor">
+            <summary>
+            Constructor that has the Fedict TSA as destination.
+            </summary>
+            <remarks>
+            You may only use this when you have the explicit agreement of Fedict. 
+            </remarks>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.Rfc3161TimestampProvider.#ctor(System.Uri)">
+            <summary>
+            Constructor that accept the address of the TSA.
+            </summary>
+            <param name="address">The url of the TSA</param>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.Rfc3161TimestampProvider.GetTimestampFromDocumentHash(System.Byte[],System.String)">
+            <summary>
+            Gets a time-stamp of the provided address via the RFC3161.
+            </summary>
+            <param name="hash">The has to get the time-stamp from</param>
+            <param name="digestMethod">The algorithm used to calculate the hash</param>
+            <returns>The time-stamp token in binary (encoded) format</returns>
+            <exception cref="T:System.Net.WebException">When the TSA returned a http-error</exception>
+            <exception cref="T:Org.BouncyCastle.Tsp.TspValidationException">When the TSA returns an invalid time-stamp response</exception>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.TimeStampAuthority">
+            <summary>
+            Interface of the TSA client, do not use directly.
+            </summary>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.SignRequest">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.RequestBaseType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.RequestBaseType.OptionalInputs">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.RequestBaseType.InputDocuments">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.RequestBaseType.RequestID">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.RequestBaseType.Profile">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.AnyType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.AnyType.Any">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.ObjectType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ObjectType.Any">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ObjectType.Id">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ObjectType.MimeType">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ObjectType.Encoding">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.SPKIDataType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SPKIDataType.Items">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.PGPDataType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.PGPDataType.Items">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.PGPDataType.ItemsElementName">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType1">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType1.Item">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType1.PGPKeyID">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType1.PGPKeyPacket">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.X509IssuerSerialType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.X509IssuerSerialType.X509IssuerName">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.X509IssuerSerialType.X509SerialNumber">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.X509DataType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.X509DataType.Items">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.X509DataType.ItemsElementName">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType.Item">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType.X509CRL">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType.X509Certificate">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType.X509IssuerSerial">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType.X509SKI">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType.X509SubjectName">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.RetrievalMethodType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.RetrievalMethodType.Transforms">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.RetrievalMethodType.URI">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.RetrievalMethodType.Type">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.TransformType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.TransformType.Items">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.TransformType.Text">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.TransformType.Algorithm">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.RSAKeyValueType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.RSAKeyValueType.Modulus">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.RSAKeyValueType.Exponent">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.DSAKeyValueType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DSAKeyValueType.P">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DSAKeyValueType.Q">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DSAKeyValueType.G">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DSAKeyValueType.Y">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DSAKeyValueType.J">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DSAKeyValueType.Seed">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DSAKeyValueType.PgenCounter">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.KeyValueType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.KeyValueType.Item">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.KeyValueType.Text">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.KeyInfoType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.KeyInfoType.Items">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.KeyInfoType.ItemsElementName">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.KeyInfoType.Text">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.KeyInfoType.Id">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType2">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType2.Item">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType2.KeyName">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType2.KeyValue">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType2.MgmtData">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType2.PGPData">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType2.RetrievalMethod">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType2.SPKIData">
+            <remarks/>
+        </member>
+        <member name="F:Egelke.EHealth.Client.Pki.DSS.ItemsChoiceType2.X509Data">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.SignatureValueType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureValueType.Id">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureValueType.Value">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.ReferenceType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ReferenceType.Transforms">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ReferenceType.DigestMethod">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ReferenceType.DigestValue">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ReferenceType.Id">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ReferenceType.URI">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ReferenceType.Type">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.DigestMethodType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DigestMethodType.Any">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DigestMethodType.Algorithm">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.SignatureMethodType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureMethodType.HMACOutputLength">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureMethodType.Any">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureMethodType.Algorithm">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.CanonicalizationMethodType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.CanonicalizationMethodType.Any">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.CanonicalizationMethodType.Algorithm">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.SignedInfoType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignedInfoType.CanonicalizationMethod">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignedInfoType.SignatureMethod">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignedInfoType.Reference">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignedInfoType.Id">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.SignatureType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureType.SignedInfo">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureType.SignatureValue">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureType.KeyInfo">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureType.Object">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureType.Id">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.InternationalStringType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.InternationalStringType.lang">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.InternationalStringType.Value">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.ResponseBaseType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ResponseBaseType.Result">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ResponseBaseType.OptionalOutputs">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ResponseBaseType.RequestID">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.ResponseBaseType.Profile">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.Result">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.Result.ResultMajor">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.Result.ResultMinor">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.Result.ResultMessage">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.AttachmentReferenceType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.AttachmentReferenceType.DigestMethod">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.AttachmentReferenceType.DigestValue">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.AttachmentReferenceType.AttRefURI">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.AttachmentReferenceType.MimeType">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.InlineXMLType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.InlineXMLType.Any">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.InlineXMLType.ignorePIs">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.InlineXMLType.ignoreComments">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.DocumentBaseType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DocumentBaseType.ID">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DocumentBaseType.RefURI">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DocumentBaseType.RefType">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DocumentBaseType.SchemaRefs">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.DocumentType">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DocumentType.Item">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.Base64Data">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.Base64Data.MimeType">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.Base64Data.Value">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.InputDocuments">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.InputDocuments.Items">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.DocumentHash">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DocumentHash.Transforms">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DocumentHash.DigestMethod">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DocumentHash.DigestValue">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.DocumentHash.WhichReference">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.TransformedData">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.TransformedData.Transforms">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.TransformedData.Base64Data">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.TransformedData.WhichReference">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.SignResponse">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignResponse.SignatureObject">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.SignatureObject">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureObject.Item">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignatureObject.SchemaRefs">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.Base64Signature">
+            <summary>
+            Internal class, do not use directly.
+            </summary>ute()]
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.Base64Signature.Type">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.Base64Signature.Value">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.SignaturePtr">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignaturePtr.WhichDocument">
+            <remarks/>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.SignaturePtr.XPath">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.Timestamp">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="P:Egelke.EHealth.Client.Pki.DSS.Timestamp.Item">
+            <remarks/>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.StampRequest">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.StampResponse">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityChannel">
+            <summary>
+            Internal class, do not use directly.
+            </summary>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityClient">
+            <summary>
+            TSA client, use to specify and configure the TSA via code.
+            </summary>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityClient.#ctor">
+            <summary>
+            Use the configuration with name "Xades.TSA" from the application config 
+            </summary>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityClient.#ctor(System.String)">
+            <summary>
+            Uses the configuration with the provided name from the application config.
+            </summary>
+            <param name="endpointConfigurationName">The configuration name of the application config</param>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityClient.#ctor(System.String,System.String)">
+            <summary>
+            Uses the configuration wit the provided name from the application config, but overrides the address.
+            </summary>
+            <param name="endpointConfigurationName">The configuration name of the application conifg</param>
+            <param name="remoteAddress">The address of the TSA (without ?wsdl at the end)</param>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityClient.#ctor(System.String,System.ServiceModel.EndpointAddress)">
+            <summary>
+            Uses the configuration wit the provided name from the application config, but overrides the address.
+            </summary>
+            <param name="endpointConfigurationName">The configuration name of the application config</param>
+            <param name="remoteAddress">The address of the TSA</param>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityClient.#ctor(System.ServiceModel.Channels.Binding,System.ServiceModel.EndpointAddress)">
+            <summary>
+            Uses the provided binding and address, does not uses the application config.
+            </summary>
+            <param name="binding">The pre-configured binding</param>
+            <param name="remoteAddress">The address of the TSA</param>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.DSS.TimeStampAuthorityClient.Stamp(Egelke.EHealth.Client.Pki.DSS.SignRequest)">
+            <summary>
+            Method used by the library, do not call.
+            </summary>
+        </member>
+        <member name="T:Egelke.EHealth.Client.Pki.TimeStampTokenHelper">
+            <summary>
+            Helper methods of TimeStampTokens.
+            </summary>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.TimeStampTokenHelper.ToTimeStampToken(System.Byte[])">
+            <summary>
+            Parses a TimeStampToken from binary format to BouncyCastle object format.
+            </summary>
+            <param name="tst">The time-stamp-token (the token itself, not the response)</param>
+            <returns>The BouncyCastle object</returns>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.TimeStampTokenHelper.Validate(Org.BouncyCastle.Tsp.TimeStampToken,System.Collections.Generic.IList{Org.BouncyCastle.Asn1.X509.CertificateList}@,System.Collections.Generic.IList{Org.BouncyCastle.Asn1.Ocsp.BasicOcspResponse}@)">
+            <summary>
+            Validates the time-stamp token in normal case, not for arbitration.
+            </summary>
+            <param name="tst"></param>
+            <param name="crls"></param>
+            <param name="ocsps"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Egelke.EHealth.Client.Pki.TimeStampTokenHelper.Validate(Org.BouncyCastle.Tsp.TimeStampToken,System.Collections.Generic.IList{Org.BouncyCastle.Asn1.X509.CertificateList}@,System.Collections.Generic.IList{Org.BouncyCastle.Asn1.Ocsp.BasicOcspResponse}@,System.Nullable{System.DateTime})">
+            <summary>
+            Validates the time-stamp token in case of arbitration or with a specified trusted time.
+            </summary>
+            <param name="tst"></param>
+            <param name="crls"></param>
+            <param name="ocsps"></param>
+            <param name="trustedTime">The trusted time, <c>null</c> for the timestamp time</param>
+            <returns>The validation chain of the signing certificate</returns>
+            <exception cref="!:InvalidTokenException">When the token isn't signed by the indicated certificate</exception>
+        </member>
+    </members>
+</doc>

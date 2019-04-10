@@ -16,7 +16,7 @@ namespace Egelke.EHealth.Client.Pki.Test
     {
         EHealthP12 p12;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void setup()
         {
             p12 = new EHealthP12(@"..\..\EHealthP12\dummy.p12", "test001");
@@ -105,17 +105,15 @@ namespace Egelke.EHealth.Client.Pki.Test
         }
 
         [Test]
-        [ExpectedException(typeof(KeyNotFoundException))]
         public void NonExistingValue()
         {
-            X509Certificate2 cert = p12["other"];
+            Assert.That(() => p12["other"], Throws.TypeOf<KeyNotFoundException>());
         }
 
         [Test]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void ContainsKeyWihtNullValue()
         {
-            p12.ContainsKey(null);
+            Assert.That(() => p12.ContainsKey(null), Throws.TypeOf<ArgumentNullException>());
         }
 
         [Test]
@@ -149,26 +147,23 @@ namespace Egelke.EHealth.Client.Pki.Test
         }
 
         [Test]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void CopyToNull()
         {
-            p12.CopyTo(null, 0);
+            Assert.That(() => p12.CopyTo(null, 0), Throws.TypeOf<ArgumentNullException>());
         }
 
         [Test]
-        [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void CopyToNegativeIndex()
         {
             KeyValuePair<String, X509Certificate2>[] array = new KeyValuePair<string, X509Certificate2>[0];
-            p12.CopyTo(array, -1);
+            Assert.That(() => p12.CopyTo(array, -1), Throws.TypeOf<ArgumentOutOfRangeException>());
         }
 
         [Test]
-        [ExpectedException(typeof(ArgumentException))]
         public void CopyToArrayThatIsToSmall()
         {
             KeyValuePair<String, X509Certificate2>[] array = new KeyValuePair<string, X509Certificate2>[3];
-            p12.CopyTo(array, 2);
+            Assert.That(() => p12.CopyTo(array, 2), Throws.TypeOf<ArgumentException>());
         }
 
         [Test]

@@ -15,6 +15,9 @@ namespace Egelke.EHealth.Client.Pki.Test
     [TestFixture]
     public class CertificateTests
     {
+        private static string _basePath = Path.GetDirectoryName(typeof(CertificateTests).Assembly.Location);
+        private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
+
         private static X509Certificate2 AskCertificate(X509KeyUsageFlags flags)
         {
             X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
@@ -30,10 +33,10 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
         }
 
-        //[Test]
+        [Test]
         public void SaveFromSelected()
         {
-            X509Certificate2 cert = AskCertificate(X509KeyUsageFlags.DigitalSignature);
+            X509Certificate2 cert = AskCertificate(X509KeyUsageFlags.NonRepudiation);
 
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
@@ -66,13 +69,13 @@ namespace Egelke.EHealth.Client.Pki.Test
         [SetUp]
         public void Setup()
         {
-            leafCert = new X509Certificate2("files/eid79021802145.crt");
-            intCaCert = new X509Certificate2("files/Citizen201204.crt");
+            leafCert = new X509Certificate2(GetAbsoluteTestFilePath("files/eid79021802145.crt"));
+            intCaCert = new X509Certificate2(GetAbsoluteTestFilePath("files/Citizen201204.crt"));
             
-            intCaCrl = CertificateList.GetInstance(File.ReadAllBytes("files/Citizen201204.crl"));
-            rootCaCrl = CertificateList.GetInstance(File.ReadAllBytes("files/rootca2.crl"));
-            leafOcsp = BasicOcspResponse.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes("files/eid79021802145.ocsp")));
-            leafOcsp2 = BasicOcspResponse.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes("files/eid79021802145-2.ocsp")));
+            intCaCrl = CertificateList.GetInstance(File.ReadAllBytes(GetAbsoluteTestFilePath("files/Citizen201204.crl")));
+            rootCaCrl = CertificateList.GetInstance(File.ReadAllBytes(GetAbsoluteTestFilePath("files/rootca2.crl")));
+            leafOcsp = BasicOcspResponse.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes(GetAbsoluteTestFilePath("files/eid79021802145.ocsp"))));
+            leafOcsp2 = BasicOcspResponse.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes(GetAbsoluteTestFilePath("files/eid79021802145-2.ocsp"))));
         }
 
         [Test]

@@ -71,7 +71,7 @@ namespace Egelke.EHealth.Client.Pki
 
         public static Chain BuildChain(this X509Certificate2 cert, DateTime validationTime, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
         {
-            return cert.BuildChain(validationTime, extraStore, ref crls, ref ocsps, false, new TimeSpan(1, 0, 0));
+            return cert.BuildChain(validationTime, extraStore, ref crls, ref ocsps, false, new TimeSpan(0, 1, 0));
         }
 
         public static Chain BuildChain(this X509Certificate2 cert, DateTime validationTime, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, bool checkHistoricalSuspend, TimeSpan maxDelay)
@@ -82,7 +82,7 @@ namespace Egelke.EHealth.Client.Pki
             DateTime now = DateTime.UtcNow;
             if (validationTime > (now + ClockSkewness))
             {
-                throw new ArgumentException("validation can't occur in the future", "validationTime");
+                throw new ArgumentException(String.Format("validation can't occur in the future ({0:u} > {1:u})", validationTime, now), "validationTime");
             }
 
             //Add off-line revocation info to the store
