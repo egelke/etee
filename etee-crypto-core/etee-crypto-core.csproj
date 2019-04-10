@@ -74,6 +74,9 @@
     <AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="crypto">
+      <HintPath>..\..\eHI\tsa-module\bin\Release\crypto.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
@@ -142,7 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Egelke.EHealth.Client.Pki">
-      <Version>2.0.1</Version>
+      <Version>2.0.3</Version>
     </PackageReference>
     <PackageReference Include="Egelke.Eid.Client">
       <Version>0.1.0</Version>

@@ -14,57 +14,59 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestFixture]
     public class TestMessages
     {
+        private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
+        private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
+
         private IDataUnsealer nullUnsealer = DataUnsealerFactory.Create(null,
-            new EHealthP12("../../alice/alices_private_key_store.p12", "test"),
-            new EHealthP12("../../bob/old_bobs_private_key_store.p12", "test"),
-            new EHealthP12("../../bob/bobs_private_key_store.p12", "test"),
-            new EHealthP12("../../bob/bob2_private_key_store.p12", "test"),
-            new EHealthP12("../../bob/bob3_private_key_store.p12", "test"),
-            new EHealthP12("../../dirk/dirks_private_key_store.p12", "test"),
-            new EHealthP12("../../other/expired_auth.p12", "test"),
-            new EHealthP12("../../other/expired_encr.p12", "test"),
-            new EHealthP12("../../other/invalid_authkey_usage.p12", "test"),
-            new EHealthP12("../../other/invalid_encrkey_usage.p12", "test"),
-            new EHealthP12("../../other/invalid_cert_chain.p12", "test"),
-            new EHealthP12("../../other/invalid_key_algorithm.p12", "test"),
-            new EHealthP12("../../other/invalid_key_size.p12", "test"),
-            new EHealthP12("../../other/not_yet_auth.p12", "test"));
+            new EHealthP12(GetAbsoluteTestFilePath("../../alice/alices_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../bob/old_bobs_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../bob/bobs_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../bob/bob2_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../bob/bob3_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../dirk/dirks_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/expired_auth.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/expired_encr.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_authkey_usage.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_encrkey_usage.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_cert_chain.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_key_algorithm.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_key_size.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/not_yet_auth.p12"), "test"));
 
         private IDataUnsealer bUnsealer = DataUnsealerFactory.Create(Level.B_Level,
-            new EHealthP12("../../alice/alices_private_key_store.p12", "test"),
-            new EHealthP12("../../bob/old_bobs_private_key_store.p12", "test"),
-            new EHealthP12("../../bob/bobs_private_key_store.p12", "test"),
-            new EHealthP12("../../bob/bob2_private_key_store.p12", "test"),
-            new EHealthP12("../../bob/bob3_private_key_store.p12", "test"),
-            new EHealthP12("../../dirk/dirks_private_key_store.p12", "test"),
-            new EHealthP12("../../other/expired_auth.p12", "test"),
-            new EHealthP12("../../other/expired_encr.p12", "test"),
-            new EHealthP12("../../other/invalid_authkey_usage.p12", "test"),
-            new EHealthP12("../../other/invalid_encrkey_usage.p12", "test"),
-            new EHealthP12("../../other/invalid_cert_chain.p12", "test"),
-            new EHealthP12("../../other/invalid_key_algorithm.p12", "test"),
-            new EHealthP12("../../other/invalid_key_size.p12", "test"),
-            new EHealthP12("../../other/not_yet_auth.p12", "test"));
+            new EHealthP12(GetAbsoluteTestFilePath("../../alice/alices_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../bob/old_bobs_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../bob/bobs_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../bob/bob2_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../bob/bob3_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../dirk/dirks_private_key_store.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/expired_auth.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/expired_encr.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_authkey_usage.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_encrkey_usage.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_cert_chain.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_key_algorithm.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/invalid_key_size.p12"), "test"),
+            new EHealthP12(GetAbsoluteTestFilePath("../../other/not_yet_auth.p12"), "test"));
 
         [Test]
         public void BrokenSignedData()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/brokenSignedData.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/brokenSignedData.msg"), FileMode.Open);
             using (file)
             {
-                Assert.That(result = bUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
+                Assert.That(() => result = bUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
-            System.Console.WriteLine(result.SecurityInformation);
         }
 
         [Test]
         public void Clear()
         {
-            FileStream file = new FileStream("../../msg/clear.txt", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/clear.txt"), FileMode.Open);
             using (file)
             {
-                Assert.That(bUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
+                Assert.That(() => bUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
@@ -72,7 +74,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void BothEidCertsSigned()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_both_eid_certs_signed.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_both_eid_certs_signed.msg"), FileMode.Open);
             using (file)
             {
                 result = bUnsealer.Unseal(file);
@@ -87,10 +89,25 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [Test]
+        public void BothEidCertsSignedV21()
+        {
+            UnsealResult result;
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/SEALED_WITH_EID_OCSP_NONE.msg"), FileMode.Open);
+            using (file)
+            {
+                result = nullUnsealer.Unseal(file);
+            }
+            System.Console.WriteLine(result.SecurityInformation);
+
+            Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
+            Assert.AreEqual(TrustStatus.None, result.SecurityInformation.TrustStatus);
+        }
+
+        [Test]
         public void BothExiredEidCertsSigned()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_both_expired_eid_certs_signed.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_both_expired_eid_certs_signed.msg"), FileMode.Open);
             using (file)
             {
                 result = bUnsealer.Unseal(file);
@@ -110,7 +127,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void BothRevokedEidCertsSigned()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_both_revoked_eid_certs_signed.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_both_revoked_eid_certs_signed.msg"), FileMode.Open);
             using (file)
             {
                 result = bUnsealer.Unseal(file);
@@ -130,7 +147,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void BothSuspendedEidCertsSigned()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_both_suspended_eid_certs_signed.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_both_suspended_eid_certs_signed.msg"), FileMode.Open);
             using (file)
             {
                 result = bUnsealer.Unseal(file);
@@ -150,7 +167,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void CertsContainNoCrlUri()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_certs_contain_no_crluri.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_certs_contain_no_crluri.msg"), FileMode.Open);
             using (file)
             {
                 result = bUnsealer.Unseal(file);
@@ -169,7 +186,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void CertsContainNonExistingCrlUri()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_certs_contain_noexisting_crluri.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_certs_contain_noexisting_crluri.msg"), FileMode.Open);
             using (file)
             {
                 result = bUnsealer.Unseal(file);
@@ -188,7 +205,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void Correct()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_correct.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_correct.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -204,7 +221,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void CrossSigned()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_cross_signed.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_cross_signed.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -222,7 +239,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void ExpiredAuth()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_expired_auth.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_expired_auth.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -241,7 +258,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void ExpiredEncr()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_expired_encr.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_expired_encr.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -260,7 +277,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void InvalidCertChain()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_invalid_cert_chain.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_invalid_cert_chain.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -280,10 +297,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void InvalidCmsSigned()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_invalid_cms_signed.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_invalid_cms_signed.msg"), FileMode.Open);
             using (file)
             {
-                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
+                Assert.That(() => result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
@@ -291,10 +308,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void InvalidEncrypted()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_invalid_encrypted.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_invalid_encrypted.msg"), FileMode.Open);
             using (file)
             {
-                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
+                Assert.That(() => result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
@@ -302,10 +319,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void InvalidInnerSigned()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_invalid_inner_signed.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_invalid_inner_signed.msg"), FileMode.Open);
             using (file)
             {
-                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
+                Assert.That(() => result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
@@ -313,7 +330,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void InvalidKeySize()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_invalid_key_size.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_invalid_key_size.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -332,7 +349,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void InvalidKeyUsage()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_invalid_key_usage.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_invalid_key_usage.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -352,7 +369,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void InvalidSignature()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_invalid_signature.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_invalid_signature.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -369,10 +386,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void InvalidMoreSigningTimes()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_more_signing_times.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_more_signing_times.msg"), FileMode.Open);
             using (file)
             {
-                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
+                Assert.That(() => result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
@@ -380,7 +397,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void MultiRecipients()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_multi_recipients.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_multi_recipients.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -395,7 +412,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void NotValidYetAuth()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_not_valid_yet_auth.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_not_valid_yet_auth.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -409,7 +426,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void RevokedCert()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_revoked_cert.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_revoked_cert.msg"), FileMode.Open);
             using (file)
             {
                 result = bUnsealer.Unseal(file);
@@ -423,7 +440,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void SignedWithOtherKeyAndAlgo()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_signed_with_other_key_and_algo.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_signed_with_other_key_and_algo.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -441,7 +458,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void UnauthorizedAlgos()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_unauthorized_algos.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_unauthorized_algos.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -455,7 +472,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void UnsupportedAlgosSHA224WITHRSA()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_unsupported_algos_SHA224WITHRSA.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_unsupported_algos_SHA224WITHRSA.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -471,7 +488,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void WasNotValidYetAuth()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_was_not_valid_yet_auth.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_was_not_valid_yet_auth.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -486,10 +503,10 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void With2SignerInfos()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_with_2_signerinfos.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_with_2_signerinfos.msg"), FileMode.Open);
             using (file)
             {
-                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
+                Assert.That(() => result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
         }
 
@@ -497,22 +514,18 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public void WithoutOuterCert()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_without_outer_cert.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_without_outer_cert.msg"), FileMode.Open);
             using (file)
             {
-                Assert.That(result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
+                Assert.That(() => result = nullUnsealer.Unseal(file), Throws.TypeOf<InvalidMessageException>());
             }
-            System.Console.WriteLine(result.SecurityInformation);
-
-            Assert.AreEqual(ValidationStatus.Valid, result.SecurityInformation.ValidationStatus);
-            Assert.AreEqual(TrustStatus.Full, result.SecurityInformation.TrustStatus);
         }
 
         [Test, Ignore("The text decrypts fines, so the right key is used.")]
         public void WrongEncryptionKey()
         {
             UnsealResult result;
-            FileStream file = new FileStream("../../msg/triple_wrapped_wrong_encryption_key.msg", FileMode.Open);
+            FileStream file = new FileStream(GetAbsoluteTestFilePath("../../msg/triple_wrapped_wrong_encryption_key.msg"), FileMode.Open);
             using (file)
             {
                 result = nullUnsealer.Unseal(file);
@@ -521,5 +534,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             //???
         }
+
+        
     }
 }

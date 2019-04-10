@@ -13,6 +13,7 @@
     <description>$description$</description>
     <releaseNotes>
 Update OID's for signing.
+Allow external config.
     </releaseNotes>
     <copyright>Copyright © Egelke BVBA 2013-2019</copyright>
     <tags>eHealth Encrpytion</tags>
