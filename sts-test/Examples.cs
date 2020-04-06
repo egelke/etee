@@ -39,6 +39,10 @@ namespace Siemens.EHealth.Client.StsTest
     {
         private static X509Certificate2 session;
 
+        private static X509Certificate2 auth;
+
+        private static X509Certificate2 ehSsl;
+
         private static Collection<XmlElement> assertedDefault;
 
         private static Collection<ClaimTypeRequirement> requestedDefault;
@@ -46,21 +50,24 @@ namespace Siemens.EHealth.Client.StsTest
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
+            ehSsl = new X509Certificate2("ehealthfgovbe.crt");
             
             X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             my.Open(OpenFlags.ReadOnly);
             try
             {
-                X509Certificate2Collection fcollection = (X509Certificate2Collection)my.Certificates.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
-                X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection, "Certificate Select", "Select a certificate from authentication", X509SelectionFlag.SingleSelection);
+                X509Certificate2Collection fcollection = my.Certificates.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
+                X509Certificate2Collection scollection = X509Certificate2UI.SelectFromCollection(fcollection, "Certificate Select", "Select a session certificate (cancel to generate a self signed)", X509SelectionFlag.SingleSelection);
                 if (scollection.Count == 0)
                 {
-                    session = CertGenerator.GenerateSelfSigned(TimeSpan.FromMinutes(30));
+                    session = CertGenerator.GenerateSelfSigned(TimeSpan.FromMinutes(120));
                 }
                 else
                 {
                     session = scollection[0];
                 }
+                X509Certificate2Collection acollection = X509Certificate2UI.SelectFromCollection(fcollection, "Certificate Select", "Select a authentication certificate (e.g. eID)", X509SelectionFlag.SingleSelection);
+                auth = acollection[0];
             }
             finally
             {
@@ -87,18 +94,24 @@ namespace Siemens.EHealth.Client.StsTest
             claimReq = new List<ClaimTypeRequirement>();
             claimReq.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin"));
             claimReq.Add(new ClaimTypeRequirement("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin"));
-            claimReq.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean"));
+            //claimReq.Add(new ClaimTypeRequirement("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean"));
             requestedDefault = new Collection<ClaimTypeRequirement>(claimReq);
         }
 
         [TestMethod]
         public void ConfigViaCode()
         {
-            StsClient target = new StsClient(new StsBinding(), new EndpointAddress("https://www.ehealth.fgov.be/sts_1_1/SecureTokenService"));
-            target.Endpoint.Behaviors.Remove<ClientCredentials>();
-            target.Endpoint.Behaviors.Add(new OptClientCredentials());
-            target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "1ac02600f2f2b68f99f1e8eeab2e780470e0ea4c");
-            //target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
+            StsClient target = new StsClient(
+                new StsBinding(), 
+                new EndpointAddress(
+                    new Uri("https://services-acpt.ehealth.fgov.be/IAM/SingleSignOnService/v1")
+                    ,EndpointIdentity.CreateDnsIdentity("*.int.pub.ehealth.fgov.be")
+                    )
+                );
+            //target.Endpoint.Behaviors.Remove<ClientCredentials>();
+            //target.Endpoint.Behaviors.Add(new OptClientCredentials());
+            target.ClientCredentials.ServiceCertificate.DefaultCertificate = ehSsl; //not really used, but better then the workaround
+            target.ClientCredentials.ClientCertificate.Certificate = auth;
             XmlElement assertion = target.RequestTicket("Anonymous", session, TimeSpan.FromHours(1), assertedDefault, requestedDefault);
 
             Assert.AreEqual("Assertion", assertion.LocalName);
@@ -122,47 +135,5 @@ namespace Siemens.EHealth.Client.StsTest
             
         }
 
-        public class CustomIdSignedXml : SignedXml
-        {
-            public CustomIdSignedXml(XmlDocument x)
-                : base(x)
-            {
-            }
-
-            public CustomIdSignedXml(XmlElement x)
-                : base(x)
-            {
-            }
-
-            public override XmlElement GetIdElement(XmlDocument document, string idValue)
-            {
-                XmlElement idElem = base.GetIdElement(document, idValue);
-                if (idElem != null)
-                    return idElem;
-
-                idElem = document.SelectSingleNode("//*[@AssertionID=\"" + idValue + "\"]") as XmlElement;
-
-                return idElem;
-            }
-
-            
-        }
-
-        [TestMethod]
-        public void Hack()
-        {
-            XmlDocument doc = new XmlDocument();
-            doc.PreserveWhitespace = true;
-            doc.Load(@"C:\TMP\cache.xml");
-
-
-            SignedXml sig = new CustomIdSignedXml(doc);
-            XmlNodeList nodeList = doc.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
-            foreach (XmlElement e in nodeList)
-            {
-                sig.LoadXml(e);
-                Assert.IsTrue(sig.CheckSignature());
-            }
-        }
     }
 }

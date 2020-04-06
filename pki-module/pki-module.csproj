@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net40;</TargetFrameworks>
+    <RootNamespace>Egelke.EHealth.Client.Pki</RootNamespace>
+    <AssemblyName>Egelke.EHealth.Client.Pki</AssemblyName>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.0.4</Version>
+    <Authors>Egelke BVBA</Authors>
+    <Product>https://github.com/egelke/eHI</Product>
+    <Description>PKI tools useful for eHealth</Description>
+    <Copyright>Copyright © Egelke 2014-2020</Copyright>
+    <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/egelke/eHI</PackageProjectUrl>
+    <RepositoryType />
+    <PackageTags>eHealth eSigning TimeStamp PKI PKCS#12 X509</PackageTags>
+    <PackageReleaseNotes>Multi target package.</PackageReleaseNotes>
+    <SignAssembly>true</SignAssembly>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <AssemblyOriginatorKeyFile>..\release.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Debug|netstandard2.0'">
+    <DocumentationFile>bin\Debug\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Debug|net40'">
+    <DocumentationFile>bin\Debug\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net40'">
+    <DocumentationFile>bin\Release\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|netstandard2.0'">
+    <DocumentationFile>bin\Release\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.ServiceModel.Http" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Portable.BouncyCastle" Version="1.8.5.2" />
+  </ItemGroup>
+
+</Project>

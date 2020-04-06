@@ -1,0 +1,144 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>pki_test_net</RootNamespace>
+
+    <IsPackable>false</IsPackable>
+
+    <AssemblyName>Egelke.EHealth.Client.Pki.Test</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="files\Citizen201204-2.crl" />
+    <None Remove="files\Citizen201204.crl" />
+    <None Remove="files\Citizen201204.crt" />
+    <None Remove="files\ehTs.ts" />
+    <None Remove="files\ehTs1.crl" />
+    <None Remove="files\ehTs2.crl" />
+    <None Remove="files\eid79021802145-2.ocsp" />
+    <None Remove="files\eid79021802145.crt" />
+    <None Remove="files\eid79021802145.ocsp" />
+    <None Remove="files\expired.crt" />
+    <None Remove="files\fedictTs.ts" />
+    <None Remove="files\fedictTs1.crl" />
+    <None Remove="files\fedictTs2.crl" />
+    <None Remove="files\foreigner.crt" />
+    <None Remove="files\foreigner_ca.crt" />
+    <None Remove="files\govct-revoked.crt" />
+    <None Remove="files\govct-selfsigned.crt" />
+    <None Remove="files\revoked.crt" />
+    <None Remove="files\rootca2.crl" />
+    <None Remove="files\suspended.crt" />
+    <None Remove="files\test.crt" />
+    <None Remove="files\testCa.crt" />
+    <None Remove="files\testRootCa.crt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="files\Citizen201204-2.crl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\Citizen201204.crl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\Citizen201204.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\ehTs.ts">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\ehTs1.crl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\ehTs2.crl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\eid79021802145-2.ocsp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\eid79021802145.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\eid79021802145.ocsp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\expired.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\fedictTs.ts">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\fedictTs1.crl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\fedictTs2.crl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\foreigner.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\foreigner_ca.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\govct-revoked.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\govct-selfsigned.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\revoked.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\rootca2.crl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\suspended.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\test.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\testCa.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="files\testRootCa.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
+    <PackageReference Include="coverlet.collector" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\library\library.csproj" />
+    <ProjectReference Include="..\pki-module\pki-module.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ehealthfgovbe.crt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="EHealthP12\dummy.p12">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="EHealthP12\SSIN=79021802145.p12">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="EHealthP12\SSIN=79021802145.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="files\belgium-root-ct2.crl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+
+</Project>

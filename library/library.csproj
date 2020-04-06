@@ -1,133 +1,52 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{F7E87297-87B7-4420-862C-327B59351EE4}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Egelke.EHealth.Client</RootNamespace>
+    <TargetFrameworks>net40</TargetFrameworks>
     <AssemblyName>Egelke.EHealth.Client</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
+    <RootNamespace>Egelke.EHealth.Client</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <version>2.2.0</version>
+    <authors>Egelke BVBA</authors>
+    <owners>Egelke BVBA</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>eHealth Web Service Interoperability library</description>
+    <copyright>2013-2020 (c) Egelke BVBA</copyright>
+    <RepositoryUrl>https://github.com/egelke/eHI</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>eHealth STS SSO SAML</PackageTags>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <FileVersion>2.2.0.0</FileVersion>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageReleaseNotes>
+      Update packaging
+      Removed obsolete EHealthP12
+    </PackageReleaseNotes>
+    <Product>eHealth-Interoperability</Product>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Egelke.EHealth.Client</PackageId>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
+
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="crypto, Version=1.8.5194.33298, Culture=neutral, PublicKeyToken=3b6b50718b92fbc6, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\BouncyCastle-Patch.1.7.0\lib\net40\crypto.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IdentityModel" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.XML" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Builder\CareProvider.cs" />
-    <Compile Include="Builder\DoctorBuilder.cs" />
-    <Compile Include="Builder\Id.cs" />
-    <Compile Include="Builder\Nihii.cs" />
-    <Compile Include="Sso\CertGenerator.cs" />
-    <Compile Include="Sso\Configuration\CacheElement.cs" />
-    <Compile Include="Sso\Configuration\SessionBehaviorElement.cs" />
-    <Compile Include="Sso\Configuration\SessionCertificateElement.cs" />
-    <Compile Include="Sso\FileSessionCache.cs" />
-    <Compile Include="Sso\ISessionCache.cs" />
-    <Compile Include="Sso\MemorySessionCache.cs" />
-    <Compile Include="Sso\SessionBehavior.cs" />
-    <Compile Include="Sso\SsoBinding.cs" />
-    <Compile Include="Sso\Configuration\SsoBindingCollectionElement.cs" />
-    <Compile Include="Sso\Configuration\SsoBindingElement.cs" />
-    <Compile Include="Sso\WA\DummyAuthorizationPolicy.cs" />
-    <Compile Include="Sso\WA\DummySecurityToken.cs" />
-    <Compile Include="Sso\WA\DummySecurityTokenAuthenticator.cs" />
-    <Compile Include="Sso\WA\DummySecurityTokenProvider.cs" />
-    <Compile Include="Sso\Sts\Service\Response.cs" />
-    <Compile Include="Sso\Sts\Service\SamlException.cs" />
-    <Compile Include="Sso\Sts\Service\SamlFault.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sso\SsoClientCredentials.cs" />
-    <Compile Include="Sso\SsoSecurityTokenManager.cs" />
-    <Compile Include="Sso\SsoSecurityTokenProvider.cs" />
-    <Compile Include="Sso\Sts\Service\Request.cs" />
-    <Compile Include="Sso\Sts\Service\SamlSignedXml.cs" />
-    <Compile Include="Sso\Sts\Service\StatusCode.cs" />
-    <Compile Include="Sso\Sts\Service\StsClient.cs" />
-    <Compile Include="Sso\Sts\StsBinding.cs" />
-    <Compile Include="Sso\Sts\Configuration\StsBindingCollectionElement.cs" />
-    <Compile Include="Sso\Sts\Configuration\StsBindingElement.cs" />
-    <Compile Include="Sso\WA\OptClientCredentials.cs" />
-    <Compile Include="Sso\WA\OptSecurityTokenManager.cs" />
-    <Compile Include="Sso\Sts\WcfAddition\EHealthBindingElement.cs" />
-    <Compile Include="Sso\Sts\WcfAddition\EHealthChannel.cs" />
-    <Compile Include="Sso\Sts\WcfAddition\EHealthChannelFactory.cs" />
-    <Compile Include="Sso\Sts\WcfAddition\EHealthElement.cs" />
-    <Compile Include="Sso\Sts\WcfAddition\EHealthMessage.cs" />
-    <Compile Include="Sso\Sts\WcfAddition\EHealthOutputChannel.cs" />
-    <Compile Include="Sso\Sts\WcfAddition\EHealthRequestChannel.cs" />
-    <Compile Include="Sso\WA\XmlSerializerObjectSerializer.cs" />
-    <Compile Include="Tool\EHealthP12.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\debug.snk">
-      <Link>debug.snk</Link>
-    </None>
-    <None Include="COPYING" />
-    <None Include="ehi-library.nuspec" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Contributors.html" />
-    <Content Include="License.html" />
-    <Content Include="Readme.html" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <PropertyGroup>
-    <PostBuildEvent>nuget pack "$(ProjectPath)" -IncludeReferencedProjects -Prop Configuration=$(ConfigurationName)
-nuget pack "$(ProjectPath)"  -Symbols</PostBuildEvent>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <AssemblyOriginatorKeyFile>..\release.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Security" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Portable.BouncyCastle" Version="1.8.6.7" />
+  </ItemGroup>
 </Project>
