@@ -9,16 +9,19 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Diagnostics;
 
 namespace Egelke.EHealth.Client.Pki.Test
 {
     [TestClass]
     public class CertTest
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         public void TestOldEid_ForgetExtra()
         {
-            X509Certificate2 target = new X509Certificate2(@"files\eid79021802145.crt");
+            X509Certificate2 target = new X509Certificate2(@"files/eid79021802145.crt");
             X509Certificate2Collection extraStore = new X509Certificate2Collection();
 
             Chain rsp = target.BuildChain(new DateTime(2014, 03, 05, 18, 00, 00, DateTimeKind.Utc), extraStore);
@@ -30,9 +33,9 @@ namespace Egelke.EHealth.Client.Pki.Test
         [TestMethod]
         public void TestOldEid_NoRevocation()
         {
-            X509Certificate2 target = new X509Certificate2(@"files\eid79021802145.crt");
+            X509Certificate2 target = new X509Certificate2(@"files/eid79021802145.crt");
             X509Certificate2Collection extraStore = new X509Certificate2Collection();
-            extraStore.Add(new X509Certificate2(@"files\Citizen201204.crt"));
+            extraStore.Add(new X509Certificate2(@"files/Citizen201204.crt"));
 
             Chain rsp = target.BuildChain(new DateTime(2014, 03, 05, 18, 00, 00, DateTimeKind.Utc), extraStore);
 
@@ -46,9 +49,9 @@ namespace Egelke.EHealth.Client.Pki.Test
         [TestMethod]
         public void TestOldEid_FailToGetRevocation()
         {
-            X509Certificate2 target = new X509Certificate2(@"files\eid79021802145.crt");
+            X509Certificate2 target = new X509Certificate2(@"files/eid79021802145.crt");
             X509Certificate2Collection extraStore = new X509Certificate2Collection();
-            extraStore.Add(new X509Certificate2(@"files\Citizen201204.crt"));
+            extraStore.Add(new X509Certificate2(@"files/Citizen201204.crt"));
 
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
@@ -64,14 +67,14 @@ namespace Egelke.EHealth.Client.Pki.Test
         [TestMethod]
         public void TestOldEid_WithHistoricalRevocation()
         {
-            X509Certificate2 target = new X509Certificate2(@"files\eid79021802145.crt");
+            X509Certificate2 target = new X509Certificate2(@"files/eid79021802145.crt");
             X509Certificate2Collection extraStore = new X509Certificate2Collection();
-            extraStore.Add(new X509Certificate2(@"files\Citizen201204.crt"));
+            extraStore.Add(new X509Certificate2(@"files/Citizen201204.crt"));
 
             IList<CertificateList> crls = new List<CertificateList>();
-            crls.Add(CertificateList.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes(@"files\Citizen201204.crl"))));
+            crls.Add(CertificateList.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes(@"files/Citizen201204.crl"))));
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
-            ocsps.Add(BasicOcspResponse.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes(@"files\eid79021802145.ocsp"))));
+            ocsps.Add(BasicOcspResponse.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes(@"files/eid79021802145.ocsp"))));
             Chain rsp = target.BuildChain(new DateTime(2014, 03, 05, 18, 00, 00, DateTimeKind.Utc), extraStore, ref crls, ref ocsps);
 
             Assert.AreEqual(0, rsp.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
@@ -86,9 +89,9 @@ namespace Egelke.EHealth.Client.Pki.Test
         [TestMethod]
         public void TestNewEid_GetRevocation()
         {
-            X509Certificate2 target = new X509Certificate2(@"files\eid79021802145-2027.crt");
+            X509Certificate2 target = new X509Certificate2(@"files/eid79021802145-2027.crt");
             X509Certificate2Collection extraStore = new X509Certificate2Collection();
-            extraStore.Add(new X509Certificate2(@"files\Citizen201709.crt"));
+            extraStore.Add(new X509Certificate2(@"files/Citizen201709.crt"));
 
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
