@@ -43,8 +43,6 @@ namespace Egelke.EHealth.Client.Pki
         public DateTime ValidationTime { get; set; }
         public CertificateList NewCertList { get; set; }
         public BasicOcspResponse NewOcspResponse { get; set; }
-        public bool CheckSuspend { get; set; }
-        public TimeSpan MaxDelay { get; set; }
         public TimeSpan ClockSkewness { get; set; }
         public bool OcspOnly { get; set; }
 
@@ -62,8 +60,6 @@ namespace Egelke.EHealth.Client.Pki
             this.Issuer = Issuer;
 
             this.OcspOnly = false;
-            this.CheckSuspend = false;
-            this.MaxDelay = TimeSpan.MaxValue;
             this.ValidationTime = DateTime.UtcNow;
             this.ClockSkewness = new TimeSpan(0, 1, 0);
         }
@@ -184,14 +180,14 @@ namespace Egelke.EHealth.Client.Pki
                 }
 
                 //check if status is still up to date
-                if (CheckSuspend && bestSingleOcspResp.ThisUpdate > (maxTime + MaxDelay))
-                {
-                    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response of {1} for {0} is older then {3} at {2} and therefore certificate might been suspended at the time of use",
-                        Certificate.Subject, bestSingleOcspResp.ThisUpdate, ValidationTime, MaxDelay);
-                    status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
-                    status.StatusInformation = "The revocation information is outdated which means the certificate could have been suspended when used";
-                    return status;
-                }
+                //if (CheckSuspend && bestSingleOcspResp.ThisUpdate > (maxTime + MaxDelay))
+                //{
+                //    trace.TraceEvent(TraceEventType.Warning, 0, "OCSP response of {1} for {0} is older then {3} at {2} and therefore certificate might been suspended at the time of use",
+                //        Certificate.Subject, bestSingleOcspResp.ThisUpdate, ValidationTime, MaxDelay);
+                //    status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
+                //    status.StatusInformation = "The revocation information is outdated which means the certificate could have been suspended when used";
+                //    return status;
+                //}
 
                 status.Status = X509ChainStatusFlags.NoError;
                 return status;
@@ -254,13 +250,13 @@ namespace Egelke.EHealth.Client.Pki
                     }
                 }
 
-                if (CheckSuspend)
-                {
-                    //We don't support checking for suspend with CRL
-                    status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
-                    status.StatusInformation = "Suspend check not supported for CRLs";
-                    return status;
-                }
+                //if (CheckSuspend)
+                //{
+                //    //We don't support checking for suspend with CRL
+                //    status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
+                //    status.StatusInformation = "Suspend check not supported for CRLs";
+                //    return status;
+                //}
 
                 status.Status = X509ChainStatusFlags.NoError;
                 return status;
@@ -314,11 +310,11 @@ namespace Egelke.EHealth.Client.Pki
             BasicOcspResp ocspResp = new BasicOcspResp(ocspResponse);
             IEnumerable<SingleResp> matchingSingleResps = ocspResp.Responses.Where(x => x.GetCertID().SerialNumber.Equals(certificateBC.SerialNumber) && x.GetCertID().MatchesIssuer(issuerBC)
                  && ((x.NextUpdate != null && x.NextUpdate.Value > minTime) || x.ThisUpdate > minTime));
-            if (CheckSuspend)
-            {
-                //filter out responses that are to recent in case suspend is important
-                matchingSingleResps = matchingSingleResps.Where(x => x.ThisUpdate <= (maxTime + MaxDelay));
-            }
+            //if (CheckSuspend)
+            //{
+            //    //filter out responses that are to recent in case suspend is important
+            //    matchingSingleResps = matchingSingleResps.Where(x => x.ThisUpdate <= (maxTime + MaxDelay));
+            //}
 
             bool updated = false;
             foreach (SingleResp singleResp in matchingSingleResps)

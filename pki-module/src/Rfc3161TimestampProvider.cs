@@ -26,6 +26,7 @@ using Org.BouncyCastle.Tsp;
 using System.IO;
 using System.Security.Cryptography;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -35,7 +36,7 @@ namespace Egelke.EHealth.Client.Pki
     /// <remarks>
     /// Get a time-stamp via the HTTP protocol.
     /// </remarks>
-    public class Rfc3161TimestampProvider : ITimestampProvider
+    public class Rfc3161TimestampProvider : ITimestampProviderAsync
     {
         private TraceSource trace = new TraceSource("Egelke.EHealth.Tsa");
 
@@ -71,32 +72,86 @@ namespace Egelke.EHealth.Client.Pki
         /// <exception cref="TspValidationException">When the TSA returns an invalid time-stamp response</exception>
         public byte[] GetTimestampFromDocumentHash(byte[] hash, string digestMethod)
         {
-            String digestOid = CryptoConfig.MapNameToOID(CryptoConfig.CreateFromName(digestMethod).GetType().ToString());
+            TimeStampRequest tspReq = CreateRfc3161RequestBody(hash, digestMethod);
 
-            TimeStampRequestGenerator tsprg = new TimeStampRequestGenerator();
-            tsprg.SetCertReq(true);
-            TimeStampRequest tspr = tsprg.Generate(digestOid, hash);
-            byte[] tsprBytes = tspr.GetEncoded();
-
+            byte[] tsprBytes = tspReq.GetEncoded();
+            WebRequest post = CreateRfc3161WebRequest(tsprBytes);
             trace.TraceEvent(TraceEventType.Information, 0, "retrieving time-stamp of {0} from {1}", Convert.ToBase64String(hash), address);
-            WebRequest post = WebRequest.Create(address);
-            post.ContentType = "application/timestamp-query";
-            post.Method = "POST";
-            post.ContentLength = tsprBytes.Length;
             using (Stream postStream = post.GetRequestStream())
             {
                 postStream.Write(tsprBytes, 0, tsprBytes.Length);
             }
             WebResponse response = post.GetResponse();
             Stream responseStream = response.GetResponseStream();
-            if (response.ContentType != "application/timestamp-reply")
-            {
-                byte[] buffer = (new BinaryReader(responseStream)).ReadBytes(16 * 1024);
-                trace.TraceData(TraceEventType.Error, 0, "Invalid http content for time-stamp reply: " + response.ContentType, buffer);
-                throw new ApplicationException("Response with invalid content type of the TSA: " + response.ContentType);
-            }
 
-            TimeStampResponse tsResponse = new TimeStampResponse(responseStream);
+            CheckRfc3161WebResponse(response);
+
+            MemoryStream rspStream = new MemoryStream();
+            responseStream.CopyTo(rspStream);
+            return ParseRfc3161ResponseBody(rspStream.ToArray(), tspReq);
+        }
+
+        /// <summary>
+        /// Gets a time-stamp of the provided address via the RFC3161.
+        /// </summary>
+        /// <param name="hash">The has to get the time-stamp from</param>
+        /// <param name="digestMethod">The algorithm used to calculate the hash</param>
+        /// <returns>The time-stamp token in binary (encoded) format</returns>
+        /// <exception cref="WebException">When the TSA returned a http-error</exception>
+        /// <exception cref="TspValidationException">When the TSA returns an invalid time-stamp response</exception>
+        public async Task<byte[]> GetTimestampFromDocumentHashAsync(byte[] hash, string digestMethod)
+        {
+            TimeStampRequest tspReq = CreateRfc3161RequestBody(hash, digestMethod);
+
+            byte[] tsprBytes = tspReq.GetEncoded();
+            WebRequest post = CreateRfc3161WebRequest(tsprBytes);
+            trace.TraceEvent(TraceEventType.Information, 0, "retrieving time-stamp of {0} from {1}", Convert.ToBase64String(hash), address);
+            using (Stream postStream = post.GetRequestStream())
+            {
+                await postStream.WriteAsync(tsprBytes, 0, tsprBytes.Length);
+            }
+            WebResponse response = post.GetResponse();
+
+            MemoryStream rspStream = new MemoryStream();
+            Task rspCopy = response.GetResponseStream().CopyToAsync(rspStream);
+
+            CheckRfc3161WebResponse(response);
+
+            rspCopy.Wait();
+
+            return ParseRfc3161ResponseBody(rspStream.ToArray(), tspReq);
+        }
+
+        private TimeStampRequest CreateRfc3161RequestBody(byte[] hash, string digestMethod)
+        {
+            String digestOid = CryptoConfig.MapNameToOID(CryptoConfig.CreateFromName(digestMethod).GetType().ToString());
+
+            TimeStampRequestGenerator tsprg = new TimeStampRequestGenerator();
+            tsprg.SetCertReq(true);
+            return tsprg.Generate(digestOid, hash);
+        }
+
+        private WebRequest CreateRfc3161WebRequest(byte[] tspr)
+        {
+            var post = WebRequest.Create(address);
+            post.ContentType = "application/timestamp-query";
+            post.Method = "POST";
+            post.ContentLength = tspr.Length;
+            return post;
+        }
+
+        private void CheckRfc3161WebResponse(WebResponse webResponse)
+        {
+            if (webResponse.ContentType != "application/timestamp-reply")
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "Invalid http content for time-stamp reply: " + webResponse.ContentType);
+                throw new ApplicationException("Response with invalid content type of the TSA: " + webResponse.ContentType);
+            }
+        }
+
+        private byte[] ParseRfc3161ResponseBody(byte[] rspBody, TimeStampRequest tspr)
+        {
+            TimeStampResponse tsResponse = new TimeStampResponse(rspBody);
             trace.TraceData(TraceEventType.Verbose, 0, "retrieved time-stamp response", address.ToString(), Convert.ToBase64String(tsResponse.GetEncoded()));
 
             try

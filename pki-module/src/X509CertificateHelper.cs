@@ -71,11 +71,6 @@ namespace Egelke.EHealth.Client.Pki
 
         public static Chain BuildChain(this X509Certificate2 cert, DateTime validationTime, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
         {
-            return cert.BuildChain(validationTime, extraStore, ref crls, ref ocsps, false, new TimeSpan(0, 1, 0));
-        }
-
-        public static Chain BuildChain(this X509Certificate2 cert, DateTime validationTime, X509Certificate2Collection extraStore, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps, bool checkHistoricalSuspend, TimeSpan maxDelay)
-        {
             if (validationTime.Kind != DateTimeKind.Utc)
                 throw new ArgumentException("The time must be UTC", "validationTime");
 
@@ -164,8 +159,8 @@ namespace Egelke.EHealth.Client.Pki
 
                     //set basic info
                     statusCheck.ValidationTime = validationTime;
-                    statusCheck.CheckSuspend = checkHistoricalSuspend && index == 0;
-                    statusCheck.MaxDelay = maxDelay;
+                    //statusCheck.CheckSuspend = checkHistoricalSuspend && index == 0;
+                    //statusCheck.MaxDelay = maxDelay;
                     statusCheck.ClockSkewness = ClockSkewness;
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Checking revocation of {0} on {1} ", currentElement.Certificate.Subject, validationTime);
 

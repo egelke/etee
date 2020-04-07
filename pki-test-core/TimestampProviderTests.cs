@@ -55,6 +55,8 @@ namespace Egelke.EHealth.Client.Pki.Test
             Assert.AreEqual(new DateTime(2021, 12, 15, 8, 0, 0), ts.RenewalTime);
             Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(2, crls.Count);
+            Assert.AreEqual(0, ocps.Count);
             ts = tst.Validate(ref crls, ref ocps, DateTime.UtcNow); //check clock skewness
             Assert.IsTrue(Math.Abs((DateTime.UtcNow - ts.Time).TotalSeconds) < 60);
             Assert.AreEqual(new DateTime(2021, 12, 15, 8, 0, 0), ts.RenewalTime);

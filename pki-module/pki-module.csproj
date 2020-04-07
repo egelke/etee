@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net40;</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <RootNamespace>Egelke.EHealth.Client.Pki</RootNamespace>
     <AssemblyName>Egelke.EHealth.Client.Pki</AssemblyName>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.2.0-beta1</Version>
+    <Version>2.2.0-beta2</Version>
     <Authors>Egelke BVBA</Authors>
     <Product>https://github.com/egelke/eHI</Product>
     <Description>PKI tools useful for eHealth</Description>
@@ -16,7 +16,8 @@
     <AssemblyVersion>2.2.0.0</AssemblyVersion>
     <FileVersion>2.2.0.0</FileVersion>
     <PackageTags>eHealth eSigning TimeStamp PKI PKCS#12 X509</PackageTags>
-    <PackageReleaseNotes>Multi target package.</PackageReleaseNotes>
+    <PackageReleaseNotes>Multi target package: .net standard and .net framework 4.5.2 (latest supported)
+Async methods.</PackageReleaseNotes>
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
@@ -32,17 +33,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Debug|netstandard2.0'">
     <DocumentationFile>bin\Debug\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Debug|net40'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Debug|net452'">
     <DocumentationFile>bin\Debug\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net40'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net452'">
     <DocumentationFile>bin\Release\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|netstandard2.0'">
     <DocumentationFile>bin\Release\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 
