@@ -21,13 +21,13 @@ namespace Egelke.EHealth.Client.Pki.Test
         [ClassInitialize]
         public static void setupClass(TestContext ctx)
         {
-            p12 = new EHealthP12(@"EHealthP12\dummy.p12", "test001");
+            p12 = new EHealthP12(@"EHealthP12/dummy.p12", "test001");
         }
 
         [TestMethod]
         public void ConstuctorWithByteArray()
         {
-            p12 = new EHealthP12(File.ReadAllBytes(@"EHealthP12\dummy.p12"), "test001");
+            p12 = new EHealthP12(File.ReadAllBytes(@"EHealthP12/dummy.p12"), "test001");
             Assert.AreEqual(5, p12.Keys.Count);
         }
 

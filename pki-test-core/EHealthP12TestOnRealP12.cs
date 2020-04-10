@@ -8,6 +8,7 @@ using System.Collections;
 using Egelke.EHealth.Client.Pki;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Runtime.InteropServices;
 
 namespace Egelke.EHealth.Client.Pki.Test
 {
@@ -19,8 +20,8 @@ namespace Egelke.EHealth.Client.Pki.Test
         [ClassInitialize]
         public static void setup(TestContext ctx)
         {
-            p12 = new EHealthP12(@"EHealthP12\SSIN=79021802145.p12", File.ReadAllText(@"EHealthP12\SSIN=79021802145.txt"));
-            //p12 = new EHealthP12(@"..\..\EHealthP12\ehealth.p12", File.ReadAllText(@"..\..\EHealthP12\ehealth.txt"));
+            p12 = new EHealthP12(@"EHealthP12/SSIN=79021802145.p12", File.ReadAllText(@"EHealthP12/SSIN=79021802145.txt"));
+            //p12 = new EHealthP12(@"../../EHealthP12/ehealth.p12", File.ReadAllText(@"../../EHealthP12/ehealth.txt"));
         }
 
         [TestMethod]
@@ -32,35 +33,43 @@ namespace Egelke.EHealth.Client.Pki.Test
 
             byte[] data = Encoding.UTF8.GetBytes("My Test");
 
-            RSACryptoServiceProvider privateKey = cert.PrivateKey as RSACryptoServiceProvider;
-            Assert.AreEqual("Microsoft Enhanced RSA and AES Cryptographic Provider", privateKey.CspKeyContainerInfo.ProviderName);
-            byte[] signature = privateKey.SignData(data, new SHA1Managed());
+            RSA rsaPrivateKey = (RSA)cert.PrivateKey;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                RSACryptoServiceProvider privateKey = cert.PrivateKey as RSACryptoServiceProvider;
+                Assert.AreEqual("Microsoft Enhanced RSA and AES Cryptographic Provider", privateKey.CspKeyContainerInfo.ProviderName);
+            }
+            byte[] signature = rsaPrivateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             Assert.IsNotNull(signature);
-            Assert.AreEqual(2048/8, signature.Length);
+            Assert.AreEqual(2048 / 8, signature.Length);
 
-            RSACryptoServiceProvider publicKey =  cert.PublicKey.Key as RSACryptoServiceProvider;
-            Assert.IsTrue(publicKey.VerifyData(data, new SHA1Managed(), signature));
+            RSA rsaPublicKey = (RSA)cert.PublicKey.Key;
+            Assert.IsTrue(rsaPublicKey.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
         }
 
         [TestMethod]
         public void EncValue()
         {
-            X509Certificate2 cert = p12["148459475702464467506498982825636760342"];
+            X509Certificate2 cert = p12["23026136802225309793051423393461312560"];
             Assert.IsNotNull(cert);
             Assert.IsTrue(cert.HasPrivateKey);
 
 
             byte[] data = Encoding.UTF8.GetBytes("My Test");
 
-            RSACryptoServiceProvider publicKey = cert.PublicKey.Key as RSACryptoServiceProvider;
-            byte[] enc = publicKey.Encrypt(data, false);
+            RSA publicKey = (RSA)cert.PublicKey.Key;
+            byte[] enc = publicKey.Encrypt(data, RSAEncryptionPadding.Pkcs1);
             Assert.IsNotNull(enc);
 
-            RSACryptoServiceProvider privateKey = cert.PrivateKey as RSACryptoServiceProvider;
-            Assert.AreEqual("Microsoft Enhanced RSA and AES Cryptographic Provider", privateKey.CspKeyContainerInfo.ProviderName);
-            byte[] data_copy = privateKey.Decrypt(enc, false);
-            Assert.AreEqual(data.Length,data_copy.Length);
-            for (int i=0; i<data.Length; i++)
+            RSA privateKey = (RSA)cert.PrivateKey;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                RSACryptoServiceProvider winPrivateKey = privateKey as RSACryptoServiceProvider;
+                Assert.AreEqual("Microsoft Enhanced RSA and AES Cryptographic Provider", winPrivateKey.CspKeyContainerInfo.ProviderName);
+            }
+            byte[] data_copy = privateKey.Decrypt(enc, RSAEncryptionPadding.Pkcs1);
+            Assert.AreEqual(data.Length, data_copy.Length);
+            for (int i = 0; i < data.Length; i++)
             {
                 Assert.AreEqual(data[i], data_copy[i]);
             }
@@ -78,17 +87,17 @@ namespace Egelke.EHealth.Client.Pki.Test
             root.Open(OpenFlags.ReadWrite);
             foreach (X509Certificate2 cert in p12.Values)
             {
-                if (my.Certificates.Contains(cert)) 
+                if (my.Certificates.Contains(cert))
                     my.Remove(cert);
-                if (cas.Certificates.Contains(cert)) 
+                if (cas.Certificates.Contains(cert))
                     cas.Remove(cert);
-                if (root.Certificates.Contains(cert)) 
+                if (root.Certificates.Contains(cert))
                     root.Remove(cert);
             }
-            
+
             //Test install
             p12.Install(StoreLocation.CurrentUser);
         }
-       
+
     }
 }

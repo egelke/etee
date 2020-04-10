@@ -10,12 +10,14 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace Egelke.EHealth.Client.Pki.Test
 {
     [TestClass]
     public class CertTest
     {
+
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -55,7 +57,7 @@ namespace Egelke.EHealth.Client.Pki.Test
 
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
-            Chain rsp = target.BuildChain(new DateTime(2014, 03, 05, 18, 00, 00, DateTimeKind.Utc), extraStore, ref crls, ref ocsps);
+            Chain rsp = target.BuildChain(new DateTime(2014, 03, 05, 18, 00, 00, DateTimeKind.Utc), extraStore, crls, ocsps);
 
             Assert.AreEqual(1, rsp.ChainStatus.Count(x => x.Status == X509ChainStatusFlags.RevocationStatusUnknown));
             Assert.AreEqual(3, rsp.ChainElements.Count);
@@ -75,7 +77,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             crls.Add(CertificateList.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes(@"files/Citizen201204.crl"))));
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
             ocsps.Add(BasicOcspResponse.GetInstance(Asn1Sequence.GetInstance(File.ReadAllBytes(@"files/eid79021802145.ocsp"))));
-            Chain rsp = target.BuildChain(new DateTime(2014, 03, 05, 18, 00, 00, DateTimeKind.Utc), extraStore, ref crls, ref ocsps);
+            Chain rsp = target.BuildChain(new DateTime(2014, 03, 05, 18, 00, 00, DateTimeKind.Utc), extraStore, crls, ocsps);
 
             Assert.AreEqual(0, rsp.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(3, rsp.ChainElements.Count);
@@ -95,7 +97,7 @@ namespace Egelke.EHealth.Client.Pki.Test
 
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
-            Chain rsp = target.BuildChain(DateTime.UtcNow, extraStore, ref crls, ref ocsps);
+            Chain rsp = target.BuildChain(DateTime.UtcNow, extraStore, crls, ocsps);
 
             Assert.AreEqual(0, rsp.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(3, rsp.ChainElements.Count);
