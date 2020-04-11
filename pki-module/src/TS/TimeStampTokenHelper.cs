@@ -28,12 +28,13 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using BC=Org.BouncyCastle.X509;
+using BC = Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -56,6 +57,12 @@ namespace Egelke.EHealth.Client.Pki
             return new TimeStampToken(new Org.BouncyCastle.Cms.CmsSignedData(tst));
         }
 
+        /// <summary>
+        /// Check if the timestamp matches the data
+        /// </summary>
+        /// <param name="tst">The timestamp</param>
+        /// <param name="data">The data to match</param>
+        /// <returns><c>true</c> when there is a match, <c>false</c> otherwise</returns>
         public static bool IsMatch(this TimeStampToken tst, Stream data)
         {
             //check if we can verify the time-stamp
@@ -69,7 +76,7 @@ namespace Egelke.EHealth.Client.Pki
                 trace.TraceEvent(TraceEventType.Error, 0, "The time-stamp {0} contains a Nonce which isn't supported", tst.TimeStampInfo.SerialNumber, tst.TimeStampInfo.HashAlgorithm.Parameters);
                 throw new NotSupportedException("Time-stamp with a nonce isn't supported");
             }
-                
+
             //create the hash according to the specs of the time-stamp
             var hashAlogOid = new Oid(tst.TimeStampInfo.HashAlgorithm.ObjectID.Id);
             var hashAlgo = (HashAlgorithm)CryptoConfig.CreateFromName(hashAlogOid.FriendlyName);
@@ -88,7 +95,7 @@ namespace Egelke.EHealth.Client.Pki
             //Get the info from the token
             BC::X509Certificate signer;
             IEnumerator signers = tst.GetCertificates("Collection").GetMatches(tst.SignerID).GetEnumerator();
-            
+
             //Get the one and only one signer
             if (!signers.MoveNext()) return null;
             signer = (BC::X509Certificate)signers.Current;
@@ -96,82 +103,140 @@ namespace Egelke.EHealth.Client.Pki
             return signer;
         }
 
+        /// <summary>
+        /// Validates the time-stamp token trusting the time of the token itself
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <returns>The validation chain of the signing certificate</returns>
         public static Timestamp Validate(this TimeStampToken tst)
         {
             return tst.Validate(new List<CertificateList>(), new List<BasicOcspResponse>());
         }
 
         /// <summary>
-        /// Validates the time-stamp token in normal case, not for arbitration.
+        /// Validates the time-stamp token trusting the time of the token itself
         /// </summary>
-        /// <param name="tst"></param>
-        /// <param name="crls"></param>
-        /// <param name="ocsps"></param>
-        /// <returns></returns>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <returns>The validation chain of the signing certificate</returns>
+        public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst)
+        {
+            return await tst.ValidateAsync(new List<CertificateList>(), new List<BasicOcspResponse>());
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token trusting the time of the token itself
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="crls">Known Crl's, new retrieved crl's will be added here</param>
+        /// <param name="ocsps">Known Ocsp's, new retrieved ocsp's will be added here</param>
+        /// <returns>The validation chain of the signing certificate</returns>
         public static Timestamp Validate(this TimeStampToken tst, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps)
         {
             return tst.Validate(crls, ocsps, null);
         }
 
         /// <summary>
-        /// Validates the time-stamp token in case of arbitration or with a specified trusted time.
+        /// Validates the time-stamp token trusting the time of the token itself
         /// </summary>
-        /// <param name="tst"></param>
-        /// <param name="crls"></param>
-        /// <param name="ocsps"></param>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="crls">Known Crl's, new retrieved crl's will be added here</param>
+        /// <param name="ocsps">Known Ocsp's, new retrieved ocsp's will be added here</param>
+        /// <returns>The validation chain of the signing certificate</returns>
+        public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps)
+        {
+            return await tst.ValidateAsync(crls, ocsps, null);
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token with a specified trusted time.
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="crls">Known Crl's, new retrieved crl's will be added here</param>
+        /// <param name="ocsps">Known Ocsp's, new retrieved ocsp's will be added here</param>
         /// <param name="trustedTime">The trusted time, <c>null</c> for the timestamp time</param>
         /// <returns>The validation chain of the signing certificate</returns>
-        /// <exception cref="InvalidTokenException">When the token isn't signed by the indicated certificate</exception>
         public static Timestamp Validate(this TimeStampToken tst, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
+        {
+            var value = tst.CreateTimestamp();
+
+            //check if the indicated certificate is the signer
+            X509Certificate2 signer = tst.CheckSigner(value);
+
+            //check and extract the cert
+            var extraStore = tst.GetExtraStore();
+
+            //get the validation time
+            DateTime validationTime = value.GetValidationTime(trustedTime);
+
+            //build the chain
+            value.CertificateChain = signer.BuildChain(validationTime, extraStore, crls, ocsps); //we assume time-stamp signers aren't suspended, only permanently revoked
+
+            //get the renewal time
+            value.RenewalTime = value.CertificateChain.GetMinNotAfter();
+
+            return value;
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token in case of arbitration or with a specified trusted time.
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="crls">Known Crl's, new retrieved crl's will be added here</param>
+        /// <param name="ocsps">Known Ocsp's, new retrieved ocsp's will be added here</param>
+        /// <param name="trustedTime">The trusted time, <c>null</c> for the timestamp time</param>
+        /// <returns>The validation chain of the signing certificate</returns>
+        public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
+        {
+            var value = tst.CreateTimestamp();
+
+            //check if the indicated certificate is the signer
+            X509Certificate2 signer = tst.CheckSigner(value);
+
+            //check and extract the cert
+            var extraStore = tst.GetExtraStore();
+
+            //get the validation time
+            DateTime validationTime = value.GetValidationTime(trustedTime);
+
+            //build the chain
+            value.CertificateChain = await signer.BuildChainAsync(validationTime, extraStore, crls, ocsps); //we assume time-stamp signers aren't suspended, only permanently revoked
+
+            //get the renewal time
+            value.RenewalTime = value.CertificateChain.GetMinNotAfter();
+
+            return value;
+        }
+
+        private static Timestamp CreateTimestamp(this TimeStampToken tst)
         {
             var value = new Timestamp();
             value.Time = DateTime.SpecifyKind(tst.TimeStampInfo.GenTime, DateTimeKind.Utc);
             value.TimestampStatus = new List<X509ChainStatus>();
+            X509ChainStatus status = new X509ChainStatus();
+            status.Status = X509ChainStatusFlags.NoError;
+            value.TimestampStatus.Add(status);
+            return value;
+        }
 
-            //check if the indicated certificate is the signer
-            BC::X509Certificate signerBc = tst.GetSigner();
+        private static X509Certificate2 CheckSigner(this TimeStampToken tst, Timestamp value)
+        {
+            BC.X509Certificate signerBc = tst.GetSigner();
             if (signerBc == null)
             {
                 trace.TraceEvent(TraceEventType.Warning, 0, "The signer of the time-stamp {0} isn't found", tst.TimeStampInfo.SerialNumber);
-                X509ChainStatus status = new X509ChainStatus();
-                status.Status = X509ChainStatusFlags.NotSignatureValid;
-                status.StatusInformation = "Signer not found";
-                X509CertificateHelper.AddErrorStatus(value.TimestampStatus, status);
-            }
-            else
-            {
-                try
-                {
-                    tst.Validate(signerBc);
-                }
-                catch (Exception e)
-                {
-                    trace.TraceEvent(TraceEventType.Warning, 0, "The signature from {1} of the time-stamp {0} is invalid: {2}", tst.TimeStampInfo.SerialNumber, signerBc.SubjectDN, e.Message);
-                    X509ChainStatus status = new X509ChainStatus();
-                    status.Status = X509ChainStatusFlags.NotSignatureValid;
-                    status.StatusInformation = "Time-stamp not signed by indicated certificate: " + e.Message;
-                    X509CertificateHelper.AddErrorStatus(value.TimestampStatus, status);
-                }
+                X509CertificateHelper.AddErrorStatus(value.TimestampStatus, null, X509ChainStatusFlags.NotSignatureValid, "Signer not found");
+                return null;
             }
 
-            //check the chain
-            var extraStore = new X509Certificate2Collection();
-            foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates("Collection").GetMatches(null))
+            //check the signature
+            try
             {
-                extraStore.Add(new X509Certificate2(cert.GetEncoded()));
+                tst.Validate(signerBc);
             }
-            DateTime validationTime = trustedTime != null ? trustedTime.Value : value.Time;
-            value.CertificateChain = (new X509Certificate2(signerBc.GetEncoded())).BuildChain(validationTime, extraStore, crls, ocsps); //we assume time-stamp signers aren't suspended, only permanently revoked
-
-            //get the renewal time
-            value.RenewalTime = DateTime.MaxValue;
-            foreach (ChainElement chainE in value.CertificateChain.ChainElements)
+            catch (Exception e)
             {
-                DateTime end = chainE.Certificate.NotAfter.ToUniversalTime();
-                if (end < value.RenewalTime)
-                {
-                    value.RenewalTime = end;
-                }
+                trace.TraceEvent(TraceEventType.Warning, 0, "The signature from {1} of the time-stamp {0} is invalid: {2}", tst.TimeStampInfo.SerialNumber, signerBc.SubjectDN, e.Message);
+                X509CertificateHelper.AddErrorStatus(value.TimestampStatus, null, X509ChainStatusFlags.NotSignatureValid, "Time-stamp not signed by indicated certificate: " + e.Message);
             }
 
             //check if the certificate may be used for time-stamping
@@ -179,19 +244,25 @@ namespace Egelke.EHealth.Client.Pki
             if (!signerExtKeyUsage.Contains("1.3.6.1.5.5.7.3.8"))
             {
                 trace.TraceEvent(TraceEventType.Warning, 0, "The signer {1} of the time-stamp {0} isn't allowed to sign timestamps", tst.TimeStampInfo.SerialNumber, signerBc.SubjectDN);
-                X509ChainStatus status = new X509ChainStatus();
-                status.Status = X509ChainStatusFlags.NotValidForUsage;
-                status.StatusInformation = "The certificate may not be used for timestamps";
-
-                X509CertificateHelper.AddErrorStatus(value.TimestampStatus, status);
+                X509CertificateHelper.AddErrorStatus(value.TimestampStatus, null, X509ChainStatusFlags.NotSignatureValid, "The certificate may not be used for timestamps");
             }
 
-            if (value.TimestampStatus.Count == 0) {
-                X509ChainStatus status = new X509ChainStatus();
-                status.Status = X509ChainStatusFlags.NoError;
-                value.TimestampStatus.Add(status);
+            return new X509Certificate2(signerBc.GetEncoded());
+        }
+
+        private static X509Certificate2Collection GetExtraStore(this TimeStampToken tst)
+        {
+            var extraStore = new X509Certificate2Collection();
+            foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates("Collection").GetMatches(null))
+            {
+                extraStore.Add(new X509Certificate2(cert.GetEncoded()));
             }
-            return value;
+            return extraStore;
+        }
+
+        private static DateTime GetValidationTime(this Timestamp value, DateTime? trustedTime)
+        {
+            return trustedTime != null ? trustedTime.Value : value.Time;
         }
     }
 }

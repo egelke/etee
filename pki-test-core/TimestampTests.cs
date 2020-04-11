@@ -37,6 +37,25 @@ namespace Egelke.EHealth.Client.Pki.Test
         }
 
         [TestMethod]
+        public async Task Fedict_TsInternalTime_GetNewCrlAsync()
+        {
+            //if (DateTime.UtcNow > new DateTime(2019, 1, 23, 12, 0, 0, DateTimeKind.Utc)) Assert.Inconclusive("The timestamp should have been renewed");
+
+            IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { });
+            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] {  });
+            TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeStampToken();
+
+            Timestamp ts = await tst.ValidateAsync(crls, ocps); //use timestamp time to verify
+            Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49, DateTimeKind.Utc).ToString("o"), ts.Time.ToString("o"));
+            Assert.AreEqual(new DateTime(2019, 1, 23, 11, 0, 0, DateTimeKind.Utc).ToString("o"), ts.RenewalTime.ToString("o"));
+            Assert.AreEqual(2, ts.CertificateChain.ChainElements.Count, "There should be 2, please remove the resigned Root CA's from your store");
+            Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(1, crls.Count);
+            Assert.AreEqual(0, ocps.Count);
+        }
+
+        [TestMethod]
         public void FedictTs_InternalTime_ProvideCrl()
         {
             CertificateList crl1 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs1.crl"));

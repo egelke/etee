@@ -11,6 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace Egelke.EHealth.Client.Pki.Test
 {
@@ -98,6 +99,26 @@ namespace Egelke.EHealth.Client.Pki.Test
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
             Chain rsp = target.BuildChain(DateTime.UtcNow, extraStore, crls, ocsps);
+
+            Assert.AreEqual(0, rsp.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(3, rsp.ChainElements.Count);
+            Assert.AreEqual("SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Authentication), C=BE", rsp.ChainElements[0].Certificate.Subject);
+            Assert.AreEqual("SERIALNUMBER=201709, CN=Citizen CA, O=http://repository.eid.belgium.be/, C=BE", rsp.ChainElements[1].Certificate.Subject);
+            Assert.AreEqual("CN=Belgium Root CA4, C=BE", rsp.ChainElements[2].Certificate.Subject);
+            Assert.AreEqual(1, crls.Count);
+            Assert.AreEqual(1, ocsps.Count);
+        }
+
+        [TestMethod]
+        public async Task TestNewEid_GetRevocationAsync()
+        {
+            X509Certificate2 target = new X509Certificate2(@"files/eid79021802145-2027.crt");
+            X509Certificate2Collection extraStore = new X509Certificate2Collection();
+            extraStore.Add(new X509Certificate2(@"files/Citizen201709.crt"));
+
+            IList<CertificateList> crls = new List<CertificateList>();
+            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
+            Chain rsp = await target.BuildChainAsync(DateTime.UtcNow, extraStore, crls, ocsps);
 
             Assert.AreEqual(0, rsp.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(3, rsp.ChainElements.Count);

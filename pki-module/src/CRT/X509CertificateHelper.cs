@@ -61,6 +61,13 @@ namespace Egelke.EHealth.Client.Pki
         private static readonly TimeSpan ClockSkewness = new TimeSpan(0, 1, 0);
         private static readonly TraceSource trace = new TraceSource("Egelke.EHealth.Tsa");
 
+        /// <summary>
+        /// Wrapper of the X509Chain, just for compatbility
+        /// </summary>
+        /// <param name="cert">The certificate to validate</param>
+        /// <param name="validationTime">The time upon wich the validate</param>
+        /// <param name="extraStore">Extra certs to use when creating the chain</param>
+        /// <returns></returns>
         public static Chain BuildChain(this X509Certificate2 cert, DateTime validationTime, X509Certificate2Collection extraStore)
         {
             DateTime now = DateTime.UtcNow;
@@ -91,6 +98,15 @@ namespace Egelke.EHealth.Client.Pki
             return chain;
         }
 
+        /// <summary>
+        /// Build a chain for the certificates and verifies the revocation (own implementation)
+        /// </summary>
+        /// <param name="cert">The certificate to validate</param>
+        /// <param name="validationTime">The time upon wich the validate</param>
+        /// <param name="extraStore">Extra certs to use when creating the chain</param>
+        /// <param name="crls">Already known crl's, newly retrieved CRL's will be added here</param>
+        /// <param name="ocsps">Already konwn ocsp's, newly retreived OCSP's will be added here</param>
+        /// <returns>The chain with all the information about validity</returns>
         public static Chain BuildChain(this X509Certificate2 cert, DateTime validationTime, X509Certificate2Collection extraStore, IList<BCAX.CertificateList> crls, IList<BCAO.BasicOcspResponse> ocsps)
         {
             Chain chain = cert.BuildChain(validationTime, extraStore);
@@ -140,24 +156,83 @@ namespace Egelke.EHealth.Client.Pki
                 }
                 catch (RevocationException<BCAO.BasicOcspResponse>)
                 {
-                    X509ChainStatus status = new X509ChainStatus();
-                    status.Status = X509ChainStatusFlags.Revoked;
-                    status.StatusInformation = "The certificate has been revoked";
-                    AddErrorStatus(chain.ChainElements[i].ChainElementStatus, status);
-                    AddErrorStatus(chain.ChainStatus, status);
+                    AddErrorStatus(chain.ChainStatus, chain.ChainElements[i].ChainElementStatus, X509ChainStatusFlags.Revoked, "The certificate has been revoked");
                 }
                 catch
                 {
-                    X509ChainStatus status = new X509ChainStatus();
-                    status.Status = X509ChainStatusFlags.RevocationStatusUnknown;
-                    status.StatusInformation = "Invalid OCSP/CRL found";
-                    AddErrorStatus(chain.ChainElements[i].ChainElementStatus, status);
-                    AddErrorStatus(chain.ChainStatus, status);
+                    AddErrorStatus(chain.ChainStatus, chain.ChainElements[i].ChainElementStatus, X509ChainStatusFlags.RevocationStatusUnknown, "Invalid OCSP/CRL found");
                 }
             }
             return chain;
         }
 
+        /// <summary>
+        /// Build a chain for the certificates and verifies the revocation (own implementation)
+        /// </summary>
+        /// <param name="cert">The certificate to validate</param>
+        /// <param name="validationTime">The time upon wich the validate</param>
+        /// <param name="extraStore">Extra certs to use when creating the chain</param>
+        /// <param name="crls">Already known crl's, newly retrieved CRL's will be added here</param>
+        /// <param name="ocsps">Already konwn ocsp's, newly retreived OCSP's will be added here</param>
+        /// <returns>The chain with all the information about validity</returns>
+        public static async Task<Chain> BuildChainAsync(this X509Certificate2 cert, DateTime validationTime, X509Certificate2Collection extraStore, IList<BCAX.CertificateList> crls, IList<BCAO.BasicOcspResponse> ocsps)
+        {
+            Chain chain = cert.BuildChain(validationTime, extraStore);
+
+            if (cert.IsOcspNoCheck())
+                return chain; //nothing to do
+
+            for (int i = 0; i < (chain.ChainElements.Count - 1); i++)
+            {
+                X509Certificate2 nextCert = chain.ChainElements[i].Certificate;
+                X509Certificate2 nextIssuer = chain.ChainElements[i + 1].Certificate;
+
+                try
+                {
+                    //try OCSP
+                    BCAO.BasicOcspResponse ocspResponse = nextCert.Verify(nextIssuer, validationTime, ocsps);
+                    if (ocspResponse == null)
+                    {
+                        //try to fetch a new one
+                        BCAO.OcspResponse ocspMsg = await nextCert.GetOcspResponseAsync(nextIssuer);
+                        if (ocspMsg != null)
+                        {
+                            //new one fetched, try again
+                            ocspResponse = BCAO.BasicOcspResponse.GetInstance(BCA.Asn1Object.FromByteArray(ocspMsg.ResponseBytes.Response.GetOctets()));
+                            ocsps.Add(ocspResponse);
+                            ocspResponse = nextCert.Verify(nextIssuer, validationTime, ocsps);
+                        }
+                    }
+
+                    //TODO::ignore OCSP retreival errors and try CRL ;-)
+                    if (ocspResponse == null)
+                    {
+                        //try CRL
+                        BCAX.CertificateList crl = nextCert.Verify(nextIssuer, validationTime, crls);
+                        if (crl == null)
+                        {
+                            //try to fetch a new one
+                            crl = await nextCert.GetCertificateListAsync();
+                            if (crl != null)
+                            {
+                                //new one fetched, try again
+                                crls.Add(crl);
+                                crl = nextCert.Verify(nextIssuer, validationTime, crls);
+                            }
+                        }
+                    }
+                }
+                catch (RevocationException<BCAO.BasicOcspResponse>)
+                {
+                    AddErrorStatus(chain.ChainStatus, chain.ChainElements[i].ChainElementStatus, X509ChainStatusFlags.Revoked, "The certificate has been revoked");
+                }
+                catch
+                {
+                    AddErrorStatus(chain.ChainStatus, chain.ChainElements[i].ChainElementStatus, X509ChainStatusFlags.RevocationStatusUnknown, "Invalid OCSP/CRL found");
+                }
+            }
+            return chain;
+        }
         /// <summary>
         /// Is the OCSP NoCheck extention present?
         /// </summary>
@@ -566,13 +641,22 @@ namespace Egelke.EHealth.Client.Pki
         }
 
 
-        internal static void AddErrorStatus(List<X509ChainStatus> statusList, X509ChainStatus extraStatus)
+        internal static void AddErrorStatus(List<X509ChainStatus> chainStatus, List<X509ChainStatus> elementStatus, X509ChainStatusFlags extraStatusFlag, String extraStatusInfo)
         {
-            foreach (X509ChainStatus noErrorStatus in statusList.Where(x => x.Status == X509ChainStatusFlags.NoError))
+            X509ChainStatus extraStatus = new X509ChainStatus();
+            extraStatus.Status = extraStatusFlag;
+            extraStatus.StatusInformation = extraStatusInfo;
+            if (chainStatus != null) AddErrorStatus(chainStatus, extraStatus);
+            if (elementStatus != null) AddErrorStatus(elementStatus, extraStatus);
+        }
+
+        private static void AddErrorStatus(List<X509ChainStatus> status, X509ChainStatus extraStatus)
+        {
+            foreach (X509ChainStatus noErrorStatus in status.Where(x => x.Status == X509ChainStatusFlags.NoError))
             {
-                statusList.Remove(noErrorStatus);
+                status.Remove(noErrorStatus);
             }
-            if (statusList.Count(x => x.Status == extraStatus.Status) == 0) statusList.Add(extraStatus);
+            if (status.Count(x => x.Status == extraStatus.Status) == 0) status.Add(extraStatus);
         }
     }
 }

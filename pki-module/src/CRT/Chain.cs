@@ -34,5 +34,23 @@ namespace Egelke.EHealth.Client.Pki
 
         public List<ChainElement> ChainElements { get; }
         public List<X509ChainStatus> ChainStatus { get; }
+
+        /// <summary>
+        /// Get the lowed NotAfter time of all chain elements
+        /// </summary>
+        /// <returns>The lowest time, or <c>DateTime.MavValue</c> if no elements in the chain</returns>
+        public DateTime GetMinNotAfter()
+        {
+            DateTime min = DateTime.MaxValue;
+            foreach (ChainElement chainE in ChainElements)
+            {
+                DateTime end = chainE.Certificate.NotAfter.ToUniversalTime();
+                if (end < min)
+                {
+                    min = end;
+                }
+            }
+            return min;
+        }
     }
 }
