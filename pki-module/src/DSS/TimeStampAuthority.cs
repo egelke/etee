@@ -25,8 +25,11 @@ namespace Egelke.EHealth.Client.Pki.DSS
     /// <summary>
     /// Interface of the TSA client, do not use directly.
     /// </summary>
-    //[System.ServiceModel.ServiceContractAttribute(ProtectionLevel = ProtectionLevel.Sign, Namespace = "urn:egelke:xades:tsa", ConfigurationName = "Xades.TSA")]
-    [System.ServiceModel.ServiceContractAttribute(Namespace = "urn:egelke:xades:tsa", ConfigurationName = "Xades.TSA")]
+#if NET452
+    [System.ServiceModel.ServiceContractAttribute(ProtectionLevel = ProtectionLevel.Sign, Namespace = "urn:egelke:tsa", ConfigurationName = "Egelke.EHealth.Client.Pki.TSA")]
+#else
+    [System.ServiceModel.ServiceContractAttribute(Namespace = "urn:egelke:tsa", ConfigurationName = "Egelke.EHealth.Client.Pki.TSA")]
+#endif
     public interface TimeStampAuthority
     {
 

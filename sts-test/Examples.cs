@@ -105,12 +105,12 @@ namespace Siemens.EHealth.Client.StsTest
                 new StsBinding(), 
                 new EndpointAddress(
                     new Uri("https://services-acpt.ehealth.fgov.be/IAM/SingleSignOnService/v1")
-                    ,EndpointIdentity.CreateDnsIdentity("*.int.pub.ehealth.fgov.be")
+                    //,EndpointIdentity.CreateDnsIdentity("*.int.pub.ehealth.fgov.be")
                     )
                 );
-            //target.Endpoint.Behaviors.Remove<ClientCredentials>();
-            //target.Endpoint.Behaviors.Add(new OptClientCredentials());
-            target.ClientCredentials.ServiceCertificate.DefaultCertificate = ehSsl; //not really used, but better then the workaround
+            target.Endpoint.Behaviors.Remove<ClientCredentials>();
+            target.Endpoint.Behaviors.Add(new OptClientCredentials());
+            //target.ClientCredentials.ServiceCertificate.DefaultCertificate = ehSsl; //not really used, but better then the workaround
             target.ClientCredentials.ClientCertificate.Certificate = auth;
             XmlElement assertion = target.RequestTicket("Anonymous", session, TimeSpan.FromHours(1), assertedDefault, requestedDefault);
 

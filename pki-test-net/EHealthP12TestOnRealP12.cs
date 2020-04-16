@@ -45,7 +45,7 @@ namespace Egelke.EHealth.Client.Pki.Test
         [TestMethod]
         public void EncValue()
         {
-            X509Certificate2 cert = p12["148459475702464467506498982825636760342"];
+            X509Certificate2 cert = p12["23026136802225309793051423393461312560"];
             Assert.IsNotNull(cert);
             Assert.IsTrue(cert.HasPrivateKey);
 
@@ -65,30 +65,5 @@ namespace Egelke.EHealth.Client.Pki.Test
                 Assert.AreEqual(data[i], data_copy[i]);
             }
         }
-
-        [TestMethod, Ignore("Only on demand")]
-        public void ReinstallInCurrentUser()
-        {
-            //Prepare
-            X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            my.Open(OpenFlags.ReadWrite);
-            X509Store cas = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser);
-            cas.Open(OpenFlags.ReadWrite);
-            X509Store root = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
-            root.Open(OpenFlags.ReadWrite);
-            foreach (X509Certificate2 cert in p12.Values)
-            {
-                if (my.Certificates.Contains(cert)) 
-                    my.Remove(cert);
-                if (cas.Certificates.Contains(cert)) 
-                    cas.Remove(cert);
-                if (root.Certificates.Contains(cert)) 
-                    root.Remove(cert);
-            }
-            
-            //Test install
-            p12.Install(StoreLocation.CurrentUser);
-        }
-       
     }
 }

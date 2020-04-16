@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Egelke.EHealth.Client.Sso.Sts;
+using Egelke.EHealth.Client.Sso.WA;
 
 namespace Egelke.EHealth.Client.Pki.Test
 {
@@ -37,7 +38,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             SHA256 sha = SHA256.Create();
             hash = sha.ComputeHash(msg);
 
-            ehSsl = new X509Certificate2("ehealthfgovbe.crt");
+            ehSsl = new X509Certificate2(@"files/ehealthfgovbe.crt");
         }
 
         [TestMethod]
@@ -55,12 +56,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             Timestamp ts;
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
-            ts = tst.Validate(ref crls, ref ocps);
-            Assert.IsTrue(Math.Abs((DateTime.UtcNow - ts.Time).TotalSeconds) < 60);
-            Assert.AreEqual(new DateTime(2021, 12, 15, 8, 0, 0), ts.RenewalTime);
-            Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            ts = tst.Validate(ref crls, ref ocps, DateTime.UtcNow); //check clock skewness
+            ts = tst.Validate(crls, ocps);
             Assert.IsTrue(Math.Abs((DateTime.UtcNow - ts.Time).TotalSeconds) < 60);
             Assert.AreEqual(new DateTime(2021, 12, 15, 8, 0, 0), ts.RenewalTime);
             Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
@@ -92,8 +88,8 @@ namespace Egelke.EHealth.Client.Pki.Test
 
             IList<CertificateList> crls = new List<CertificateList>();
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
-            tst.Validate(ref crls, ref ocps);
-            tst.Validate(ref crls, ref ocps, null);
+            tst.Validate(crls, ocps);
+            tst.Validate(crls, ocps, null);
         }
     }
 }

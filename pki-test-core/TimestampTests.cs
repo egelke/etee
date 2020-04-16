@@ -29,11 +29,24 @@ namespace Egelke.EHealth.Client.Pki.Test
             Timestamp ts = tst.Validate(crls, ocps); //use timestamp time to verify
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49, DateTimeKind.Utc).ToString("o"), ts.Time.ToString("o"));
             Assert.AreEqual(new DateTime(2019, 1, 23, 11, 0, 0, DateTimeKind.Utc).ToString("o"), ts.RenewalTime.ToString("o"));
-            Assert.AreEqual(2, ts.CertificateChain.ChainElements.Count, "There should be 2, please remove the resigned Root CA's from your store");
             Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(1, crls.Count);
-            Assert.AreEqual(0, ocps.Count);
+            if (ts.CertificateChain.ChainElements.Count == 2)
+            {
+                //belgian root CA
+                Assert.AreEqual(1, crls.Count);
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else if (ts.CertificateChain.ChainElements.Count == 4)
+            {
+                //belgian resigned CA
+                Assert.AreEqual(3, crls.Count);
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else
+            {
+                Assert.Fail("The chain should be 4 or 2 long");
+            }
         }
 
         [TestMethod]
@@ -48,11 +61,24 @@ namespace Egelke.EHealth.Client.Pki.Test
             Timestamp ts = await tst.ValidateAsync(crls, ocps); //use timestamp time to verify
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49, DateTimeKind.Utc).ToString("o"), ts.Time.ToString("o"));
             Assert.AreEqual(new DateTime(2019, 1, 23, 11, 0, 0, DateTimeKind.Utc).ToString("o"), ts.RenewalTime.ToString("o"));
-            Assert.AreEqual(2, ts.CertificateChain.ChainElements.Count, "There should be 2, please remove the resigned Root CA's from your store");
             Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(1, crls.Count);
-            Assert.AreEqual(0, ocps.Count);
+            if (ts.CertificateChain.ChainElements.Count == 2)
+            {
+                //belgian root CA
+                Assert.AreEqual(1, crls.Count);
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else if (ts.CertificateChain.ChainElements.Count == 4)
+            {
+                //belgian resigned CA
+                Assert.AreEqual(3, crls.Count);
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else
+            {
+                Assert.Fail("The chain should be 4 or 2 long");
+            }
         }
 
         [TestMethod]
@@ -60,18 +86,33 @@ namespace Egelke.EHealth.Client.Pki.Test
         {
             CertificateList crl1 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs1.crl"));
             CertificateList crl2 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs2.crl"));
-            IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { crl1, crl2 });
+            CertificateList crl3 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs3.crl"));
+            IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { crl1, crl2, crl3 });
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { });
             TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeStampToken();
 
             Timestamp ts = tst.Validate(crls, ocps);
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49, DateTimeKind.Utc), ts.Time);
             Assert.AreEqual(new DateTime(2019, 1, 23, 11, 0, 0, DateTimeKind.Utc), ts.RenewalTime);
-            Assert.AreEqual(2, ts.CertificateChain.ChainElements.Count, "There should be 2, please remove the resigned Root CA's from your store");
+            
             Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(2, crls.Count);
-            Assert.AreEqual(0, ocps.Count);
+            if (ts.CertificateChain.ChainElements.Count == 2)
+            {
+                //belgian root CA
+                Assert.AreEqual(1, crls.Count);
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else if (ts.CertificateChain.ChainElements.Count == 4)
+            {
+                //belgian resigned CA
+                Assert.AreEqual(3, crls.Count);
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else
+            {
+                Assert.Fail("The chain should be 4 or 2 long");
+            }
         }
 
         [TestMethod]
@@ -79,18 +120,31 @@ namespace Egelke.EHealth.Client.Pki.Test
         {
             CertificateList crl1 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs1.crl"));
             CertificateList crl2 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs2.crl"));
-            IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { crl1, crl2 });
+            CertificateList crl3 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs3.crl"));
+            IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { crl1, crl2, crl3 });
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { });
             TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeStampToken();
 
             Timestamp ts = tst.Validate(crls, ocps, new DateTime(2014, 3, 16, 11, 0, 0, DateTimeKind.Utc));
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49, DateTimeKind.Utc), ts.Time);
             Assert.AreEqual(new DateTime(2019, 1, 23, 11, 0, 0, DateTimeKind.Utc), ts.RenewalTime);
-            Assert.AreEqual(2, ts.CertificateChain.ChainElements.Count, "There should be 2, please remove the resigned Root CA's from your store");
             Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(2, crls.Count);
-            Assert.AreEqual(0, ocps.Count);
+            if (ts.CertificateChain.ChainElements.Count == 2)
+            {
+                //belgian root CA
+                Assert.AreEqual(1, crls.Count);
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else if (ts.CertificateChain.ChainElements.Count == 4)
+            {
+                //belgian resigned CA
+                Assert.AreEqual(3, crls.Count);
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else
+            {
+                Assert.Fail("The chain should be 4 or 2 long");
+            }
         }
 
         [TestMethod]
@@ -98,6 +152,7 @@ namespace Egelke.EHealth.Client.Pki.Test
         {
             CertificateList crl1 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs1.crl"));
             CertificateList crl2 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs2.crl"));
+            CertificateList crl3 = CertificateList.GetInstance(File.ReadAllBytes("files/fedictTs3.crl"));
             IList<CertificateList> crls = new List<CertificateList>(new CertificateList[] { crl1, crl2 });
             IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>(new BasicOcspResponse[] { });
             TimeStampToken tst = File.ReadAllBytes("files/fedictTs.ts").ToTimeStampToken();
@@ -105,12 +160,24 @@ namespace Egelke.EHealth.Client.Pki.Test
             Timestamp ts = tst.Validate(crls, ocps, new DateTime(2019, 1, 5, 13, 34, 12, DateTimeKind.Utc));
             Assert.AreEqual(new DateTime(2014, 3, 15, 11, 50, 49, DateTimeKind.Utc), ts.Time);
             Assert.AreEqual(new DateTime(2019, 1, 23, 11, 0, 0, DateTimeKind.Utc), ts.RenewalTime);
-            Assert.AreEqual(2, ts.CertificateChain.ChainElements.Count, "There should be 2, please remove the resigned Root CA's from your store");
             Assert.AreEqual(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            
-            Assert.AreEqual(3, crls.Count);
-            Assert.AreEqual(0, ocps.Count);
+            if (ts.CertificateChain.ChainElements.Count == 2)
+            {
+                //belgian root CA
+                Assert.AreEqual(3, crls.Count);
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else if (ts.CertificateChain.ChainElements.Count == 4)
+            {
+                //belgian resigned CA
+                Assert.AreEqual(5, crls.Count); //the last one isn't oudated yet (put to 6 when it is expired)
+                Assert.AreEqual(0, ocps.Count);
+            }
+            else
+            {
+                Assert.Fail("The chain should be 4 or 2 long");
+            }
+
         }
 
         [TestMethod, Ignore]

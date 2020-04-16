@@ -34,11 +34,6 @@ namespace Egelke.EHealth.Client.Pki.Test
             byte[] data = Encoding.UTF8.GetBytes("My Test");
 
             RSA rsaPrivateKey = (RSA)cert.PrivateKey;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                RSACryptoServiceProvider privateKey = cert.PrivateKey as RSACryptoServiceProvider;
-                Assert.AreEqual("Microsoft Enhanced RSA and AES Cryptographic Provider", privateKey.CspKeyContainerInfo.ProviderName);
-            }
             byte[] signature = rsaPrivateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             Assert.IsNotNull(signature);
             Assert.AreEqual(2048 / 8, signature.Length);
@@ -62,11 +57,6 @@ namespace Egelke.EHealth.Client.Pki.Test
             Assert.IsNotNull(enc);
 
             RSA privateKey = (RSA)cert.PrivateKey;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                RSACryptoServiceProvider winPrivateKey = privateKey as RSACryptoServiceProvider;
-                Assert.AreEqual("Microsoft Enhanced RSA and AES Cryptographic Provider", winPrivateKey.CspKeyContainerInfo.ProviderName);
-            }
             byte[] data_copy = privateKey.Decrypt(enc, RSAEncryptionPadding.Pkcs1);
             Assert.AreEqual(data.Length, data_copy.Length);
             for (int i = 0; i < data.Length; i++)
