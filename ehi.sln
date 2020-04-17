@@ -5,6 +5,7 @@ VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F5B9C9E3-5BD6-4B62-8A43-CEC96AAE2A34}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		debug.snk = debug.snk
 		release.snk = release.snk
 	EndProjectSection
@@ -45,13 +46,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chapterIV-module", "chapter
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chapterIV-test", "chapterIV-test\chapterIV-test.csproj", "{0DCADD4E-508F-4440-9B0F-65D4D071B3FD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{21ADE71A-A41F-4573-B2EA-EE311E8321D6}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crypto", "bc-patch\crypto.csproj", "{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gmf-module", "gmf-module\gmf-module.csproj", "{6F9C4219-13C9-4860-93EB-B156F250BB52}"
@@ -62,7 +56,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pki-module", "pki-module\pk
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pki-test-core", "pki-test-core\pki-test-core.csproj", "{45CC7828-849D-47CD-98AD-623641269AAF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pki-test-net", "pki-test-net\pki-test-net.csproj", "{B2C917D1-0958-43F2-905F-61684BEC6EB4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pki-test-net", "pki-test-net\pki-test-net.csproj", "{B2C917D1-0958-43F2-905F-61684BEC6EB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

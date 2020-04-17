@@ -11,6 +11,5 @@
 /.vs
 *.user
 /packages/
-SSIN*.p12
-/pki-test-core/EHealthP12/SSIN=79021802145.txt
-/pki-test-net/EHealthP12/SSIN=79021802145.txt
+eHealth*.*p12
+eHealth*.pwd

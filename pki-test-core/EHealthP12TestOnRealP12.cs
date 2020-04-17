@@ -20,8 +20,7 @@ namespace Egelke.EHealth.Client.Pki.Test
         [ClassInitialize]
         public static void setup(TestContext ctx)
         {
-            p12 = new EHealthP12(@"EHealthP12/SSIN=79021802145.p12", File.ReadAllText(@"EHealthP12/SSIN=79021802145.txt"));
-            //p12 = new EHealthP12(@"../../EHealthP12/ehealth.p12", File.ReadAllText(@"../../EHealthP12/ehealth.txt"));
+            p12 = new EHealthP12(@"EHealthP12\eHealth.acc-p12", File.ReadAllText(@"EHealthP12\eHealth.acc-p12.pwd"));
         }
 
         [TestMethod]
@@ -45,7 +44,9 @@ namespace Egelke.EHealth.Client.Pki.Test
         [TestMethod]
         public void EncValue()
         {
-            X509Certificate2 cert = p12["23026136802225309793051423393461312560"];
+            X509Certificate2 auth = p12["authentication"];
+            string key = p12.Where(e => e.Value.Issuer == auth.Subject).Select(e => e.Key).FirstOrDefault();
+            X509Certificate2 cert = p12[key];
             Assert.IsNotNull(cert);
             Assert.IsTrue(cert.HasPrivateKey);
 
