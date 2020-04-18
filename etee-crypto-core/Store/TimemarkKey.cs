@@ -42,6 +42,9 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// <summary>
         /// The signing time indicated by the message.
         /// </summary>
+        /// <remarks>
+        /// If none found then it contains <c>default(DateTime)</c>.
+        /// </remarks>
         public DateTime SigningTime { get; set; }
 
         /// <summary>

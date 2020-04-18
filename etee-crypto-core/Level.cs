@@ -1,6 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
- * Copyright (C) 2014 Egelke
+ * Copyright (C) 2014-2020 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,9 +17,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
@@ -29,6 +26,10 @@ namespace Egelke.EHealth.Etee.Crypto
     [Flags]
     public enum Level : int
     {
+        /// <summary>
+        /// No level, just a plain signature.  Does not even require the certificate to be embedded.
+        /// </summary>
+        None = 0x000,
 
         /// <summary>
         /// Baseline level:
@@ -39,7 +40,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// No revocation information is embedded, revocation is (almost) always verified via on-line retrieval.
         /// </para>
         /// </summary>
-        B_Level = 0x000,
+        B_Level = 0x001,
 
         /// <summary>
         /// Time stamped/marked level:
@@ -50,17 +51,17 @@ namespace Egelke.EHealth.Etee.Crypto
         /// No revocation information is embedded during sealing, but embedded revocation information is used during unsealing if present.
         /// </para>
         /// </summary>
-        T_Level = 0x001,
+        T_Level = 0x002,
 
         /// <summary>
         /// For internal use only.
         /// </summary>
-        L_Level = 0x010,
+        L_Level = 0x004,
 
         /// <summary>
         /// For internal use only.
         /// </summary>
-        A_level = 0x100,
+        A_level = 0x008,
 
         /// <summary>
         /// Long lived time stamped/marked level:

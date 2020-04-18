@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+ #if NET452
 
 using System;
 using System.Collections.Generic;
@@ -27,39 +27,34 @@ using BC = Org.BouncyCastle;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Asn1.X509;
 using Egelke.Eid.Client;
+using System.Linq;
 
 namespace Egelke.EHealth.Etee.Crypto.Sender
 {
     /// <summary>
-    /// <see cref="IDataSealer"/> factory class for sealed message creators/senders.
+    /// <see cref="IDataSealer"/> factory class for sealed message creators/senders that uses the inserted eID.
     /// </summary>
+    /// <remarks>
+    /// Since version 2.2 this class requires an eID to be present, use the eID lib directly to handle card inserts.
+    /// </remarks>
     public static class EidDataSealerFactory
     {
-        /// <summary>
-        /// Event fired when eID card is requested.
-        /// </summary>
-        public static event EventHandler<EventArgs> EidCardRequest;
-
-        /// <summary>
-        /// Even fired when eID card is no longer requested, normally on insert.
-        /// </summary>
-        public static event EventHandler<EventArgs> EidCardRequestCancellation;
-
         /// <summary>
         /// Creates an instance of the <see cref="IDataSealer"/> interface with eID certificate as sender suitable for B-Level only.
         /// </summary>
         /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
-        /// <param name="timeout">The time to wait for an eID to be inserted before failing</param>
         /// <param name="nonRepudiate"><c>true</c> to use the signing certificate</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
-        public static IDataSealer Create(Level level, TimeSpan timeout, bool nonRepudiate = true)
+        /// <exception cref="EidNotFoundException">No eID found</exception>
+        /// <exception cref="EidException">There was an issue with the eID</exception>
+        public static IDataSealer Create(Level level, bool nonRepudiate = false)
         {
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
             X509Certificate2 signature;
             X509Certificate2 authentication;
 
-            GetCertificates(timeout, out authentication, out signature);
+            GetCertificates(out authentication, out signature);
             return new TripleWrapper(level, authentication, nonRepudiate ? signature : authentication, null, null);
         }
 
@@ -73,10 +68,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// </remarks>
         /// <param name="level">The level of the sealing, B-Level not allowed</param>
         /// <param name="timestampProvider">The client of the time-stamp authority</param>
-        /// <param name="timeout">The time to wait for an eID to be inserted before failing</param>
         /// <param name="nonRepudiate"><c>true</c> to use the signing certificate</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
-        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, TimeSpan timeout, bool nonRepudiate = true)
+        /// <exception cref="EidNotFoundException">No eID found</exception>
+        /// <exception cref="EidException">There was an issue with the eID</exception>
+        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, bool nonRepudiate = false)
         {
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
@@ -84,7 +80,7 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             X509Certificate2 signature;
             X509Certificate2 authentication;
 
-            GetCertificates(timeout, out authentication, out signature);
+            GetCertificates(out authentication, out signature);
             return new TripleWrapper(level, authentication, nonRepudiate ? signature : authentication, timestampProvider, null);
         }
 
@@ -96,34 +92,36 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// The data sealer has not direct dependency to this time-mark authority, it is the caller that must send it himself.
         /// </remarks>
         /// <param name="level">The level of the sealing, B-Level not allowed</param>
-        /// <param name="timeout">The time to wait for an eID to be inserted before failing</param>
         /// <param name="nonRepudiate"><c>true</c> to use the signing certificate</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
-        public static IDataSealer CreateForTimemarkAuthority(Level level, TimeSpan timeout, bool nonRepudiate = true)
+        /// <exception cref="EidNotFoundException">No eID found</exception>
+        /// <exception cref="EidException">There was an issue with the eID</exception>
+        public static IDataSealer CreateForTimemarkAuthority(Level level, bool nonRepudiate = false)
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
             X509Certificate2 signature;
             X509Certificate2 authentication;
 
-            GetCertificates(timeout, out authentication, out signature);
+            GetCertificates(out authentication, out signature);
             return new TripleWrapper(level, authentication, nonRepudiate ? signature : authentication, null, null);
         }
 
-        private static void GetCertificates(TimeSpan timeout, out X509Certificate2 authentication, out X509Certificate2 signature)
+        private static void GetCertificates(out X509Certificate2 authentication, out X509Certificate2 signature)
         {
             //Read the values from the eID, request eID if needed
             X509Certificate2 auth;
             X509Certificate2 sign;
             using (Readers readers = new Readers(ReaderScope.User))
             {
-                readers.EidCardRequest += readers_EidCardRequest;
-                readers.EidCardRequestCancellation += readers_EidCardRequestCancellation;
-                EidCard target = readers.WaitForEid(timeout);
-                using (target)
+                Card card = readers.ListCards(EidCard.KNOWN_NAMES).AsQueryable().FirstOrDefault();
+                if (card == null) throw new EidNotFoundException("eid not found");
+                var eidCard = (EidCard)card;
+                using (eidCard)
                 {
-                    auth = target.ReadCertificate(CertificateId.Authentication);
-                    sign = target.ReadCertificate(CertificateId.Signature);
+                    eidCard.Close();
+                    auth = eidCard.AuthCert;
+                    sign = eidCard.SignCert;
                 }
             }
             X509Store my = new X509Store(StoreName.My, StoreLocation.CurrentUser);
@@ -131,11 +129,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             try
             {
                 X509Certificate2Collection authMatch = my.Certificates.Find(X509FindType.FindByThumbprint, auth.Thumbprint, true);
-                if (authMatch.Count == 0) throw new InvalidOperationException("The eID authentication certificate could not be found in the windows store");
+                if (authMatch.Count == 0) throw new EidException("The eID authentication certificate could not be found in the windows store");
                 authentication = authMatch[0];
 
                 X509Certificate2Collection signMatch = my.Certificates.Find(X509FindType.FindByThumbprint, sign.Thumbprint, true);
-                if (signMatch.Count == 0) throw new InvalidOperationException("The eID authentication certificate could not be found in the windows store");
+                if (signMatch.Count == 0) throw new EidException("The eID authentication certificate could not be found in the windows store");
                 signature = signMatch[0];
             }
             finally
@@ -143,35 +141,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
                 my.Close();
             }
 
-            if (!authentication.HasPrivateKey) throw new InvalidOperationException("The authentication certificate must have a private key");
-            if (!signature.HasPrivateKey) throw new InvalidOperationException("The signature certificate must have a private key");
-
-            BC::X509.X509Certificate bcAuthentication = DotNetUtilities.FromX509Certificate(authentication);
-            BC::X509.X509Certificate bcSignature = DotNetUtilities.FromX509Certificate(signature);
-            if (signature.Issuer != authentication.Issuer) throw new InvalidOperationException("The signature certificate must have the same issuer as the authentication certificate");
-            if (!bcAuthentication.SubjectDN.GetOidList().Contains(X509Name.SerialNumber)
-                        || !bcSignature.SubjectDN.GetOidList().Contains(X509Name.SerialNumber)
-                        || bcAuthentication.SubjectDN.GetValueList(X509Name.SerialNumber).Count != 1
-                        || bcSignature.SubjectDN.GetValueList(X509Name.SerialNumber).Count != 1
-                        || !bcAuthentication.SubjectDN.GetValueList(X509Name.SerialNumber)[0].Equals(bcSignature.SubjectDN.GetValueList(X509Name.SerialNumber)[0]))
-            {
-                throw new InvalidOperationException("The signature certificate must have the same serial number as the authentication certificate");
-            }
-
-            if (!bcAuthentication.GetKeyUsage()[0]) throw new InvalidOperationException("The authentication certificate must have a key for signing");
-            if (!bcSignature.GetKeyUsage()[1]) throw new InvalidOperationException("The authentication certificate must have a key for non-Repudiation");
+            if (!authentication.HasPrivateKey) throw new EidException("The authentication certificate must have a private key");
+            if (!signature.HasPrivateKey) throw new EidException("The signature certificate must have a private key");
         }
-
-        static void readers_EidCardRequest(object sender, EventArgs e)
-        {
-            if (EidCardRequest != null) EidCardRequest(sender, e);
-        }
-
-        static void readers_EidCardRequestCancellation(object sender, EventArgs e)
-        {
-            if (EidCardRequestCancellation != null) EidCardRequestCancellation(sender, e);
-        }
-
         
     }
 }
+
+#endif

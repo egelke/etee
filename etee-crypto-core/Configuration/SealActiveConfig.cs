@@ -20,12 +20,21 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Security.Cryptography;
+using Org.BouncyCastle.Asn1.Pkcs;
 
 namespace Egelke.EHealth.Etee.Crypto.Configuration
 {
     internal class SealActiveConfig
     {
+        private static Oid AES128 = new Oid("2.16.840.1.101.3.4.1.2", "AES128");
+        private static Oid SHA256 = new Oid("2.16.840.1.101.3.4.2.1", "SHA256");
+        private static Oid RSASSAPSS = new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS");
+        private static Oid RSA = new Oid("1.2.840.113549.1.1.1", "RSA");
+        private static Oid SHA256WITHRSA = new Oid("1.2.840.113549.1.1.11", "sha256WithRSA");
+        private static Oid SHA256WITHRSAANDMGF1 = new Oid("1.2.840.113549.1.1.10", "sha256WithRsaAndMgf1");
 
+        private static SignatureAlgorithm SHA256WITHRSAALG = new SignatureAlgorithm(SHA256WITHRSA, SHA256, RSA);
+        private static SignatureAlgorithm SHA256WITHRSAANDMGF1ALG = new SignatureAlgorithm(SHA256WITHRSAANDMGF1, SHA256, RSASSAPSS);
 
         public SealActiveConfig()
         {
@@ -37,7 +46,7 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
         {
             get
             {
-                return new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS"));
+                return SHA256WITHRSAANDMGF1ALG;
             }
         }
 
@@ -46,8 +55,7 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
         {
             get
             {
-                return new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.1", "RSA"));
-                //return new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.11", "sha256WithRSA"));
+                return SHA256WITHRSAALG;
             }
         }
 
@@ -56,7 +64,7 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
         {
             get
             {
-                return new Oid("2.16.840.1.101.3.4.1.2", "AES128");
+                return AES128;
             }
         }
     }

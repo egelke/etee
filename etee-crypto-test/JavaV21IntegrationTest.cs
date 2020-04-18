@@ -25,7 +25,6 @@ using Egelke.EHealth.Etee.Crypto.Receiver;
 using System.IO;
 using Egelke.EHealth.Etee.Crypto.Sender;
 using Egelke.EHealth.Etee.Crypto;
-using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
 using Org.BouncyCastle.Security;
 using Egelke.EHealth.Client.Pki;
@@ -36,10 +35,11 @@ using Egelke.EHealth.Client.Sso.Sts;
 using System.ServiceModel;
 using System.Security.Cryptography;
 using Egelke.EHealth.Etee.Crypto.Store;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
-    [TestFixture]
+    [TestClass]
     public class JavaV21IntegrationTest
     {
         private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
@@ -51,12 +51,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         EHealthP12 alice;
         //EHealthP12 mcn;
 
-        [OneTimeSetUp]
-        public void MyClassInitialize()
+        [ClassInitialize]
+        public void MyClassInitialize(TestContext ctx)
         {
-            bob = new EHealthP12(GetAbsoluteTestFilePath("../../bob/bobs_private_key_store.p12"), "test");
-            alice = new EHealthP12(GetAbsoluteTestFilePath("../../alice/alices_private_key_store.p12"), "test");
-            //mcn = new EHealthP12(GetAbsoluteTestFilePath("../../mcn/MYCARENET.p12"), File.ReadAllText(GetAbsoluteTestFilePath("../../mcn/MYCARENET.pwd")));
+            bob = new EHealthP12(GetAbsoluteTestFilePath("bob/bobs_private_key_store.p12"), "test");
+            alice = new EHealthP12(GetAbsoluteTestFilePath("alice/alices_private_key_store.p12"), "test");
+            //mcn = new EHealthP12(GetAbsoluteTestFilePath("mcn/MYCARENET.p12"), File.ReadAllText(GetAbsoluteTestFilePath("mcn/MYCARENET.pwd")));
         }
 
         private String RunJava(String program)
@@ -69,7 +69,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.FileName = "java.exe";
-            p.StartInfo.Arguments = @"-cp " + GetAbsoluteTestFilePath(@"..\..\javabin\v2.1\etee-crypto-test.jar") + " " + program;
+            p.StartInfo.Arguments = @"-cp " + GetAbsoluteTestFilePath(@"javabin\v2.1\etee-crypto-test.jar") + " " + program;
             p.StartInfo.WorkingDirectory = _basePath;
             p.Start();
 
@@ -85,7 +85,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
 
-        [Test]
+        [TestMethod]
         public void Java2NetBasic()
         {
             RunJava("etee.crypto.test.Seal BASIC");
@@ -131,7 +131,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual("Hello from Alice to Bob", msg);
         }
 
-        [Test]
+        [TestMethod]
         public void Java2NetEid()
         {
             RunJava("etee.crypto.test.Seal EID");
@@ -150,13 +150,13 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsFalse(result.IsNonRepudiatable);
         }
 
-        [Test]
+        [TestMethod]
         public void Net2JavaBasic()
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
             IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);
-            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk"))));
+            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/bobs_public_key.etk"))));
 
             FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.OpenOrCreate);
             using (msgFile)
@@ -168,13 +168,13 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsTrue(output.Contains(text));
         }
 
-        [Test]
+        [TestMethod]
         public void Net2JavaEid()
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
-            IDataSealer sealer = EidDataSealerFactory.Create(Level.B_Level, new TimeSpan(0, 5, 0), false);
-            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk"))));
+            IDataSealer sealer = EidDataSealerFactory.Create(Level.B_Level, false);
+            Stream msg = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/bobs_public_key.etk"))));
 
             FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_to_bob.msg"), FileMode.OpenOrCreate);
             using (msgFile)

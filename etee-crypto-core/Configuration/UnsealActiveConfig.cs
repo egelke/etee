@@ -26,9 +26,39 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
 {
     internal class UnsealActiveConfig
     {
-        private ReadOnlyCollection<Oid> keyEncryptionAlgorithms;
-        private ReadOnlyCollection<SignatureAlgorithm> signatureAlgorithms;
-        private ReadOnlyCollection<Oid> encryptionAlgorithms;
+        private static Oid SHA256 = new Oid("2.16.840.1.101.3.4.2.1", "SHA256");
+        private static Oid SHA512 = new Oid("2.16.840.1.101.3.4.2.3", "SHA512");
+        private static Oid RSASSAPSS = new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS");
+        private static Oid RSA = new Oid("1.2.840.113549.1.1.1", "RSA");
+        private static Oid SHA256WITHRSA = new Oid("1.2.840.113549.1.1.11", "sha256WithRSA");
+        private static Oid SHA512WITHRSA = new Oid("1.2.840.113549.1.1.13", "sha512WithRSA");
+
+        private static readonly ReadOnlyCollection<Oid> keyEncryptionAlgorithms;
+        private static readonly ReadOnlyCollection<SignatureAlgorithm> signatureAlgorithms;
+        private static readonly ReadOnlyCollection<Oid> encryptionAlgorithms;
+
+        static UnsealActiveConfig()
+        {
+            keyEncryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] {
+                new Oid("1.2.840.113549.1.1.1","rsa"),
+                new Oid("2.16.840.1.101.3.4.1.5", "aes128wrap"),
+                new Oid("2.16.840.1.101.3.4.1.25", "aes192wrap"),
+                new Oid("2.16.840.1.101.3.4.1.45", "aes256wrap")
+            });
+            encryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] {
+                new Oid("2.16.840.1.101.3.4.1.2", "AES128"),
+                new Oid("2.16.840.1.101.3.4.1.22", "AES192"),
+                new Oid("2.16.840.1.101.3.4.1.42", "AES256")
+            });
+            signatureAlgorithms = new ReadOnlyCollection<SignatureAlgorithm>(new SignatureAlgorithm[] {
+                new SignatureAlgorithm(null, SHA256, RSASSAPSS),
+                new SignatureAlgorithm(null, SHA512, RSASSAPSS),
+                new SignatureAlgorithm(null, SHA256, RSA),
+                new SignatureAlgorithm(null, SHA512, RSA),
+                new SignatureAlgorithm(null, SHA256, SHA256WITHRSA),
+                new SignatureAlgorithm(null, SHA512, SHA512WITHRSA)
+            });
+        }
 
         public UnsealActiveConfig()
         {
@@ -55,54 +85,17 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
 
         public ReadOnlyCollection<SignatureAlgorithm> SignatureAlgorithms
         {
-            get
-            {
-                if (signatureAlgorithms == null)
-                {
-                    signatureAlgorithms = new ReadOnlyCollection<SignatureAlgorithm>(new SignatureAlgorithm[] { 
-                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS")),
-                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.3", "SHA512"), new Oid("1.2.840.113549.1.1.10", "RSASSA-PSS")),
-                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.1", "RSA")),
-                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.3", "SHA512"), new Oid("1.2.840.113549.1.1.1", "RSA")),
-                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.1", "SHA256"), new Oid("1.2.840.113549.1.1.11", "sha256WithRSA")),
-                        new SignatureAlgorithm(new Oid("2.16.840.1.101.3.4.2.3", "SHA512"), new Oid("1.2.840.113549.1.1.13", "sha512WithRSA"))
-                    });
-                }
-                return signatureAlgorithms;
-            }
+            get => signatureAlgorithms;
         }
 
         public ReadOnlyCollection<Oid> EncryptionAlgorithms
         {
-            get
-            {
-                if (encryptionAlgorithms == null)
-                {
-                    encryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] { 
-                        new Oid("2.16.840.1.101.3.4.1.2", "AES128"),
-                        new Oid("2.16.840.1.101.3.4.1.22", "AES192"),
-                        new Oid("2.16.840.1.101.3.4.1.42", "AES256")
-                    });
-                }
-                return encryptionAlgorithms;
-            }
+            get => encryptionAlgorithms;
         }
 
         public ReadOnlyCollection<Oid> KeyEncryptionAlgorithms
         {
-            get
-            {
-                if (keyEncryptionAlgorithms == null)
-                {
-                    keyEncryptionAlgorithms = new ReadOnlyCollection<Oid>(new Oid[] { 
-                        new Oid("1.2.840.113549.1.1.1","rsa"), 
-                        new Oid("2.16.840.1.101.3.4.1.5", "aes128wrap"),
-                        new Oid("2.16.840.1.101.3.4.1.25", "aes192wrap"),
-                        new Oid("2.16.840.1.101.3.4.1.45", "aes256wrap")
-                    });
-                }
-                return keyEncryptionAlgorithms;
-            }
+            get => keyEncryptionAlgorithms;
         }
     }
 }

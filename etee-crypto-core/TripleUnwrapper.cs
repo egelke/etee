@@ -489,11 +489,11 @@ namespace Egelke.EHealth.Etee.Crypto
                     {
                         //TODO::follow the chain of A-timestamps until the root (now we assume the signature time-stamp is the root)
                         trace.TraceEvent(TraceEventType.Verbose, 0, "Validating the time-stamp against the current time for arbitration reasons");
-                        stamp = tst.Validate(ref crls, ref ocsps, null);
+                        stamp = tst.Validate(crls, ocsps, DateTime.UtcNow);
                     }
                     else {
                         trace.TraceEvent(TraceEventType.Verbose, 0, "Validating the time-stamp against the time-stamp time since no arbitration is needed");
-                        stamp = tst.Validate(ref crls, ref ocsps);
+                        stamp = tst.Validate(crls, ocsps);
                     }
                     result.TimestampRenewalTime = stamp.RenewalTime;
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The time-stamp must be renewed on {0}", result.TimestampRenewalTime);

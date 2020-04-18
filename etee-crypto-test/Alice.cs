@@ -29,17 +29,17 @@ using System.IO;
 using Egelke.EHealth.Etee.Crypto.Receiver;
 using System.Security.Cryptography;
 using System.Collections.ObjectModel;
-using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Egelke.EHealth.Client.Pki;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
     /// <summary>
     /// Summary description for Seal
     /// </summary>
-    [TestFixture]
+    [TestClass]
     public class Alice
     {
         private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
@@ -53,17 +53,17 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         static X509Certificate2Collection aliceOnly;
         static X509Certificate2Collection bobOnly;
 
-        [OneTimeSetUp]
-        public static void InitializeClass()
+        [ClassInitialize]
+        public static void InitializeClass(TestContext ctx)
         {
             //Load eHealth certificates
-            alice = new EHealthP12(GetAbsoluteTestFilePath("../../alice/alices_private_key_store.p12"), "test");
-            bob = new EHealthP12(GetAbsoluteTestFilePath("../../bob/bobs_private_key_store.p12"), "test");
+            alice = new EHealthP12(GetAbsoluteTestFilePath("alice/alices_private_key_store.p12"), "test");
+            bob = new EHealthP12(GetAbsoluteTestFilePath("bob/bobs_private_key_store.p12"), "test");
 
 
         }
 
-        [Test]
+        [TestMethod]
         public void Addressed()
         {
             Addressed(EhDataSealerFactory.Create(Level.B_Level, alice), DataUnsealerFactory.Create(null, alice, bob));
@@ -74,7 +74,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String str = "This is a secret message from Alice for Bob";
 
             //Get ETK
-            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
+            EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/bobs_public_key.etk")));
 
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), receiver);
 
@@ -97,14 +97,14 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
 
-        [Test]
+        [TestMethod]
         public void MultiAddressed()
         {
             String str = "This is a secret message from Alice for Bob and Herself";
 
             //Get ETK
-            EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
-            EncryptionToken receiver2 = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../alice/alices_public_key.etk")));
+            EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/bobs_public_key.etk")));
+            EncryptionToken receiver2 = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("alice/alices_public_key.etk")));
 
             IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), receiver1, receiver2);
@@ -169,7 +169,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
 
-        [Test]
+        [TestMethod]
         public void NonAddressed()
         {
             NonAddressed(EhDataSealerFactory.Create(Level.B_Level, alice), DataUnsealerFactory.Create(null));
@@ -201,7 +201,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
 
-        [Test]
+        [TestMethod]
         public void Mixed()
         {
             Mixed(EhDataSealerFactory.Create(Level.B_Level, alice), DataUnsealerFactory.Create(null, alice, bob));
@@ -213,7 +213,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             SecretKey key = new SecretKey("btSefztkXjZmlZyHQIumLA==", "aaUnRynIwd3GFQmhXfW+VQ==");
 
-            EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
+            EncryptionToken receiver1 = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/bobs_public_key.etk")));
 
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(str)), key, receiver1);
 
@@ -247,7 +247,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
 
-        [Test]
+        [TestMethod]
         public void ReuseOfSealerAndUnsealer()
         {
             IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);
@@ -262,7 +262,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Addressed(sealer, unsealer);
         }
 
-        [Test]
+        [TestMethod]
         public void Size31KFile()
         {
             Random rand = new Random();
@@ -283,7 +283,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 hudgeFile.Position = 0;
 
                 //Get ETK
-                EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
+                EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/bobs_public_key.etk")));
 
                 //Seal
                 IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);
@@ -316,7 +316,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             }
         }
 
-        [Test, Explicit]
+        [TestMethod, Ignore]
         public void HudgeFile()
         {
             Random rand = new Random();
@@ -335,7 +335,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 hudgeFile.Position = 0;
 
                 //Get ETK
-                EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
+                EncryptionToken receiver = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/bobs_public_key.etk")));
 
                 //Seal
                 IDataSealer sealer = EhDataSealerFactory.Create(Level.B_Level, alice);

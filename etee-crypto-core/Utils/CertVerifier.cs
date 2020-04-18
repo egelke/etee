@@ -118,7 +118,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             //check the chain
             Chain chain;
             if (crls != null || ocsps != null)
-                chain = dest.Certificate.BuildChain(date, extraStore, ref crls, ref ocsps);
+                chain = dest.Certificate.BuildChain(date, extraStore, crls, ocsps);
             else
                 chain = dest.Certificate.BuildChain(date, extraStore);
 

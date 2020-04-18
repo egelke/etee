@@ -28,7 +28,6 @@ using Egelke.EHealth.Etee.Crypto.Utils;
 using BC = Org.BouncyCastle;
 using System.Security.Permissions;
 using System;
-using System.Threading;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -49,6 +48,9 @@ using Org.BouncyCastle.Tsp;
 using Egelke.EHealth.Etee.Crypto.Store;
 using Egelke.EHealth.Etee.Crypto.Sender;
 using System.Linq;
+using Org.BouncyCastle.Crypto.Operators;
+using System.Threading.Tasks;
+using System.Timers;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
@@ -95,7 +97,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
             ITempStreamFactory factory = NewFactory(sealedData);
             Stream completed = factory.CreateNew();
-            Complete(this.level, completed, sealedData, null, out timemarkKey);
+            Complete(this.level, completed, sealedData, null, null, out timemarkKey);
             completed.Position = 0;
 
             return completed;
@@ -144,97 +146,77 @@ namespace Egelke.EHealth.Etee.Crypto
             trace.TraceEvent(TraceEventType.Information, 0, "Sealing message of {0} bytes for {1} known recipients and {2} unknown recipients to level {3}",
                 unsealedStream.Length, certs.Length, key == null ? 0 : 1, this.level);
 
-            //Create inner signed stream
-            Stream signed = factory.CreateNew();
-            using (signed)
+            using (
+                Stream innerDetached = new MemoryStream(),
+                    innerEmbedded = factory.CreateNew(),
+                    encrypted = factory.CreateNew(),
+                    outerDetached = new MemoryStream()
+            )
             {
+                TimemarkKey timemarkKey;
+
                 //Inner sign
-                Stream intermedate = factory.CreateNew();
-                using (intermedate)
+                SignDetached(innerDetached, unsealedStream, authentication);
+
+                //prepare to merge the detached inner signature with its content
+                innerDetached.Position = 0;
+                unsealedStream.Position = 0;
+
+                //embed the content in the inner signature and add any required info if it uses a different cert.
+                Complete(signature == authentication ? Level.None : this.level & ~Level.T_Level, innerEmbedded, innerDetached, unsealedStream, signature, out timemarkKey);
+
+                //prepare to encrypt
+                innerEmbedded.Position = 0;
+
+                //Encrypt
+                Encrypt(encrypted, innerEmbedded, certs, key);
+
+                //Loop, since eID doesn't like to be use in very short succession
+                int retry = 0;
+                bool success = false;
+                while (!success)
                 {
-                    if (signature == null)
+                    //prepare to create the outer signature
+                    encrypted.Position = 0;
+                    outerDetached.SetLength(0);
+
+                    try
                     {
-                        Sign(signed, unsealedStream, authentication);
-
-                        signed.Position = 0;
-
-                        signed.CopyTo(intermedate);
+                        //Create the outer signature
+                        SignDetached(outerDetached, encrypted, authentication);
+                        success = true;
                     }
-                    else
+                    catch (CryptographicException ce)
                     {
-                        Sign(signed, unsealedStream, signature);
-
-                        signed.Position = 0;
-
-                        //Add the certificate and revocation info only (no time-stamp)
-                        TimemarkKey timemarkKey;
-                        Complete(this.level & ~Level.T_Level, intermedate, signed, signature, out timemarkKey);
-                    }
-
-                    intermedate.Position = 0;
-
-                    //Create  encrypted stream
-                    Stream signedEncrypted = factory.CreateNew();
-                    using (signedEncrypted)
-                    {
-                        //Encrypt
-                        Encrypt(signedEncrypted, intermedate, certs, key);
-
-                        //Outer sign with retry for eID
-                        int tries = 0;
-                        bool success = false;
-                        Stream sealedStream = null;
-                        while (!success)
+                        if (retry++ < 4)
                         {
-                            signedEncrypted.Position = 0;
-
-                            try
-                            {
-                                //This is the output, so we need to make it a temp stream (temp file or memory stream)
-                                sealedStream = factory.CreateNew();
-                                Sign(sealedStream, signedEncrypted, authentication);
-                                success = true;
-                            }
-                            catch (CryptographicException ce)
-                            {
-                                //Keep track
-                                trace.TraceEvent(TraceEventType.Warning, 0, "Failed to put outer signature (try {0}): {1}", tries, ce);
-                                if (tries++ < 4)
-                                {
-                                    sealedStream.Close();
-                                    sealedStream = null;
-                                    Thread.Sleep((int)Math.Pow(10, tries)); //wait longer and longer
-                                }
-                                else
-                                {
-                                    sealedStream.Close();
-                                    throw ce;
-                                }
-                            }
+                            trace.TraceEvent(TraceEventType.Warning, 0, "Failed to put outer signature, staring loop: {0}", ce);
+                            System.Threading.Thread.Sleep((int)Math.Pow(10, retry));
                         }
-
-                        try
+                        else
                         {
-                            sealedStream.Position = 0; //reset the stream
-
-                            //Complete the outer signature with revocation info & time-stamp if needed
-                            TimemarkKey timemarkKey;
-                            Stream completedStream = factory.CreateNew();
-                            Complete(this.level, completedStream, sealedStream, authentication, out timemarkKey);
-
-                            completedStream.Position = 0; //reset the stream
-
-                            return completedStream;
-                        }
-                        finally
-                        {
-                            sealedStream.Close();
+                            throw ce;
                         }
                     }
                 }
+
+                //prepare to merge the detached inner signature with its content
+                encrypted.Position = 0;
+                outerDetached.Position = 0;
+
+                //embed the content in the out signature and add any required info
+                Stream result = factory.CreateNew();
+                Complete(this.level, result, outerDetached, encrypted, authentication, out timemarkKey);
+
+                //prepare to return the triple wrapped message
+                result.Position = 0;
+
+                //return the triple wrapped message
+                return result;
             }
         }
 
+        /*
         protected void Sign(Stream signed, Stream unsigned, X509Certificate2 selectedCert)
         {
             BC::X509.X509Certificate bcSelectedCert = DotNetUtilities.FromX509Certificate(selectedCert);
@@ -288,6 +270,29 @@ namespace Egelke.EHealth.Etee.Crypto
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Signature block added");
             }
         }
+        */
+
+        protected void SignDetached(Stream signed, Stream unsigned, X509Certificate2 selectedCert)
+        {
+            BC::X509.X509Certificate bcSelectedCert = DotNetUtilities.FromX509Certificate(selectedCert);
+            trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", selectedCert.Subject);
+
+            //TODO:: for eiD.
+            SignatureAlgorithm signAlgo = EteeActiveConfig.Seal.NativeSignatureAlgorithm;
+            BC::Crypto.AsymmetricCipherKeyPair keyPair = DotNetUtilities.GetKeyPair(selectedCert.PrivateKey);
+            var sigFactory = new Asn1SignatureFactory(signAlgo.Algorithm.FriendlyName, keyPair.Private);
+
+            SignerInfoGenerator sigInfoGen = new SignerInfoGeneratorBuilder()
+                .Build(sigFactory, bcSelectedCert);
+
+            CmsSignedDataGenerator cmsSignedDataGen = new CmsSignedDataGenerator();
+            cmsSignedDataGen.AddSignerInfoGenerator(sigInfoGen);
+
+            CmsSignedData detachedSignature = cmsSignedDataGen.Generate(new CmsProcessableProxy(unsigned), false);
+
+            byte[] detachedSignatureBytes = detachedSignature.GetEncoded();
+            signed.Write(detachedSignatureBytes, 0, detachedSignatureBytes.Length);
+        }
 
         protected void Encrypt(Stream cipher, Stream clear, ICollection<X509Certificate2> certs, SecretKey key)
         {
@@ -324,155 +329,149 @@ namespace Egelke.EHealth.Etee.Crypto
             }
         }
 
-        protected void Complete(Level level, Stream embedded, Stream signed, X509Certificate2 providedSigner, out TimemarkKey timemarkKey)
+        protected void Complete(Level level, Stream embedded, Stream signed, Stream content, X509Certificate2 providedSigner, out TimemarkKey timemarkKey)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Completing the message with of {0} bytes to level {1}", signed.Length, level);
 
-            //Prepare generator, parser and time-mark Key
-            CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-            CmsSignedDataParser parser = new CmsSignedDataParser(signed);
+            //Create the objects we need
+            var gen = new CmsSignedDataStreamGenerator();
+            var parser = new CmsSignedDataParser(signed);
             timemarkKey = new TimemarkKey();
 
             //preset the digests so we can add the signers afterwards
             gen.AddDigests(parser.DigestOids);
 
-            //Copy the content
-            CmsTypedStream signedContent = parser.GetSignedContent();
+            //Copy the content to the output
             Stream contentOut = gen.Open(embedded, parser.SignedContentType.Id, true);
-            signedContent.ContentStream.CopyTo(contentOut);
+            if (content != null)
+                content.CopyTo(contentOut);
+            else
+                parser.GetSignedContent().ContentStream.CopyTo(contentOut);
 
+            //Extract the various data from outer layer
+            SignerInformation signerInfo = ExtractSignerInfo(parser);
+            IX509Store embeddedCerts = parser.GetCertificates("Collection");
+
+            //Extract the various data from signer info
+            timemarkKey.SignatureValue = signerInfo.GetSignature();
+            timemarkKey.SigningTime = ExtractSigningTime(signerInfo);
+            timemarkKey.Signer = ExtractSignerCert(embeddedCerts, signerInfo, providedSigner);
+
+            //Extract the various data from unsiged attributes of signer info
+            IDictionary unsignedAttributes = signerInfo.UnsignedAttributes != null ? signerInfo.UnsignedAttributes.ToDictionary() : new Hashtable();
+            TimeStampToken tst = ExtractTimestamp(unsignedAttributes);
+            RevocationValues revocationInfo = ExtractRevocationInfo(unsignedAttributes);
+
+            //quick check for an expected error and extrapolate some info
+            if (timemarkKey.Signer == null)
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "The provided message does not contain any embedded certificates");
+                throw new InvalidMessageException("The message does not contain any embedded certificates");
+            }
+            if (timemarkKey.SigningTime == default && tst != null)
+            {
+                trace.TraceEvent(TraceEventType.Information, 0, "Implicit signing time is replaced with time-stamp time {1}", tst.TimeStampInfo.GenTime);
+                timemarkKey.SigningTime = tst.TimeStampInfo.GenTime;
+            }
+
+            //Are we missing embedded certs and should we add them?
+            if ((embeddedCerts == null || embeddedCerts.GetMatches(null).Count <= 1)
+                && (level & Level.B_Level) == Level.B_Level)
+            {
+                embeddedCerts = GetEmbeddedCerts(timemarkKey);
+            }
+            if (embeddedCerts != null) gen.AddCertificates(embeddedCerts); //add the existing or new embedded certs to the output.
+
+
+            //Are we missing timestamp and should we add them (not that time-mark authorities do not require a timestamp provider)
+            if (tst == null
+                && (level & Level.T_Level) == Level.T_Level && timestampProvider != null)
+            {
+                tst = GetTimestamp(timemarkKey);
+                AddTimestamp(unsignedAttributes, tst);
+            }
+
+            //should be make sure we have the proper revocation info (it is hard to tell if we have everything, just go for it)
+            if ((level & Level.L_Level) == Level.L_Level)
+            {
+                revocationInfo = GetRevocationValues(timemarkKey, embeddedCerts, revocationInfo);
+                if (tst != null) revocationInfo = GetRevocationValues(tst, revocationInfo);
+                AddRevocationValues(unsignedAttributes, revocationInfo);
+            }
+
+            //Update the unsigned attributes of the signer info
+            signerInfo = SignerInformation.ReplaceUnsignedAttributes(signerInfo, new BC::Asn1.Cms.AttributeTable(unsignedAttributes));
+
+            //Copy the signer
+            gen.AddSigners(new SignerInformationStore(new SignerInformation[] { signerInfo }));
+
+            contentOut.Close();
+        }
+
+        private SignerInformation ExtractSignerInfo(CmsSignedDataParser parser)
+        {
             //Extract the signer info
             SignerInformationStore signerInfoStore = parser.GetSignerInfos();
-            IEnumerator signerInfos = signerInfoStore.GetSigners().GetEnumerator();
-            if (!signerInfos.MoveNext())
+            if (signerInfoStore.Count != 1)
             {
-                trace.TraceEvent(TraceEventType.Error, 0, "The message to complete does not contain a signature");
-                throw new InvalidMessageException("The message does not contain a signature");
-            }
-            SignerInformation signerInfo = (SignerInformation)signerInfos.Current;
-            if (signerInfos.MoveNext())
-            {
-                trace.TraceEvent(TraceEventType.Error, 0, "The message to complete does not contain more then one signature");
-                throw new InvalidMessageException("The message does contain multiple signatures, which isn't supported");
+                trace.TraceEvent(TraceEventType.Error, 0, "The message to complete does not contain a single signature");
+                throw new InvalidMessageException("The message does not contain a single signature");
             }
 
-            //Extract the signing key
-            timemarkKey.SignatureValue = signerInfo.GetSignature();
+            return signerInfoStore.GetSigners().Cast<SignerInformation>().First();
+        }
 
-            //Extract the unsigned attributes & signing time
-            bool hasSigningTime;
-            IDictionary unsignedAttributes = signerInfo.UnsignedAttributes != null ? signerInfo.UnsignedAttributes.ToDictionary() : new Hashtable();
-            BC::Asn1.Cms.Attribute singingTimeAttr = signerInfo.SignedAttributes != null ? signerInfo.SignedAttributes[CmsAttributes.SigningTime] : null;
-            if (singingTimeAttr == null)
+        private DateTime ExtractSigningTime(SignerInformation signerInfo)
+        {
+            BC::Asn1.Cms.Attribute singingTimeAttr = signerInfo.SignedAttributes?[CmsAttributes.SigningTime];
+            if (singingTimeAttr != null)
             {
-                trace.TraceEvent(TraceEventType.Warning, 0, "The message to complete does not contain a signing time");
-                hasSigningTime = false;
-                timemarkKey.SigningTime = DateTime.UtcNow;
-            }
-            else
-            {
-                hasSigningTime = true;
-                timemarkKey.SigningTime = new BC::Asn1.Cms.Time(((DerSet)singingTimeAttr.AttrValues)[0].ToAsn1Object()).Date;
-                if (timemarkKey.SigningTime.Kind  == DateTimeKind.Unspecified)
+                DateTime date = new BC::Asn1.Cms.Time(((DerSet)singingTimeAttr.AttrValues)[0].ToAsn1Object()).Date;
+                if (date.Kind == DateTimeKind.Unspecified)
                 {
-                    timemarkKey.SigningTime = new DateTime(timemarkKey.SigningTime.Ticks, DateTimeKind.Utc);
+                    return new DateTime(date.Ticks, DateTimeKind.Utc);
                 }
                 else
                 {
-                    timemarkKey.SigningTime = timemarkKey.SigningTime.ToUniversalTime();
+                    return date.ToUniversalTime();
                 }
             }
-            
+            else
+            {
+                trace.TraceEvent(TraceEventType.Warning, 0, "The message to complete does not contain a signing time");
+                return default;
+            }
+        }
 
+        private X509Certificate2 ExtractSignerCert(IX509Store embeddedCerts, SignerInformation signerInfo, X509Certificate2 provided)
+        {
             //Extract the signer, if available
-            IX509Store embeddedCerts = parser.GetCertificates("Collection");
             if (embeddedCerts != null && embeddedCerts.GetMatches(null).Count > 0)
             {
-                //Embedded certs found, we use that
                 IEnumerator signerCerts = embeddedCerts.GetMatches(signerInfo.SignerID).GetEnumerator();
-                if (!signerCerts.MoveNext()) {
+                if (!signerCerts.MoveNext())
+                {
                     trace.TraceEvent(TraceEventType.Error, 0, "The message does contains certificates, but the signing certificate is missing");
                     throw new InvalidMessageException("The message does not contain the signer certificate");
                 }
-                timemarkKey.Signer = new X509Certificate2(((BC::X509.X509Certificate)signerCerts.Current).GetEncoded());
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The message contains certificates, of which {0} is the signer", timemarkKey.Signer.Subject);
-
-                //Add the certs to the new message
-                gen.AddCertificates(embeddedCerts);
+                var signer = new X509Certificate2(((BC::X509.X509Certificate)signerCerts.Current).GetEncoded());
+                trace.TraceEvent(TraceEventType.Verbose, 0, "The message contains certificates, of which {0} is the signer", signer.Subject);
+                //maybe (one day) check if the found signer corresponds to the provided signer)
+                return signer;
             }
             else
             {
-                //No embedded certs, lets construct it.
-                if (providedSigner == null)
-                {
-                    trace.TraceEvent(TraceEventType.Error, 0, "The provided message does not contain any embedded certificates");
-                    throw new InvalidMessageException("The message does not contain any embedded certificates");
-                }
-                timemarkKey.Signer = providedSigner;
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The message does not contains certificates, adding the chain of {0}", timemarkKey.Signer.Subject);
-
-                //Construct the chain of certificates
-                Chain chain = timemarkKey.Signer.BuildChain(timemarkKey.SigningTime, extraStore);
-                if (chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
-                {
-                    trace.TraceEvent(TraceEventType.Error, 0, "The certification chain of {0} failed with errors", chain.ChainElements[0].Certificate.Subject);
-                    throw new InvalidMessageException(string.Format("The certificate chain of the signer {0} fails basic validation", timemarkKey.Signer.Subject));
-                }
-
-                List<BC::X509.X509Certificate> senderChainCollection = new List<BC::X509.X509Certificate>();
-                foreach (ChainElement ce in chain.ChainElements)
-                {
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "Adding the certificate {0} to the message", ce.Certificate.Subject);
-                    senderChainCollection.Add(DotNetUtilities.FromX509Certificate(ce.Certificate));
-                }
-                embeddedCerts = X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(senderChainCollection));
-                
-                //Add the certificates to the new message
-                gen.AddCertificates(embeddedCerts);
-
+                trace.TraceEvent(TraceEventType.Verbose, 0, "The message does not contains certificates, adding the provided {0}", provided.Subject);
+                return provided;
             }
+        }
 
-            //Getting any existing time stamps
+        private TimeStampToken ExtractTimestamp(IDictionary unsignedAttributes)
+        {
             TimeStampToken tst = null;
             BC::Asn1.Cms.Attribute timestampAttr = (BC::Asn1.Cms.Attribute)unsignedAttributes[PkcsObjectIdentifiers.IdAASignatureTimeStampToken];
-            if (timestampAttr == null || ((DerSet)timestampAttr.AttrValues).Count == 0)
+            if (timestampAttr != null && ((DerSet)timestampAttr.AttrValues).Count > 0)
             {
-                //there is no TST
-                if ((level & Level.T_Level) == Level.T_Level && timestampProvider != null)
-                {
-                    //There should be a TST
-                    if (DateTime.UtcNow > (timemarkKey.SigningTime + EteeActiveConfig.ClockSkewness + Settings.Default.TimestampGracePeriod))
-                    {
-                        trace.TraceEvent(TraceEventType.Error, 0, "The message was created on {0}, which is beyond the allows period of {2} to time-stamp", timemarkKey.SigningTime, Settings.Default.TimestampGracePeriod);
-                        throw new InvalidMessageException("The message it to old to add a time-stamp");
-                    }
-
-                    SHA256 sha = SHA256.Create();
-                    byte[] signatureHash = sha.ComputeHash(timemarkKey.SignatureValue);
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "SHA-256 hashed the signature value from {0} to {1}", Convert.ToBase64String(timemarkKey.SignatureValue),  Convert.ToBase64String(signatureHash));
-
-                    byte[] rawTst = timestampProvider.GetTimestampFromDocumentHash(signatureHash, "http://www.w3.org/2001/04/xmlenc#sha256");
-                    tst = rawTst.ToTimeStampToken();
-
-                    if (!tst.IsMatch(new MemoryStream(timemarkKey.SignatureValue)))
-                    {
-                        trace.TraceEvent(TraceEventType.Error, 0, "The time-stamp does not correspond to the signature value {0}", Convert.ToBase64String(timemarkKey.SignatureValue));
-                        throw new InvalidOperationException("The time-stamp authority did not return a matching time-stamp");
-                    }
-
-                    //Don't verify the time-stamp, it is done later
-
-                    //embed TST
-                    BC::Asn1.Cms.Attribute signatureTstAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAASignatureTimeStampToken, new DerSet(Asn1Object.FromByteArray(rawTst)));
-                    unsignedAttributes[signatureTstAttr.AttrType] = signatureTstAttr;
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "Added the time-stamp: {0}", Convert.ToBase64String(rawTst));
-
-                    //The certs are part of the TST, so no need to add them to the CMS
-                }
-            }
-            else
-            {
-                //There is one, extract it we need it later
                 DerSet rawTsts = (DerSet)timestampAttr.AttrValues;
                 if (rawTsts.Count > 1)
                 {
@@ -481,80 +480,120 @@ namespace Egelke.EHealth.Etee.Crypto
                 }
 
                 tst = rawTsts[0].GetEncoded().ToTimeStampToken();
-                if (!hasSigningTime)
-                {
-                    trace.TraceEvent(TraceEventType.Information, 0, "Implicit signing time {0} is replaced with time-stamp time {1}", timemarkKey.SigningTime, tst.TimeStampInfo.GenTime);
-                    timemarkKey.SigningTime = tst.TimeStampInfo.GenTime;
-                }
-                if (tst.TimeStampInfo.GenTime > (timemarkKey.SigningTime + EteeActiveConfig.ClockSkewness + Settings.Default.TimestampGracePeriod))
-                {
-                    trace.TraceEvent(TraceEventType.Error, 0, "The message was time-stamped on {0}, which is beyond the allows period of {2} from the signing time {1}", tst.TimeStampInfo.GenTime, timemarkKey.SigningTime, Settings.Default.TimestampGracePeriod);
-                    throw new InvalidMessageException("The message wasn't timestamped on time");
-                }
             }
-            
+            return tst;
+        }
 
-            if ((level & Level.L_Level) == Level.L_Level)
+        private RevocationValues ExtractRevocationInfo(IDictionary unsignedAttributes)
+        {
+            BC::Asn1.Cms.Attribute revocationAttr = (BC::Asn1.Cms.Attribute)unsignedAttributes[PkcsObjectIdentifiers.IdAAEtsRevocationValues];
+            if (revocationAttr != null)
             {
-                //Add revocation info
-                IList<CertificateList> crls = null;
-                IList<BasicOcspResponse> ocsps = null;
-                BC::Asn1.Cms.Attribute revocationAttr = (BC::Asn1.Cms.Attribute)unsignedAttributes[PkcsObjectIdentifiers.IdAAEtsRevocationValues];
-                if (revocationAttr != null)
+                DerSet revocationInfoSet = (DerSet)revocationAttr.AttrValues;
+                if (revocationInfoSet == null || revocationInfoSet.Count == 0)
                 {
-                    DerSet revocationInfoSet = (DerSet) revocationAttr.AttrValues;
-                    if (revocationInfoSet == null || revocationInfoSet.Count == 0)
-                    {
-                        RevocationValues revocationInfo = RevocationValues.GetInstance(revocationInfoSet[0]);
-                        crls = new List<CertificateList>(revocationInfo.GetCrlVals());
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "Found {1} CRL's in the message", crls.Count);
-                        ocsps = new List<BasicOcspResponse>(revocationInfo.GetOcspVals());
-                        trace.TraceEvent(TraceEventType.Verbose, 0, "Found {1} OCSP's in the message", ocsps.Count);
-                    }
+                    return RevocationValues.GetInstance(revocationInfoSet[0]);
                 }
-                if (crls == null) crls = new List<CertificateList>();
-                if (ocsps == null) ocsps = new List<BasicOcspResponse>();
+            }
+            return null;
+        }
 
-                //Add the message certificate chain revocation info + check if successful
-                var extraStore = new X509Certificate2Collection();
-                foreach (Org.BouncyCastle.X509.X509Certificate cert in embeddedCerts.GetMatches(null))
-                {
-                    extraStore.Add(new X509Certificate2(cert.GetEncoded()));
-                }
-                Chain chain = timemarkKey.Signer.BuildChain(timemarkKey.SigningTime, extraStore, ref crls, ref ocsps);
-                if (chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
-                {
-                    trace.TraceEvent(TraceEventType.Error, 0, "The certificate chain of the signer {0} failed with {1} issues: {2}, {3}", timemarkKey.Signer.Subject,
-                        chain.ChainStatus.Count, chain.ChainStatus[0].Status, chain.ChainStatus[0].StatusInformation);
-                    throw new InvalidMessageException(string.Format("The certificate chain of the signer {0} fails revocation validation", timemarkKey.Signer.Subject));
-                }
-
-                //Add the time-stamp certificate chain revocation info + check if successful
-                if (tst != null)
-                {
-                    Timestamp ts = tst.Validate(ref crls, ref ocsps);
-                    if (ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
-                    {
-                        trace.TraceEvent(TraceEventType.Error, 0, "The certificate chain of the time-stamp signer {0} failed with {1} issues: {2}, {3}", ts.CertificateChain.ChainElements[0].Certificate.Subject,
-                        ts.TimestampStatus.Count, ts.TimestampStatus[0].Status, ts.TimestampStatus[0].StatusInformation);
-                        throw new InvalidMessageException("The embedded time-stamp fails validation");
-                    }
-                }
-
-                //Embed revocation info
-                RevocationValues revocationValues = new RevocationValues(crls, ocsps, null);
-                revocationAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAAEtsRevocationValues, new DerSet(revocationValues.ToAsn1Object()));
-                unsignedAttributes[revocationAttr.AttrType] = revocationAttr;
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Added {0} OCSP's and {1} CRL's to the message", ocsps.Count, crls.Count);
+        private IX509Store GetEmbeddedCerts(TimemarkKey timemarkKey)
+        {
+            //Construct the chain of certificates
+            Chain chain = timemarkKey.Signer.BuildChain(timemarkKey.SigningTime == default ? DateTime.UtcNow : timemarkKey.SigningTime, extraStore);
+            if (chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "The certification chain of {0} failed with errors", chain.ChainElements[0].Certificate.Subject);
+                throw new InvalidMessageException(string.Format("The certificate chain of the signer {0} fails basic validation", timemarkKey.Signer.Subject));
             }
 
-            //Update the unsigned attributes of the signer info
-            signerInfo = SignerInformation.ReplaceUnsignedAttributes(signerInfo, new BC::Asn1.Cms.AttributeTable(unsignedAttributes));
+            List<BC::X509.X509Certificate> senderChainCollection = new List<BC::X509.X509Certificate>();
+            foreach (ChainElement ce in chain.ChainElements)
+            {
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Adding the certificate {0} to the message", ce.Certificate.Subject);
+                senderChainCollection.Add(DotNetUtilities.FromX509Certificate(ce.Certificate));
+            }
+            return X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(senderChainCollection));
+        }
 
-            //Copy the signer
-            gen.AddSigners(new SignerInformationStore(new SignerInformation[] { signerInfo }));
-            
-            contentOut.Close();
+        private void AddEmbeddedCerts(CmsSignedDataStreamGenerator gen, IX509Store embeddedCerts)
+        {
+            if (embeddedCerts != null) gen.AddCertificates(embeddedCerts);
+        }
+
+        private TimeStampToken GetTimestamp(TimemarkKey timemarkKey)
+        {
+            SHA256 sha = SHA256.Create();
+            byte[] signatureHash = sha.ComputeHash(timemarkKey.SignatureValue);
+            trace.TraceEvent(TraceEventType.Verbose, 0, "SHA-256 hashed the signature value from {0} to {1}", Convert.ToBase64String(timemarkKey.SignatureValue), Convert.ToBase64String(signatureHash));
+
+            byte[] rawTst = timestampProvider.GetTimestampFromDocumentHash(signatureHash, "http://www.w3.org/2001/04/xmlenc#sha256");
+            TimeStampToken tst = rawTst.ToTimeStampToken();
+
+            //basic check
+            if (!tst.IsMatch(new MemoryStream(timemarkKey.SignatureValue)))
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "The time-stamp does not correspond to the signature value {0}", Convert.ToBase64String(timemarkKey.SignatureValue));
+                throw new InvalidOperationException("The time-stamp authority did not return a matching time-stamp");
+            }
+
+            //Don't verify the time-stamp, it is done later
+            return tst;
+        }
+
+        private void AddTimestamp(IDictionary unsignedAttributes, TimeStampToken tst)
+        {
+            byte[] rawTst = tst.GetEncoded();
+            BC.Asn1.Cms.Attribute signatureTstAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAASignatureTimeStampToken, new DerSet(Asn1Object.FromByteArray(rawTst)));
+            unsignedAttributes[signatureTstAttr.AttrType] = signatureTstAttr;
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Added the time-stamp {0} [Token={1}]", tst.TimeStampInfo.GenTime, Convert.ToBase64String(rawTst));
+        }
+
+        private RevocationValues GetRevocationValues(TimemarkKey timemarkKey, IX509Store embeddedCerts, RevocationValues revocationInfo)
+        {
+            IList<CertificateList> crls = new List<CertificateList>(revocationInfo.GetCrlVals());
+            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>(revocationInfo.GetOcspVals());
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Start getting revocation values for Cert, having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
+
+            var chainExtraStore = new X509Certificate2Collection();
+            foreach (Org.BouncyCastle.X509.X509Certificate cert in embeddedCerts.GetMatches(null))
+            {
+                extraStore.Add(new X509Certificate2(cert.GetEncoded()));
+            }
+            Chain chain = timemarkKey.Signer.BuildChain(timemarkKey.SigningTime, chainExtraStore, crls, ocsps);
+            if (chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "The certificate chain of the signer {0} failed with {1} issues: {2}, {3}", timemarkKey.Signer.Subject,
+                    chain.ChainStatus.Count, chain.ChainStatus[0].Status, chain.ChainStatus[0].StatusInformation);
+                throw new InvalidMessageException(string.Format("The certificate chain of the signer {0} fails revocation validation", timemarkKey.Signer.Subject));
+            }
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Finished getting revocation values for Cert, now having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
+            return new RevocationValues(crls, ocsps, null);
+        }
+
+        private RevocationValues GetRevocationValues(TimeStampToken tst, RevocationValues revocationInfo)
+        {
+            IList<CertificateList> crls = new List<CertificateList>(revocationInfo.GetCrlVals());
+            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>(revocationInfo.GetOcspVals());
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Start getting revocation values for TST, having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
+
+            Timestamp ts = tst.Validate(crls, ocsps);
+            if (ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
+            {
+                trace.TraceEvent(TraceEventType.Error, 0, "The certificate chain of the time-stamp signer {0} failed with {1} issues: {2}, {3}", ts.CertificateChain.ChainElements[0].Certificate.Subject,
+                ts.TimestampStatus.Count, ts.TimestampStatus[0].Status, ts.TimestampStatus[0].StatusInformation);
+                throw new InvalidMessageException("The embedded time-stamp fails validation");
+            }
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Finished getting revocation values for TST, now having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
+            return new RevocationValues(crls, ocsps, null);
+        }
+
+        private void AddRevocationValues(IDictionary unsignedAttributes, RevocationValues revocationInfo)
+        {
+            BC::Asn1.Cms.Attribute revocationAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAAEtsRevocationValues, new DerSet(revocationInfo.ToAsn1Object()));
+            unsignedAttributes[revocationAttr.AttrType] = revocationAttr;
+            trace.TraceEvent(TraceEventType.Verbose, 0, "Added OCSP's and CRL's to the message");
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
- * Copyright (C) 2014 Egelke
+ * Copyright (C) 2014-2020 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,83 +34,71 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// <remarks>
     /// This instance is specific for a sender, so if your program supports multiple senders it will need multiple instance.
     /// </remarks>
-    public static class EhDataSealerFactory
+    public static class DataSealerFactory
     {
 
         /// <summary>
         /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for B-Level only.
         /// </summary>
-        /// <example>
-        /// B-Level for alice:
-        /// <code lang="cs">
-        /// var alice = new EHealthP12("alices_private_key_store.p12", "test");
-        /// IDataSealer sealer = DataSealerFactory.Create(Level.B_Level, alice);
-        /// </code>
-        /// </example>
+        /// <param name="authSign">The certificate to use for proving the origin of the message.</param>
+        /// <param name="nonRepSign">The certificate to use for non-repudiation of the message content, null (default) if not appicable (authSign used instead)</param>
         /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
-        /// <param name="p12">The eHealth certificate as wrapper of the pkcs12 file</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
-        public static IDataSealer Create(Level level, EHealthP12 p12)
+        public static IDataSealer Create(Level level, X509Certificate2 authSign, X509Certificate2 nonRepSign = null)
         {
+            ValidateCertificates(authSign, nonRepSign);
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
-            X509Certificate2 cert = p12["authentication"];
-            return new TripleWrapper(level, cert, cert, null, p12.ToCollection());
+            return new TripleWrapper(level, authSign, nonRepSign, null, null);
         }
 
         /// <summary>
         /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for all levels except for B-Level.
         /// </summary>
-        /// <remarks>
-        /// Uses a time-stamp authority to indicate the time when the message was created. See the eH-I TSA module for possible implementation of existing authorities.
-        /// See the message definition for which authority must be used if any, the eH-I TSA module provides clients for both eHealth and Fedict but can be extended to any
-        /// authority that returns compliant time-stamp-tokens.
-        /// </remarks>
-        /// <example>
-        /// LTA-Level for alice, with Fedict TSA:
-        /// <code lang="cs">
-        /// var alice = new EHealthP12("alices_private_key_store.p12", "test");
-        /// var tsa = new Rfc3161TimestampProvider(); //not representative, should be eHealth DSS.
-        /// IDataSealer sealer = DataSealerFactory.Create(Level.LTA_Level, tsa, alice);
-        /// </code>
-        /// </example>
-        /// <param name="p12">The eHealth certificate as wrapper of the pkcs12 file</param>
+        /// <seealso cref="Create(Level, ITimestampProvider, EHealthP12)"/>
+        /// <param name="authSign">The certificate to use for proving the origin of the message.</param>
+        /// <param name="nonRepSign">The certificate to use for non-repudiation of the message content, null (default) if not appicable (authSign used instead)</param>
         /// <param name="level">The level of the sealing, B-Level not allowed</param>
         /// <param name="timestampProvider">The client of the time-stamp authority</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
-        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, EHealthP12 p12)
+        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, X509Certificate2 authSign, X509Certificate2 nonRepSign = null)
         {
+            ValidateCertificates(authSign, nonRepSign);
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
 
-            X509Certificate2 cert = p12["authentication"];
-            return new TripleWrapper(level, cert, cert, timestampProvider, p12.ToCollection());
+            return new TripleWrapper(level, authSign, nonRepSign, timestampProvider, null);
         }
 
         /// <summary>
         /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for all levels except for B-Level.
         /// </summary>
-        /// <remarks>
-        /// The returned data sealer assumes that the messages will be send via a time-mark authority and will therefore not attempt to add a time-stamp.
-        /// The data sealer has not direct dependency to this time-mark authority, it is the caller that must send it himself.
-        /// </remarks>
-        /// <example>
-        /// LTA-Level for alice, TMA (any):
-        /// <code lang="cs">
-        /// var alice = new EHealthP12("alices_private_key_store.p12", "test");
-        /// IDataSealer sealer = DataSealerFactory.CreateForTimemarkAuthority(Level.LTA_Level, alice);
-        /// </code>
-        /// </example>
-        /// <param name="p12">The eHealth certificate as wrapper of the pkcs12 file</param>
-        /// <param name="level">The level of the sealing, B-Level not allowed</param>
+        /// <seealso cref="CreateForTimemarkAuthority(Level, EHealthP12)"/>
+        /// <param name="authSign">The certificate to use for proving the origin of the message.</param>
+        /// <param name="nonRepSign">The certificate to use for non-repudiation of the message content, null (default) if not appicable (authSign used instead)</param>
+        /// <param name="level">The level of the sealing, not allowed for B-Level</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender for a time-mark authority</returns>
-        public static IDataSealer CreateForTimemarkAuthority(Level level, EHealthP12 p12)
+        public static IDataSealer CreateForTimemarkAuthority(Level level, X509Certificate2 authSign, X509Certificate2 nonRepSign = null)
         {
+            ValidateCertificates(authSign, nonRepSign);
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            X509Certificate2 cert = p12["authentication"];
-            return new TripleWrapper(level, cert, cert, null, p12.ToCollection());
+            return new TripleWrapper(level, authSign, nonRepSign, null, null);
         }
 
+
+        private static void ValidateCertificates(X509Certificate2 authSign, X509Certificate2 nonRepCert) {
+            if (authSign == null) throw new ArgumentNullException("authSign", "The authentication certificate must be provided");
+            if (!authSign.HasPrivateKey) throw new ArgumentException("authSign", "The authentication certificate must have a private key");
+            BC::X509.X509Certificate bcAuthentication = DotNetUtilities.FromX509Certificate(authSign);
+            if (!bcAuthentication.GetKeyUsage()[0]) throw new ArgumentException("authSign", "The authentication certificate must have a key for signing");
+
+            if (nonRepCert != null)
+            {
+                if (!nonRepCert.HasPrivateKey) throw new ArgumentException("nonRepCert", "The non-repudiation certificate must have a private key");
+                BC::X509.X509Certificate bcNonRepudiation = DotNetUtilities.FromX509Certificate(nonRepCert);
+                if (!bcNonRepudiation.GetKeyUsage()[1]) throw new ArgumentException("nonRepCert", "The non-repudiation certificate must have a key for non-Repudiation");
+            }
+        }
     }
 }

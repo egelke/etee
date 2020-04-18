@@ -25,13 +25,13 @@ using Egelke.EHealth.Etee.Crypto.Receiver;
 using System.IO;
 using Egelke.EHealth.Etee.Crypto.Sender;
 using Egelke.EHealth.Etee.Crypto;
-using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
 using Egelke.EHealth.Client.Pki;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
-    [TestFixture]
+    [TestClass]
     public class JavaV16IntegrationTest
     {
 
@@ -46,12 +46,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         private IDataUnsealer anonUnsealer;
 
-        [OneTimeSetUp]
-        public void MyClassInitialize()
+        [ClassInitialize]
+        public void MyClassInitialize(TestContext ctx)
         {
 
-            var alice = new EHealthP12(GetAbsoluteTestFilePath("../../alice/old_alices_private_key_store.p12"), "test");
-            var bob = new EHealthP12(GetAbsoluteTestFilePath("../../bob/old_bobs_private_key_store.p12"), "test");
+            var alice = new EHealthP12(GetAbsoluteTestFilePath("alice/old_alices_private_key_store.p12"), "test");
+            var bob = new EHealthP12(GetAbsoluteTestFilePath("bob/old_bobs_private_key_store.p12"), "test");
 
 
             aliceSealer = EhDataSealerFactory.Create(Level.B_Level, alice);
@@ -69,12 +69,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.FileName = "java.exe";
-            p.StartInfo.Arguments = @"-cp "+ GetAbsoluteTestFilePath(@"..\..\javabin\v1.6\SIGNED-etee-crypto-1.6.1-tests.jar") + ";"
-                + GetAbsoluteTestFilePath(@"..\..\javabin\v1.6\SIGNED-etee-crypto-1.6.1.jar")+";"
-                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\bcmail-jdk16-145.jar")+";"
-                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\bcprov-jdk16-145.jar")+";"
-                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\junit-4.8.2.jar")+";"
-                + GetAbsoluteTestFilePath(@"..\..\javabin\lib\log4j-1.2.16.jar") +" " + program;
+            p.StartInfo.Arguments = @"-cp "+ GetAbsoluteTestFilePath(@"javabin\v1.6\SIGNED-etee-crypto-1.6.1-tests.jar") + ";"
+                + GetAbsoluteTestFilePath(@"javabin\v1.6\SIGNED-etee-crypto-1.6.1.jar")+";"
+                + GetAbsoluteTestFilePath(@"javabin\lib\bcmail-jdk16-145.jar")+";"
+                + GetAbsoluteTestFilePath(@"javabin\lib\bcprov-jdk16-145.jar")+";"
+                + GetAbsoluteTestFilePath(@"javabin\lib\junit-4.8.2.jar")+";"
+                + GetAbsoluteTestFilePath(@"javabin\lib\log4j-1.2.16.jar") +" " + program;
 
             p.StartInfo.WorkingDirectory = _basePath;
             p.Start();
@@ -90,7 +90,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             return result;
         }
 
-        [Test]
+        [TestMethod]
         public void Java2NetAddressed()
         {
             RunJava("be.smals.ehealth.etee.crypto.examples.Seal");
@@ -120,12 +120,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
        
-        [Test]
+        [TestMethod]
         public void Net2JavaAddressed()
         {
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
-            Stream msg = aliceSealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/old_bobs_public_key.etk"))));
+            Stream msg = aliceSealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(text)), new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/old_bobs_public_key.etk"))));
 
             FileStream msgFile = new FileStream(GetAbsoluteTestFilePath("message_from_alice_for_bob.msg"), FileMode.OpenOrCreate);
             msg.CopyTo(msgFile);
@@ -137,7 +137,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         
-        [Test]
+        [TestMethod]
         public void Java2NetUnaddressed()
         {
             RunJava("be.smals.ehealth.etee.crypto.examples.SealForUnknown");
@@ -169,7 +169,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
 
-        [Test]
+        [TestMethod]
         public void Net2JavaUnaddressed()
         {
             String text = "This is a secret message from Alice for an unknown addressee written at " + DateTime.Now.ToString();

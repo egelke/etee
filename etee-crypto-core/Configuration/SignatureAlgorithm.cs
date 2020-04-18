@@ -26,23 +26,18 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
 {
     internal class SignatureAlgorithm
     {
-        private Oid digestAlgorithm;
+        public Oid Algorithm { get; }
 
-        public Oid DigestAlgorithm
-        {
-            get { return digestAlgorithm; }
-        }
-        private Oid encryptionAlgorithm;
+        public Oid DigestAlgorithm { get;  }
 
-        public Oid EncryptionAlgorithm
-        {
-            get { return encryptionAlgorithm; }
-        }
+        public Oid EncryptionAlgorithm { get;  }
 
-        public SignatureAlgorithm(Oid digestAlgoId, Oid encryptionAlgoId)
+
+        public SignatureAlgorithm(Oid algorithm, Oid digestAlgoId, Oid encryptionAlgoId)
         {
-            digestAlgorithm = digestAlgoId;
-            encryptionAlgorithm = encryptionAlgoId;
+            this.Algorithm = algorithm;
+            this.DigestAlgorithm = digestAlgoId;
+            this.EncryptionAlgorithm = encryptionAlgoId;
         }        
     }
 }

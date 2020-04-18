@@ -30,7 +30,6 @@ using Egelke.EHealth.Etee.Crypto.Receiver;
 using System.Security.Cryptography;
 using System.Collections.ObjectModel;
 using Egelke.EHealth.Etee.Crypto.Utils;
-using NUnit.Framework;
 using Egelke.EHealth.Etee.Crypto.Status;
 using System.Configuration;
 using System.Collections.Specialized;
@@ -39,12 +38,13 @@ using Org.BouncyCastle.Security;
 using Egelke.EHealth.Etee.Crypto.Store;
 using System.Diagnostics;
 using Egelke.EHealth.Client.Pki;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Egelke.eHealth.ETEE.Crypto.Test
 {
 
-    [TestFixture, Explicit, Category("Manual")]
-    public class SelectCert
+    [TestClass]
+    public class EidCertTest
     {
         private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
         private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
@@ -77,21 +77,21 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         ValidationStatus validationStatus;
 
-        [OneTimeSetUp]
-        public static void InitializeClass()
+        [ClassInitialize]
+        public static void InitializeClass(TestContext ctx)
         {
             //Bob as decryption
-            bobEtk = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("../../bob/bobs_public_key.etk")));
+            bobEtk = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/bobs_public_key.etk")));
 
             //Bob (and Alice) used for decryption
-            alice = new EHealthP12(GetAbsoluteTestFilePath("../../alice/alices_private_key_store.p12"), "test");
-            bob = new EHealthP12(GetAbsoluteTestFilePath("../../bob/bobs_private_key_store.p12"), "test");
+            alice = new EHealthP12(GetAbsoluteTestFilePath("alice/alices_private_key_store.p12"), "test");
+            bob = new EHealthP12(GetAbsoluteTestFilePath("bob/bobs_private_key_store.p12"), "test");
 
             //create a tsa (fedict in this case)
             tsa = new Rfc3161TimestampProvider();
         }
 
-        [Test]
+        [TestMethod]
         public void NullLevel()
         {
             level = null;
@@ -114,7 +114,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void NullLevelRepudiatable()
         {
             level = null;
@@ -141,7 +141,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void B_Level()
         {
             level = Level.B_Level;
@@ -164,7 +164,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void T_Level()
         {
             level = Level.LT_Level;
@@ -187,7 +187,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void T_LevelTma()
         {
             level = Level.LT_Level;
@@ -215,7 +215,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_Level()
         {
             level = Level.LT_Level;
@@ -238,7 +238,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_LevelRepudiatable()
         {
             level = Level.LT_Level;
@@ -261,7 +261,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_LevelIn2Steps()
         {
             level = Level.B_Level;
@@ -288,7 +288,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_LevelIn2StepsRepudiatable()
         {
             level = Level.B_Level;
@@ -315,7 +315,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_LevelIn3Steps()
         {
             level = Level.B_Level;
@@ -346,7 +346,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_LevelIn3StepsRepudiatable()
         {
             level = Level.B_Level;
@@ -377,7 +377,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_LevelTma()
         {
             level = Level.LT_Level;
@@ -405,7 +405,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_LevelTmaRepudiatable()
         {
             level = Level.LT_Level;
@@ -433,7 +433,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_LevelTmaIn2Steps()
         {
             level = Level.B_Level;
@@ -465,7 +465,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LT_LevelTmaIn2StepsRepudiatable()
         {
             level = Level.B_Level;
@@ -497,7 +497,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LTA_Level()
         {
             level = Level.LTA_Level;
@@ -520,7 +520,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LTA_LevelRepudiatable()
         {
             level = Level.LTA_Level;
@@ -543,7 +543,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LTA_LevelTma()
         {
             level = Level.LTA_Level;
@@ -571,7 +571,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             output.Close();
         }
 
-        [Test]
+        [TestMethod]
         public void LTA_LevelTmaRepudiatable()
         {
             level = Level.LTA_Level;
@@ -619,7 +619,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(trustStatus, result.TrustStatus);
             Assert.AreEqual(subject, result.Signer.Subject);
             Assert.AreEqual((level & Level.T_Level) == Level.T_Level, result.TimestampRenewalTime > DateTime.UtcNow);
-            Assert.NotNull(result.SignatureValue);
+            Assert.IsNotNull(result.SignatureValue);
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
             Assert.IsFalse(result.IsNonRepudiatable); //outer is never repudiatable
         }
@@ -644,7 +644,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.AreEqual(trustStatus, result.TrustStatus);
             Assert.AreEqual(subject, result.Signer.Subject);
             Assert.IsNull(result.TimestampRenewalTime);
-            Assert.NotNull(result.SignatureValue);
+            Assert.IsNotNull(result.SignatureValue);
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
             Assert.IsFalse(result.IsNonRepudiatable); //outer is never repudiatable
         }
@@ -657,7 +657,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             SignatureSecurityInformation result = verifier.Verify(output, DateTime.UtcNow, out key);
             Console.WriteLine(result.ToString());
 
-            Assert.NotNull(key.SignatureValue);
+            Assert.IsNotNull(key.SignatureValue);
             Assert.AreEqual(key.Signer.Thumbprint, result.Signer.Thumbprint);
             Assert.IsTrue((DateTime.UtcNow - key.SigningTime) < new TimeSpan(0, 1, 0));
 
@@ -712,7 +712,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 }
                 else
                 {
-                    sealer = EidDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, new TimeSpan(0, 5, 0), nonRepudiatable);
+                    sealer = EidDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, nonRepudiatable);
                 }
             }
             else
@@ -727,9 +727,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 else
                 {
                     if (useTmaInsteadOfTsa)
-                        sealer = EidDataSealerFactory.CreateForTimemarkAuthority(level.Value, new TimeSpan(0, 5, 0), nonRepudiatable);
+                        sealer = EidDataSealerFactory.CreateForTimemarkAuthority(level.Value, nonRepudiatable);
                     else
-                        sealer = EidDataSealerFactory.Create(level.Value, tsa, new TimeSpan(0, 5, 0), nonRepudiatable);
+                        sealer = EidDataSealerFactory.Create(level.Value, tsa, nonRepudiatable);
                 }
             }
 
