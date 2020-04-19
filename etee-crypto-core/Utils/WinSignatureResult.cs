@@ -7,7 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Egelke.EHealth.Etee.Crypto
+namespace Egelke.EHealth.Etee.Crypto.Utils
 {
     internal class WinSignatureResult : IBlockResult
     {

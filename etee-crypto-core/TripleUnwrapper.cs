@@ -286,7 +286,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
         private SignatureSecurityInformation Verify(SignerInformationStore signerInfos, IX509Store certs, SignatureSecurityInformation outer)
         {
-            trace.TraceEvent(TraceEventType.Information, 0, "Verifying the {0} signature information", outer != null ? "outer" : "inner");
+            trace.TraceEvent(TraceEventType.Information, 0, "Verifying the {0} signature information", outer == null ? "outer" : "inner");
             SignatureSecurityInformation result = new SignatureSecurityInformation();
 
             //Check if signed (only allow single signatures)

@@ -165,6 +165,29 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
+        public void B_LevelRepudiatable()
+        {
+            level = Level.B_Level;
+            nonRepudiatable = false;
+            useTmaInsteadOfTsa = false;
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+
+            trace.TraceInformation("B-Level: Sealing");
+            Stream output = Seal();
+
+            trace.TraceInformation("B-Level: Verify");
+            Verify(output);
+
+            output.Position = 0;
+
+            trace.TraceInformation("B-Level: Unseal");
+            Unseal(output);
+
+            output.Close();
+        }
+
+        [TestMethod]
         public void T_Level()
         {
             level = Level.LT_Level;

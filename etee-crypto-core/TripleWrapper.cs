@@ -156,7 +156,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 TimemarkKey timemarkKey;
 
                 //Inner sign
-                SignDetached(innerDetached, unsealedStream, authentication);
+                SignDetached(innerDetached, unsealedStream, signature);
 
                 //prepare to merge the detached inner signature with its content
                 innerDetached.Position = 0;
@@ -447,7 +447,7 @@ namespace Egelke.EHealth.Etee.Crypto
                     return RevocationValues.GetInstance(revocationInfoSet[0]);
                 }
             }
-            return null;
+            return new RevocationValues(new CertificateList[0], new BasicOcspResponse[0], null);
         }
 
         private IX509Store GetEmbeddedCerts(TimemarkKey timemarkKey)
