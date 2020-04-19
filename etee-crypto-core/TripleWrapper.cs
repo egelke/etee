@@ -216,71 +216,23 @@ namespace Egelke.EHealth.Etee.Crypto
             }
         }
 
-        /*
-        protected void Sign(Stream signed, Stream unsigned, X509Certificate2 selectedCert)
-        {
-            BC::X509.X509Certificate bcSelectedCert = DotNetUtilities.FromX509Certificate(selectedCert);
-            trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", selectedCert.Subject);
-
-            //Signing time
-            DateTime signingTime = DateTime.UtcNow;
-
-            CmsSignedDataStreamGenerator signedGenerator = new CmsSignedDataStreamGenerator();
-
-            //For compatibility we don't add it to the CMS (most implementations, including BC, don't support OCSP here)
-            //IX509Store crlStore = X509StoreFactory.Create("CRL/COLLECTION", new X509CollectionStoreParameters(crl's));
-            //signedGenerator.AddCrls(crlStore);
-
-            //add signed attributes to the signature (own signing time)
-            IDictionary signedAttrDictionary = new Hashtable();
-            BC::Asn1.Cms.Attribute signTimeattr = new BC::Asn1.Cms.Attribute(CmsAttributes.SigningTime,
-                    new DerSet(new BC::Asn1.Cms.Time(signingTime)));
-            signedAttrDictionary.Add(signTimeattr.AttrType, signTimeattr);
-            BC::Asn1.Cms.AttributeTable signedAttrTable = new BC.Asn1.Cms.AttributeTable(signedAttrDictionary);
-
-            //Add the signatures
-            SignatureAlgorithm signAlgo;
-            if (((RSACryptoServiceProvider)selectedCert.PrivateKey).CspKeyContainerInfo.Exportable) {
-                signAlgo =  EteeActiveConfig.Seal.NativeSignatureAlgorithm;
-                signedGenerator.AddSigner(DotNetUtilities.GetKeyPair(selectedCert.PrivateKey).Private,
-                    bcSelectedCert, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value,
-                    signedAttrTable, null);
-            } else {
-                signAlgo = EteeActiveConfig.Seal.WindowsSignatureAlgorithm;
-                signedGenerator.AddSigner(new ProxyRsaKeyParameters((RSACryptoServiceProvider)selectedCert.PrivateKey),
-                    bcSelectedCert, signAlgo.EncryptionAlgorithm.Value, signAlgo.DigestAlgorithm.Value,
-                    signedAttrTable, null);
-            }
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Added Signer [EncAlgo={0} ({1}), DigestAlgo={2} ({3})",
-                signAlgo.EncryptionAlgorithm.FriendlyName,
-                signAlgo.EncryptionAlgorithm.Value,
-                signAlgo.DigestAlgorithm.FriendlyName,
-                signAlgo.DigestAlgorithm.Value);
-
-            Stream signingStream = signedGenerator.Open(signed, true);
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Create embedded signed message (still empty)");
-            try
-            {
-                unsigned.CopyTo(signingStream);
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Message copied and digest calculated");
-            }
-            finally
-            {
-                signingStream.Close();
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Signature block added");
-            }
-        }
-        */
-
         protected void SignDetached(Stream signed, Stream unsigned, X509Certificate2 selectedCert)
         {
             BC::X509.X509Certificate bcSelectedCert = DotNetUtilities.FromX509Certificate(selectedCert);
             trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", selectedCert.Subject);
 
-            //TODO:: for eiD.
-            SignatureAlgorithm signAlgo = EteeActiveConfig.Seal.NativeSignatureAlgorithm;
-            BC::Crypto.AsymmetricCipherKeyPair keyPair = DotNetUtilities.GetKeyPair(selectedCert.PrivateKey);
-            var sigFactory = new Asn1SignatureFactory(signAlgo.Algorithm.FriendlyName, keyPair.Private);
+            BC.Crypto.ISignatureFactory sigFactory;
+            try
+            {
+                SignatureAlgorithm signAlgo = EteeActiveConfig.Seal.NativeSignatureAlgorithm;
+                BC::Crypto.AsymmetricCipherKeyPair keyPair = DotNetUtilities.GetKeyPair(selectedCert.PrivateKey);
+                sigFactory = new Asn1SignatureFactory(signAlgo.Algorithm.FriendlyName, keyPair.Private);
+            }
+            catch (CryptographicException)
+            { 
+                SignatureAlgorithm signAlgo = EteeActiveConfig.Seal.WindowsSignatureAlgorithm;
+                sigFactory = new WinSignatureFactory(signAlgo.Algorithm, signAlgo.DigestAlgorithm, selectedCert.PrivateKey);
+            }
 
             SignerInfoGenerator sigInfoGen = new SignerInfoGeneratorBuilder()
                 .Build(sigFactory, bcSelectedCert);

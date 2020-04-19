@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
- #if NET452
 
 using System;
 using System.Collections.Generic;
@@ -114,12 +113,12 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             X509Certificate2 sign;
             using (Readers readers = new Readers(ReaderScope.User))
             {
-                Card card = readers.ListCards(EidCard.KNOWN_NAMES).AsQueryable().FirstOrDefault();
+                Card card = readers.ListCards().Where(c => c is EidCard).FirstOrDefault();
                 if (card == null) throw new EidNotFoundException("eid not found");
                 var eidCard = (EidCard)card;
                 using (eidCard)
                 {
-                    eidCard.Close();
+                    eidCard.Open();
                     auth = eidCard.AuthCert;
                     sign = eidCard.SignCert;
                 }
@@ -147,5 +146,3 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         
     }
 }
-
-#endif
