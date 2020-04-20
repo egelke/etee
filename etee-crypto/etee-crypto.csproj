@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>net46;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net452;net46;netstandard2.0</TargetFrameworks>
     <RootNamespace>Egelke.EHealth.Etee.Crypto</RootNamespace>
     <AssemblyName>Egelke.EHealth.Etee.Crypto</AssemblyName>
     <Version>2.2.0</Version>
@@ -16,9 +16,10 @@ Migrate to default BouncyCastle (Portable)
 Fix all Siemens names to Egelke</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <SignAssembly>true</SignAssembly>
-    <DelaySign>false</DelaySign>
     <RepositoryUrl>https://github.com/egelke/etee.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <IncludeSource>true</IncludeSource>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Egelke.Eid.Client" Version="0.3.0" />

@@ -30,6 +30,10 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             var rsaKey = privateKey as RSA;
             if (rsaKey != null)
             {
+#if NET452
+                var rsaProviderKey = rsaKey  as RSACryptoServiceProvider;
+                return rsaProviderKey.SignHash(hashAlgorithm.Hash, hashOid.Value);
+#else
                 HashAlgorithmName han;
                 switch (hashOid.FriendlyName)
                 {
@@ -43,6 +47,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                         throw new InvalidOperationException("Hash algorithm not supported :" + hashOid.FriendlyName);
                 }
                 return rsaKey.SignHash(hashAlgorithm.Hash, han, RSASignaturePadding.Pkcs1);
+#endif
             }
 
             var dsaKey = privateKey as DSA;

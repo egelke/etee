@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\etee-crypto-core\etee-crypto-core.csproj" />
+    <ProjectReference Include="..\etee-crypto\etee-crypto.csproj" />
   </ItemGroup>
 
 </Project>
