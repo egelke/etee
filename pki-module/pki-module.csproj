@@ -19,7 +19,8 @@
     <PackageReleaseNotes>Multi target package: .net standard and .net framework 4.5.2 (latest supported)
 Async methods.</PackageReleaseNotes>
     <SignAssembly>true</SignAssembly>
-    <DelaySign>false</DelaySign>
+    <IncludeSource>true</IncludeSource>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">

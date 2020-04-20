@@ -24,6 +24,8 @@
     <Product>eHealth-Interoperability</Product>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Egelke.EHealth.Client</PackageId>
+    <IncludeSource>true</IncludeSource>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
 
