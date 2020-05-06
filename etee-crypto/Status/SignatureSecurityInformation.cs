@@ -47,13 +47,12 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// <summary>
         /// The certificate of the signer.
         /// </summary>
-        public X509Certificate2 Signer
-        {
-            get
-            {
-                return this.Subject.Certificate;
-            }
-        }
+        public X509Certificate2 Signer => this.Subject?.Certificate;
+
+        /// <summary>
+        /// The subject key identifier.
+        /// </summary>
+        public byte[] SignerId { get; internal set; }
 
         /// <summary>
         /// The (UTC) time the time-stamp should be renewed (if applicable).

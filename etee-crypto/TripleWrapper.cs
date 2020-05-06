@@ -51,6 +51,8 @@ using System.Linq;
 using Org.BouncyCastle.Crypto.Operators;
 using System.Threading.Tasks;
 using System.Timers;
+using Org.BouncyCastle.Crypto;
+using System.CodeDom;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
@@ -67,9 +69,21 @@ namespace Egelke.EHealth.Etee.Crypto
         //The sender signature certificate
         private X509Certificate2 signature;
 
+        private AsymmetricAlgorithm keyPair;
+
+        private byte[] keyId;
+
         private ITimestampProvider timestampProvider;
 
         private X509Certificate2Collection extraStore;
+
+        internal TripleWrapper(Level level, AsymmetricAlgorithm keyPair, ITimestampProvider timestampProvider) {
+            if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only levels B, T, LT and LTA are allowed");
+
+            this.keyPair = keyPair;
+            this.keyId = GetSubjectKeyIdentifier(keyPair);
+            this.timestampProvider = timestampProvider;
+        }
 
         internal TripleWrapper(Level level, X509Certificate2 authentication, X509Certificate2 signature, ITimestampProvider timestampProvider, X509Certificate2Collection extraStore)
         {
@@ -156,14 +170,19 @@ namespace Egelke.EHealth.Etee.Crypto
                 TimemarkKey timemarkKey;
 
                 //Inner sign
-                SignDetached(innerDetached, unsealedStream, signature);
+                if (signature != null)
+                    SignDetached(innerDetached, unsealedStream, signature);
+                else if (keyPair != null)
+                    SignDetached(innerDetached, unsealedStream, keyPair, keyId);
+                else
+                    throw new InvalidOperationException("Tripple wrapper must have either cert of keypair for signing");
 
                 //prepare to merge the detached inner signature with its content
                 innerDetached.Position = 0;
                 unsealedStream.Position = 0;
 
                 //embed the content in the inner signature and add any required info if it uses a different cert.
-                Complete(signature == authentication ? Level.None : this.level & ~Level.T_Level, innerEmbedded, innerDetached, unsealedStream, signature, out timemarkKey);
+                Complete(signature == authentication ? (Level?) null : this.level & ~Level.T_Level, innerEmbedded, innerDetached, unsealedStream, signature, out timemarkKey);
 
                 //prepare to encrypt
                 innerEmbedded.Position = 0;
@@ -183,7 +202,10 @@ namespace Egelke.EHealth.Etee.Crypto
                     try
                     {
                         //Create the outer signature
-                        SignDetached(outerDetached, encrypted, authentication);
+                        if (signature != null)
+                            SignDetached(outerDetached, encrypted, authentication);
+                        else
+                            SignDetached(outerDetached, encrypted, keyPair, keyId);
                         success = true;
                     }
                     catch (CryptographicException ce)
@@ -246,6 +268,26 @@ namespace Egelke.EHealth.Etee.Crypto
             signed.Write(detachedSignatureBytes, 0, detachedSignatureBytes.Length);
         }
 
+        protected void SignDetached(Stream signed, Stream unsigned, AsymmetricAlgorithm keyPair, byte[] keyId)
+        {
+            BC::Crypto.AsymmetricCipherKeyPair bcKeyPair = DotNetUtilities.GetKeyPair(keyPair);
+            trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", Convert.ToBase64String(keyId));
+
+            SignatureAlgorithm signAlgo = EteeActiveConfig.Seal.NativeSignatureAlgorithm;
+            var sigFactory = new Asn1SignatureFactory(signAlgo.Algorithm.FriendlyName, bcKeyPair.Private);
+
+            SignerInfoGenerator sigInfoGen = new SignerInfoGeneratorBuilder()
+                .Build(sigFactory, keyId);
+
+            CmsSignedDataGenerator cmsSignedDataGen = new CmsSignedDataGenerator();
+            cmsSignedDataGen.AddSignerInfoGenerator(sigInfoGen);
+
+            CmsSignedData detachedSignature = cmsSignedDataGen.Generate(new CmsProcessableProxy(unsigned), false);
+
+            byte[] detachedSignatureBytes = detachedSignature.GetEncoded();
+            signed.Write(detachedSignatureBytes, 0, detachedSignatureBytes.Length);
+        }
+
         protected void Encrypt(Stream cipher, Stream clear, ICollection<X509Certificate2> certs, SecretKey key)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Encrypting message for {0} known and {1} unknown recipient",
@@ -281,7 +323,7 @@ namespace Egelke.EHealth.Etee.Crypto
             }
         }
 
-        protected void Complete(Level level, Stream embedded, Stream signed, Stream content, X509Certificate2 providedSigner, out TimemarkKey timemarkKey)
+        protected void Complete(Level? level, Stream embedded, Stream signed, Stream content, X509Certificate2 providedSigner, out TimemarkKey timemarkKey)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Completing the message with of {0} bytes to level {1}", signed.Length, level);
 
@@ -308,6 +350,10 @@ namespace Egelke.EHealth.Etee.Crypto
             timemarkKey.SignatureValue = signerInfo.GetSignature();
             timemarkKey.SigningTime = ExtractSigningTime(signerInfo);
             timemarkKey.Signer = ExtractSignerCert(embeddedCerts, signerInfo, providedSigner);
+            if (timemarkKey.Signer != null)
+                timemarkKey.SignerId = GetSubjectKeyIdentifier(timemarkKey.Signer.PublicKey.Key);
+            else
+                timemarkKey.SignerId = ExtractSignerId(signerInfo);
 
             //Extract the various data from unsiged attributes of signer info
             IDictionary unsignedAttributes = signerInfo.UnsignedAttributes != null ? signerInfo.UnsignedAttributes.ToDictionary() : new Hashtable();
@@ -315,11 +361,12 @@ namespace Egelke.EHealth.Etee.Crypto
             RevocationValues revocationInfo = ExtractRevocationInfo(unsignedAttributes);
 
             //quick check for an expected error and extrapolate some info
-            if (timemarkKey.Signer == null)
+            if (timemarkKey.SignerId == null)
             {
-                trace.TraceEvent(TraceEventType.Error, 0, "The provided message does not contain any embedded certificates");
-                throw new InvalidMessageException("The message does not contain any embedded certificates");
+                trace.TraceEvent(TraceEventType.Error, 0, "We could not find any signer information");
+                throw new InvalidMessageException("The message does not contain any valid signer info");
             }
+
             if (timemarkKey.SigningTime == default && tst != null)
             {
                 trace.TraceEvent(TraceEventType.Information, 0, "Implicit signing time is replaced with time-stamp time {1}", tst.TimeStampInfo.GenTime);
@@ -328,7 +375,8 @@ namespace Egelke.EHealth.Etee.Crypto
 
             //Are we missing embedded certs and should we add them?
             if ((embeddedCerts == null || embeddedCerts.GetMatches(null).Count <= 1)
-                && (level & Level.B_Level) == Level.B_Level)
+                && timemarkKey.Signer != null
+                && level != null)
             {
                 embeddedCerts = GetEmbeddedCerts(timemarkKey);
             }
@@ -346,8 +394,17 @@ namespace Egelke.EHealth.Etee.Crypto
             //should be make sure we have the proper revocation info (it is hard to tell if we have everything, just go for it)
             if ((level & Level.L_Level) == Level.L_Level)
             {
-                revocationInfo = GetRevocationValues(timemarkKey, embeddedCerts, revocationInfo);
-                if (tst != null) revocationInfo = GetRevocationValues(tst, revocationInfo);
+                if (embeddedCerts != null && embeddedCerts.GetMatches(null).Count > 0)
+                {
+                    //extend the revocation info with info about the embedded certs
+                    revocationInfo = GetRevocationValues(timemarkKey, embeddedCerts, revocationInfo);
+                }
+                if (tst != null)
+                {
+                    //extend the revocation info with info about the TST
+                    revocationInfo = GetRevocationValues(tst, revocationInfo);
+                }
+                //update the unsigned attributes
                 AddRevocationValues(unsignedAttributes, revocationInfo);
             }
 
@@ -413,9 +470,14 @@ namespace Egelke.EHealth.Etee.Crypto
             }
             else
             {
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The message does not contains certificates, adding the provided {0}", provided.Subject);
+                trace.TraceEvent(TraceEventType.Verbose, 0, "The message does not contains certificates, adding the provided {0}", provided?.Subject);
                 return provided;
             }
+        }
+
+        private byte[] ExtractSignerId(SignerInformation signerInfo)
+        {
+            return signerInfo.SignerID.SubjectKeyIdentifier;
         }
 
         private TimeStampToken ExtractTimestamp(IDictionary unsignedAttributes)
@@ -511,7 +573,7 @@ namespace Egelke.EHealth.Etee.Crypto
             var chainExtraStore = new X509Certificate2Collection();
             foreach (Org.BouncyCastle.X509.X509Certificate cert in embeddedCerts.GetMatches(null))
             {
-                extraStore.Add(new X509Certificate2(cert.GetEncoded()));
+                chainExtraStore.Add(new X509Certificate2(cert.GetEncoded()));
             }
             Chain chain = timemarkKey.Signer.BuildChain(timemarkKey.SigningTime, chainExtraStore, crls, ocsps);
             if (chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
@@ -546,6 +608,20 @@ namespace Egelke.EHealth.Etee.Crypto
             BC::Asn1.Cms.Attribute revocationAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAAEtsRevocationValues, new DerSet(revocationInfo.ToAsn1Object()));
             unsignedAttributes[revocationAttr.AttrType] = revocationAttr;
             trace.TraceEvent(TraceEventType.Verbose, 0, "Added OCSP's and CRL's to the message");
+        }
+
+        private byte[] GetSubjectKeyIdentifier(AsymmetricAlgorithm key)
+        {
+            BC::Crypto.AsymmetricKeyParameter bcKey;
+            if (key is RSA)
+                bcKey = DotNetUtilities.GetRsaPublicKey((RSA)key);
+            else if (key is DSA)
+                bcKey = DotNetUtilities.GetDsaPublicKey((DSA)key);
+            else
+                throw new ArgumentException("Only RSA and DSA keys supported", "key");
+
+            var ski = new SubjectKeyIdentifierStructure(bcKey);
+            return ski.GetKeyIdentifier();
         }
     }
 }

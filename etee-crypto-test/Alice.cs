@@ -60,7 +60,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             alice = new EHealthP12(GetAbsoluteTestFilePath("alice/alices_private_key_store.p12"), "test");
             bob = new EHealthP12(GetAbsoluteTestFilePath("bob/bobs_private_key_store.p12"), "test");
 
-
+            AsymmetricAlgorithm key = RSA.Create();
+            String keyID = "myid";
         }
 
         [TestMethod]

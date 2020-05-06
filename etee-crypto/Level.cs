@@ -27,11 +27,6 @@ namespace Egelke.EHealth.Etee.Crypto
     public enum Level : int
     {
         /// <summary>
-        /// No level, just a plain signature.  Does not even require the certificate to be embedded.
-        /// </summary>
-        None = 0x000,
-
-        /// <summary>
         /// Baseline level:
         /// <para>
         /// Validation based on current time, no time-stamp or time-mark is required nor added.
@@ -40,7 +35,7 @@ namespace Egelke.EHealth.Etee.Crypto
         /// No revocation information is embedded, revocation is (almost) always verified via on-line retrieval.
         /// </para>
         /// </summary>
-        B_Level = 0x001,
+        B_Level = 0x000,
 
         /// <summary>
         /// Time stamped/marked level:
@@ -51,17 +46,17 @@ namespace Egelke.EHealth.Etee.Crypto
         /// No revocation information is embedded during sealing, but embedded revocation information is used during unsealing if present.
         /// </para>
         /// </summary>
-        T_Level = 0x002,
+        T_Level = 0x001,
 
         /// <summary>
         /// For internal use only.
         /// </summary>
-        L_Level = 0x004,
+        L_Level = 0x002,
 
         /// <summary>
         /// For internal use only.
         /// </summary>
-        A_level = 0x008,
+        A_level = 0x004,
 
         /// <summary>
         /// Long lived time stamped/marked level:

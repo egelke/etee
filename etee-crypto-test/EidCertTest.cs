@@ -46,8 +46,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestClass]
     public class EidCertTest
     {
-        private static string _basePath = Path.GetDirectoryName(typeof(Alice).Assembly.Location);
-        private static string GetAbsoluteTestFilePath(string relativePath) => Path.Combine(_basePath, relativePath);
+
 
         public TraceSource trace = new TraceSource("Egelke.EHealth.Etee.Test");
 
@@ -81,11 +80,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         public static void InitializeClass(TestContext ctx)
         {
             //Bob as decryption
-            bobEtk = new EncryptionToken(Utils.ReadFully(GetAbsoluteTestFilePath("bob/bobs_public_key.etk")));
+            bobEtk = new EncryptionToken(Utils.ReadFully("bob/bobs_public_key.etk"));
 
             //Bob (and Alice) used for decryption
-            alice = new EHealthP12(GetAbsoluteTestFilePath("alice/alices_private_key_store.p12"), "test");
-            bob = new EHealthP12(GetAbsoluteTestFilePath("bob/bobs_private_key_store.p12"), "test");
+            alice = new EHealthP12("alice/alices_private_key_store.p12", "test");
+            bob = new EHealthP12("bob/bobs_private_key_store.p12", "test");
 
             //create a tsa (fedict in this case)
             tsa = new Rfc3161TimestampProvider();
@@ -729,31 +728,14 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             IDataSealer sealer;
             if (!level.HasValue || level.Value == Level.B_Level)
             {
-                if (ehCert != null)
-                {
-                    sealer = EhDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, ehCert);
-                }
-                else
-                {
-                    sealer = EidDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, nonRepudiatable);
-                }
+                sealer = EidDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, nonRepudiatable);
             }
             else
             {
-                if (ehCert != null)
-                {
-                    if (useTmaInsteadOfTsa)
-                        sealer = EhDataSealerFactory.CreateForTimemarkAuthority(level.Value, ehCert);
-                    else
-                        sealer = EhDataSealerFactory.Create(level.Value, tsa, ehCert);
-                }
+                if (useTmaInsteadOfTsa)
+                    sealer = EidDataSealerFactory.CreateForTimemarkAuthority(level.Value, nonRepudiatable);
                 else
-                {
-                    if (useTmaInsteadOfTsa)
-                        sealer = EidDataSealerFactory.CreateForTimemarkAuthority(level.Value, nonRepudiatable);
-                    else
-                        sealer = EidDataSealerFactory.Create(level.Value, tsa, nonRepudiatable);
-                }
+                    sealer = EidDataSealerFactory.Create(level.Value, tsa, nonRepudiatable);
             }
 
             Stream output = sealer.Seal(new MemoryStream(Encoding.UTF8.GetBytes(clearMessage)), bobEtk);

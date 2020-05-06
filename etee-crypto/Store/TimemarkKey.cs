@@ -40,6 +40,14 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         public X509Certificate2 Signer { get; set; }
 
         /// <summary>
+        /// The id of the signer
+        /// </summary>
+        /// <remarks>
+        /// Gives the subject key identifier.
+        /// </remarks>
+        public byte[] SignerId { get; set; }
+
+        /// <summary>
         /// The signing time indicated by the message.
         /// </summary>
         /// <remarks>

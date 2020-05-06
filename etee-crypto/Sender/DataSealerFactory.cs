@@ -37,6 +37,13 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     public static class DataSealerFactory
     {
 
+        public static IDataSealer Create(Level level, AsymmetricAlgorithm privateKey)
+        {
+            if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
+
+            return new TripleWrapper(level, privateKey, null);
+        }
+
         /// <summary>
         /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for B-Level only.
         /// </summary>
@@ -50,6 +57,14 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
             return new TripleWrapper(level, authSign, nonRepSign, null, null);
+        }
+
+        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, AsymmetricAlgorithm privateKey)
+        {
+            if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
+            if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
+
+            return new TripleWrapper(level, privateKey, timestampProvider);
         }
 
         /// <summary>
@@ -68,6 +83,13 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
 
             return new TripleWrapper(level, authSign, nonRepSign, timestampProvider, null);
+        }
+
+        public static IDataSealer CreateForTimemarkAuthority(Level level, AsymmetricAlgorithm privateKey)
+        {
+            if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
+
+            return new TripleWrapper(level, privateKey, null);
         }
 
         /// <summary>

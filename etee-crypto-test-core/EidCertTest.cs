@@ -112,6 +112,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
+
         public void NullLevelRepudiatable()
         {
             level = null;
@@ -162,51 +163,30 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
-        public void T_Level()
+        [TestCategory("Repudiatable")]
+        public void B_LevelRepudiatable()
         {
-            level = Level.LT_Level;
-            nonRepudiatable = true;
+            level = Level.B_Level;
+            nonRepudiatable = false;
             useTmaInsteadOfTsa = false;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
 
-            trace.TraceInformation("T-Level: Sealing");
+            trace.TraceInformation("B-Level: Sealing");
             Stream output = Seal();
 
-            trace.TraceInformation("T-Level: Verify");
+            using (var file = File.Create("eid-levelB.cms"))
+            {
+                output.CopyTo(file);
+                output.Position = 0;
+            }
+
+            trace.TraceInformation("B-Level: Verify");
             Verify(output);
 
             output.Position = 0;
 
-            trace.TraceInformation("T-Level: Unseal");
-            Unseal(output);
-
-            output.Close();
-        }
-
-        [TestMethod]
-        public void T_LevelTma()
-        {
-            level = Level.LT_Level;
-            nonRepudiatable = true;
-            useTmaInsteadOfTsa = true;
-            validationStatus = ValidationStatus.Valid;
-            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
-
-            trace.TraceInformation("T-Level TMA: Seal");
-            Stream output = Seal();
-
-            trace.TraceInformation("T-Level TMA: Verify from TMA");
-            VerifyFromTma(output);
-
-            output.Position = 0;
-
-            trace.TraceInformation("T-Level TMA: Verify as TMA");
-            VerifyAsTma(output);
-
-            output.Position = 0;
-
-            trace.TraceInformation("T-Level TMA: Unseal");
+            trace.TraceInformation("B-Level: Unseal");
             Unseal(output);
 
             output.Close();
@@ -236,6 +216,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
+        [TestCategory("Repudiatable")]
         public void LT_LevelRepudiatable()
         {
             level = Level.LT_Level;
@@ -246,6 +227,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             trace.TraceInformation("LT-Level: seal");
             Stream output = Seal();
+
+            using (var file = File.Create("eid-levelLT.cms"))
+            {
+                output.CopyTo(file);
+                output.Position = 0;
+            }
 
             trace.TraceInformation("LT-Level: verify");
             Verify(output);
@@ -286,6 +273,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
+        [TestCategory("Repudiatable")]
         public void LT_LevelIn2StepsRepudiatable()
         {
             level = Level.B_Level;
@@ -344,6 +332,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
+        [TestCategory("Repudiatable")]
         public void LT_LevelIn3StepsRepudiatable()
         {
             level = Level.B_Level;
@@ -403,6 +392,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
+        [TestCategory("Repudiatable")]
         public void LT_LevelTmaRepudiatable()
         {
             level = Level.LT_Level;
@@ -463,6 +453,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
+        [TestCategory("Repudiatable")]
         public void LT_LevelTmaIn2StepsRepudiatable()
         {
             level = Level.B_Level;
@@ -518,6 +509,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
+        [TestCategory("Repudiatable")]
         public void LTA_LevelRepudiatable()
         {
             level = Level.LTA_Level;
@@ -569,6 +561,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
+        [TestCategory("Repudiatable")]
         public void LTA_LevelTmaRepudiatable()
         {
             level = Level.LTA_Level;
