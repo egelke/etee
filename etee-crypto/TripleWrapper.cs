@@ -17,7 +17,6 @@
  */
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Org.BouncyCastle.Cms;
@@ -26,33 +25,23 @@ using Org.BouncyCastle.X509.Store;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Egelke.EHealth.Etee.Crypto.Utils;
 using BC = Org.BouncyCastle;
-using System.Security.Permissions;
 using System;
 using System.Diagnostics;
 using System.Security.Cryptography;
-using Org.BouncyCastle.Crypto.Parameters;
 using System.Collections;
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.X509.Extension;
-using Org.BouncyCastle.X509;
-using System.Net;
-using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Asn1.Esf;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.Cms;
 using Egelke.EHealth.Client.Pki;
-using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Tsp;
 using Egelke.EHealth.Etee.Crypto.Store;
 using Egelke.EHealth.Etee.Crypto.Sender;
 using System.Linq;
 using Org.BouncyCastle.Crypto.Operators;
-using System.Threading.Tasks;
-using System.Timers;
-using Org.BouncyCastle.Crypto;
-using System.CodeDom;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
@@ -69,7 +58,7 @@ namespace Egelke.EHealth.Etee.Crypto
         //The sender signature certificate
         private X509Certificate2 signature;
 
-        private AsymmetricAlgorithm keyPair;
+        private AsymmetricAlgorithm keyPair; 
 
         private byte[] keyId;
 
@@ -77,12 +66,15 @@ namespace Egelke.EHealth.Etee.Crypto
 
         private X509Certificate2Collection extraStore;
 
-        internal TripleWrapper(Level level, AsymmetricAlgorithm keyPair, ITimestampProvider timestampProvider) {
+        public Dictionary<byte[], AsymmetricAlgorithm> PublicKeys { get; private set; }
+
+        internal TripleWrapper(Level level, AsymmetricAlgorithm keyPair, ITimestampProvider timestampProvider, byte[] keyId = null) {
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only levels B, T, LT and LTA are allowed");
 
             this.keyPair = keyPair;
-            this.keyId = GetSubjectKeyIdentifier(keyPair);
+            this.keyId = keyId ?? keyPair.GetSubjectKeyIdentifier();
             this.timestampProvider = timestampProvider;
+            PublicKeys = new Dictionary<byte[], AsymmetricAlgorithm>();
         }
 
         internal TripleWrapper(Level level, X509Certificate2 authentication, X509Certificate2 signature, ITimestampProvider timestampProvider, X509Certificate2Collection extraStore)
@@ -132,6 +124,7 @@ namespace Egelke.EHealth.Etee.Crypto
             return Seal(factory, unsealed, null, certs);
         }
 
+        //TODO check
         public Stream Seal(Stream unsealed, SecretKey key, params EncryptionToken[] tokens)
         {
             ITempStreamFactory factory = NewFactory(unsealed);
@@ -188,7 +181,9 @@ namespace Egelke.EHealth.Etee.Crypto
                 innerEmbedded.Position = 0;
 
                 //Encrypt
-                Encrypt(encrypted, innerEmbedded, certs, key);
+                //TODO check!!!
+                WebKey webKey = new WebKey(keyId, keyPair);
+                Encrypt(encrypted, innerEmbedded, certs, key, webKey);
 
                 //Loop, since eID doesn't like to be use in very short succession
                 int retry = 0;
@@ -288,7 +283,7 @@ namespace Egelke.EHealth.Etee.Crypto
             signed.Write(detachedSignatureBytes, 0, detachedSignatureBytes.Length);
         }
 
-        protected void Encrypt(Stream cipher, Stream clear, ICollection<X509Certificate2> certs, SecretKey key)
+        protected void Encrypt(Stream cipher, Stream clear, ICollection<X509Certificate2> certs, SecretKey key, WebKey webKey = null)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Encrypting message for {0} known and {1} unknown recipient",
                 certs == null ? 0 : certs.Count, key == null ? 0 : 1);
@@ -306,6 +301,16 @@ namespace Egelke.EHealth.Etee.Crypto
             {
                 encryptGenerator.AddKekRecipient("AES", key.BCKey, key.Id);
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Added unknown recipient [Algorithm={0}, keyId={1}]", "AES", key.IdString);
+            }
+
+            if (webKey != null)
+            {
+                //TODO check!!!
+                //X509certificate (null) from where to take and last parameter name
+                //BC::X509.X509Certificate bcCert = DotNetUtilities.ToRSA(pubKey as RsaKeyParameters);
+                var pubKey = PublicKeys[webKey.Id].ToAsymmetricKeyParameter();
+                encryptGenerator.AddKeyAgreementRecipient("RSA", webKey.BCKey, pubKey, null,"");
+                trace.TraceEvent(TraceEventType.Verbose, 0, "Added unknown recipient [Algorithm={0}, keyId={1}]", "RSA", webKey.IdString);
             }
 
             Stream encryptingStream = encryptGenerator.Open(cipher, EteeActiveConfig.Seal.EncryptionAlgorithm.Value);
@@ -351,7 +356,7 @@ namespace Egelke.EHealth.Etee.Crypto
             timemarkKey.SigningTime = ExtractSigningTime(signerInfo);
             timemarkKey.Signer = ExtractSignerCert(embeddedCerts, signerInfo, providedSigner);
             if (timemarkKey.Signer != null)
-                timemarkKey.SignerId = GetSubjectKeyIdentifier(timemarkKey.Signer.PublicKey.Key);
+                timemarkKey.SignerId = timemarkKey.Signer.PublicKey.Key.GetSubjectKeyIdentifier();
             else
                 timemarkKey.SignerId = ExtractSignerId(signerInfo);
 
@@ -608,20 +613,6 @@ namespace Egelke.EHealth.Etee.Crypto
             BC::Asn1.Cms.Attribute revocationAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAAEtsRevocationValues, new DerSet(revocationInfo.ToAsn1Object()));
             unsignedAttributes[revocationAttr.AttrType] = revocationAttr;
             trace.TraceEvent(TraceEventType.Verbose, 0, "Added OCSP's and CRL's to the message");
-        }
-
-        private byte[] GetSubjectKeyIdentifier(AsymmetricAlgorithm key)
-        {
-            BC::Crypto.AsymmetricKeyParameter bcKey;
-            if (key is RSA)
-                bcKey = DotNetUtilities.GetRsaPublicKey((RSA)key);
-            else if (key is DSA)
-                bcKey = DotNetUtilities.GetDsaPublicKey((DSA)key);
-            else
-                throw new ArgumentException("Only RSA and DSA keys supported", "key");
-
-            var ski = new SubjectKeyIdentifierStructure(bcKey);
-            return ski.GetKeyIdentifier();
         }
     }
 }

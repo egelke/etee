@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Egelke.EHealth.Etee.Crypto.Store
@@ -30,6 +31,8 @@ namespace Egelke.EHealth.Etee.Crypto.Store
     /// </summary>
     public interface IDataVerifier
     {
+        Dictionary<byte[], AsymmetricAlgorithm> PublicKeys { get; }
+
         /// <summary>
         /// Verifies the provided message.
         /// </summary>

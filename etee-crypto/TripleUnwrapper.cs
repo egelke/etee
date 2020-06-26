@@ -25,8 +25,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Egelke.EHealth.Etee.Crypto.Utils;
-using System.Security.Permissions;
-using System.Threading;
 using System.Diagnostics;
 using System.Text;
 using System.Security.Cryptography;
@@ -38,14 +36,13 @@ using Egelke.EHealth.Etee.Crypto.Status;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.Esf;
-using Org.BouncyCastle.X509;
-using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Egelke.EHealth.Client.Pki;
 using Org.BouncyCastle.Tsp;
 using System.Linq;
 using Egelke.EHealth.Etee.Crypto.Store;
 using Egelke.EHealth.Etee.Crypto.Receiver;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
@@ -58,14 +55,17 @@ namespace Egelke.EHealth.Etee.Crypto
         private IX509Store authCertStore;
         private ITimemarkProvider timemarkauthority;
 
+        public Dictionary<byte[], AsymmetricAlgorithm> PublicKeys { get; private set; }
+
         internal TripleUnwrapper(Level? level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, IX509Store authCertStore)
         {
-            if (level == Level.L_Level || level == Level.A_level ) throw new ArgumentException("level", "Only null or levels B, T, LT and LTA are allowed");
+            if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only null or levels B, T, LT and LTA are allowed");
 
             this.level = level;
             this.timemarkauthority = timemarkauthority;
             this.encCertStore = encCerts == null || encCerts.Count == 0 ? null : new WinX509CollectionStore(encCerts);
             this.authCertStore = authCertStore;
+            this.PublicKeys = new Dictionary<byte[], AsymmetricAlgorithm>();
         }
 
         #region DataUnsealer Members
@@ -111,6 +111,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
         #region Data Verifier Members
 
+        //todo update tests to work
         public SignatureSecurityInformation Verify(Stream sealedData)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying the sealed message {0} bytes according to the level {1}", sealedData.Length, this.level);
@@ -182,17 +183,17 @@ namespace Egelke.EHealth.Etee.Crypto
 
         private UnsealResult Unseal(Stream sealedData, SecretKey key, bool streaming)
         {
-            trace.TraceEvent(TraceEventType.Information, 0, "Unsealing message of {0} bytes for {1} recipient with level {2}", sealedData.Length, key == null ? "known" : "unknown", this.level); 
+            trace.TraceEvent(TraceEventType.Information, 0, "Unsealing message of {0} bytes for {1} recipient with level {2}", sealedData.Length, key == null ? "known" : "unknown", this.level);
 
             UnsealResult result = new UnsealResult();
             result.SecurityInformation = new UnsealSecurityInformation();
-            ITempStreamFactory factory = streaming && sealedData.Length > Settings.Default.InMemorySize ? (ITempStreamFactory) new TempFileStreamFactory() : (ITempStreamFactory) new MemoryStreamFactory();
+            ITempStreamFactory factory = streaming && sealedData.Length > Settings.Default.InMemorySize ? (ITempStreamFactory)new TempFileStreamFactory() : (ITempStreamFactory)new MemoryStreamFactory();
 
             Stream verified = factory.CreateNew();
-            using(verified)
+            using (verified)
             {
                 result.SecurityInformation.OuterSignature = streaming ?
-                    VerifyStreaming(verified, sealedData, null) : 
+                    VerifyStreaming(verified, sealedData, null) :
                     VerifyInMem(verified, sealedData, null);
 
                 verified.Position = 0; //reset the stream
@@ -278,12 +279,13 @@ namespace Egelke.EHealth.Etee.Crypto
                 SignerInformationStore signerInfos = signedData.GetSignerInfos();
                 return Verify(signerInfos, certs, outer);
             }
-            catch(CmsException cmse)
+            catch (CmsException cmse)
             {
                 throw new InvalidMessageException("The message isn't a triple wrapped message", cmse);
             }
         }
 
+        //todo test is up
         private SignatureSecurityInformation Verify(SignerInformationStore signerInfos, IX509Store certs, SignatureSecurityInformation outer)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying the {0} signature information", outer == null ? "outer" : "inner");
@@ -306,7 +308,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 trace.TraceEvent(TraceEventType.Error, 0, "Found more then one signature, this isn't supported (yet)");
                 throw new InvalidMessageException("An eHealth compliant message can have only one signer");
             }
-            
+
 
             //check if signer used correct digest algorithm
             int i = 0;
@@ -329,6 +331,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
             //Find the singing certificate and relevant info
             Org.BouncyCastle.X509.X509Certificate signerCert = null;
+            byte[] ski = null;
             if (certs.GetMatches(null).Count > 0)
             {
                 //We got certificates, so lets find the signer
@@ -375,24 +378,42 @@ namespace Egelke.EHealth.Etee.Crypto
             }
             else
             {
+                //todo here is failed
                 if (outer == null)
                 {
-                    trace.TraceEvent(TraceEventType.Error, 0, "The outer signature does not contain any certificates");
-                    throw new InvalidMessageException("The outer signature is missing certificates");
+                    //we do not need certificate
+                    ski = signerInfo.SignerID.SubjectKeyIdentifier;
+
+                    //we do not have certificate and ski
+                    if (ski == null)
+                    {
+                        trace.TraceEvent(TraceEventType.Error, 0, "The outer signature does not contain any certificates");
+                        throw new InvalidMessageException("The outer signature is missing certificates");
+                    }
+                    else 
+                    {
+                        result.SignerId = ski;
+                    }
+
+                }
+                else
+                {
+                    //The subject is the same as the outer
+                    result.Subject = outer.Subject;
+                    signerCert = DotNetUtilities.FromX509Certificate(outer.Subject.Certificate);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "An already validated certificates was provided: {0}", signerCert.SubjectDN.ToString());
                 }
 
-                //The subject is the same as the outer
-                result.Subject = outer.Subject;
-                signerCert = DotNetUtilities.FromX509Certificate(outer.Subject.Certificate);
-                trace.TraceEvent(TraceEventType.Verbose, 0, "An already validated certificates was provided: {0}", signerCert.SubjectDN.ToString());
             }
 
             //check if non repudiation
-            result.IsNonRepudiatable = signerCert.GetKeyUsage()[1];
+            result.IsNonRepudiatable = signerCert == null ? false : signerCert.GetKeyUsage()[1];
 
             //verify the signature itself
             result.SignatureValue = signerInfo.GetSignature();
-            if (!signerInfo.Verify(signerCert.GetPublicKey()))
+            //TODO check
+            if ((signerCert != null && !signerInfo.Verify(signerCert.GetPublicKey()))||
+                (ski != null && PublicKeys.Any() && !signerInfo.Verify(PublicKeys[ski].ToAsymmetricKeyParameter())))
             {
                 result.securityViolations.Add(SecurityViolation.NotSignatureValid);
                 trace.TraceEvent(TraceEventType.Warning, 0, "The signature value was invalid");
@@ -449,6 +470,11 @@ namespace Egelke.EHealth.Etee.Crypto
             //check for a time-stamp, if needed and we are in the outer layer
             if ((this.level & Level.T_Level) == Level.T_Level && outer == null)
             {
+                if (signerCert == null)
+                {
+                    throw new InvalidMessageException("WebAuth does not support Timestapms");
+                }
+
                 DateTime validatedTime;
                 TimeStampToken tst = null;
                 if (signerInfo != null && signerInfo.UnsignedAttributes != null)
@@ -471,7 +497,7 @@ namespace Egelke.EHealth.Etee.Crypto
                         throw new InvalidMessageException("The message does not contain a time-stamp and there is not time-mark authority provided while T-Level is required");
                     }
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Requesting time-mark for message signed by {0}, signed on {1} and with signature value {2}",
-                        signerCert.SubjectDN, signingTime, signerInfo.GetSignature());
+                       signerCert.SubjectDN, signingTime, signerInfo.GetSignature());
                     validatedTime = timemarkauthority.GetTimemark(new X509Certificate2(signerCert.GetEncoded()), signingTime, signerInfo.GetSignature()).ToUniversalTime();
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the return time-mark which is: {0}", validatedTime);
                 }
@@ -530,9 +556,13 @@ namespace Egelke.EHealth.Etee.Crypto
             }
 
             //calculate the subject status is unknown
-            if (result.Subject == null) {
+            if (result.Subject == null && signerCert != null) {
                 result.Subject = signerCert.Verify(signingTime, (outer == null ? new int[] { 0 } : new int[0]),
                     EteeActiveConfig.Unseal.MinimumSignatureKeySize, certs, ref crls, ref ocsps);
+                var signer = result.Subject.Certificate.Extensions.ToList().Where(_ => _ != null).Select(_ => Hex.Decode(_.SubjectKeyIdentifier)).FirstOrDefault();
+                //TODO check!!! convert to .net version .nethelper
+                result.SignerId = signer == null ? Convert.FromBase64String(signerCert.GetPublicKey().ToString()) : signer;
+
             }
 
             return result;
@@ -588,7 +618,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 RecipientInformation recipientInfo = null;
                 if (key == null)
                 {
-                    if (encCertStore == null)
+                    if (encCertStore == null || !PublicKeys.Any())
                     {
                         trace.TraceEvent(TraceEventType.Error, 0, "The unsealer does not have an decryption certificate and no symmetric key was provided");
                         throw new InvalidOperationException("There should be an receiver (=yourself) and/or a key provided");
@@ -600,6 +630,7 @@ namespace Egelke.EHealth.Etee.Crypto
                     {
                         trace.TraceEvent(TraceEventType.Verbose, 0, "The message is addressed to {0} ({1})", recipient.RecipientID.SerialNumber, recipient.RecipientID.Issuer);
                         if (recipient is KeyTransRecipientInformation) {
+                            //do I have sertificate
                             IList matches = (IList) encCertStore.GetMatches(recipient.RecipientID);
                             foreach (X509Certificate2 match in matches)
                             {
@@ -611,6 +642,10 @@ namespace Egelke.EHealth.Etee.Crypto
                                     result.Subject.Certificate = match;
                                 }
                             }
+
+                            //TODO check
+                            var pubKey = PublicKeys[recipient.RecipientID.SubjectKeyIdentifier];
+                            result.PublicKey = PublicKeys[recipient.RecipientID.SubjectKeyIdentifier];
                         }
                     }
 

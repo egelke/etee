@@ -18,8 +18,6 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using Egelke.EHealth.Client.Pki;
 using Org.BouncyCastle.Security;
@@ -36,12 +34,12 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// </remarks>
     public static class DataSealerFactory
     {
-
-        public static IDataSealer Create(Level level, AsymmetricAlgorithm privateKey)
+        //todo this add tests
+        public static IDataSealer Create(Level level, AsymmetricAlgorithm privateKey, byte[] keyId = null)
         {
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
-            return new TripleWrapper(level, privateKey, null);
+            return new TripleWrapper(level, privateKey, null, keyId);
         }
 
         /// <summary>
@@ -59,12 +57,12 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             return new TripleWrapper(level, authSign, nonRepSign, null, null);
         }
 
-        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, AsymmetricAlgorithm privateKey)
+        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, AsymmetricAlgorithm privateKey, byte[] keyId = null)
         {
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
 
-            return new TripleWrapper(level, privateKey, timestampProvider);
+            return new TripleWrapper(level, privateKey, timestampProvider, keyId);
         }
 
         /// <summary>
@@ -85,11 +83,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             return new TripleWrapper(level, authSign, nonRepSign, timestampProvider, null);
         }
 
-        public static IDataSealer CreateForTimemarkAuthority(Level level, AsymmetricAlgorithm privateKey)
+        public static IDataSealer CreateForTimemarkAuthority(Level level, AsymmetricAlgorithm privateKey, byte[] keyId = null)
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleWrapper(level, privateKey, null);
+            return new TripleWrapper(level, privateKey, null, keyId);
         }
 
         /// <summary>

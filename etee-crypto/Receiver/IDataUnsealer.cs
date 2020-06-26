@@ -22,6 +22,7 @@ using System.Text;
 using System.IO;
 using System.Security.Permissions;
 using Egelke.EHealth.Etee.Crypto.Status;
+using System.Security.Cryptography;
 
 namespace Egelke.EHealth.Etee.Crypto.Receiver
 {
@@ -55,6 +56,8 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
     /// </remarks>
     public interface IDataUnsealer
     {
+        Dictionary<byte[], AsymmetricAlgorithm> PublicKeys { get; }
+
         /// <summary>
         /// Unseals a protected message of which you have the secret (but shared) key.
         /// </summary>
@@ -112,6 +115,7 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// </code>
         /// </example>
         UnsealResult Unseal(Stream sealedData, SecretKey key);
+
 
         /// <summary>
         /// Unseals a protected message addressed to you.

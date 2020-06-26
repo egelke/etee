@@ -17,12 +17,9 @@
  */
 
 
-using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Collections.ObjectModel;
 using System.IO;
-using System.Security.Permissions;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Egelke.EHealth.Etee.Crypto.Sender
@@ -57,6 +54,8 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// <seealso cref="SecretKey"/>
     public interface IDataSealer
     {
+        //TODO check - was added
+        Dictionary<byte[], AsymmetricAlgorithm> PublicKeys { get; }
 
         /// <summary>
         /// Seals a message for one or more known recipients via eHealth ETK's.

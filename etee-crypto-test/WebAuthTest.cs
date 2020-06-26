@@ -129,6 +129,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
 
+        //todo make it green
         private void Verify(Stream output)
         {
             IDataVerifier verifier;

@@ -22,6 +22,7 @@ using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections.ObjectModel;
 using Egelke.EHealth.Etee.Crypto.Utils;
+using System.Security.Cryptography;
 
 namespace Egelke.EHealth.Etee.Crypto.Status
 {
@@ -31,6 +32,12 @@ namespace Egelke.EHealth.Etee.Crypto.Status
     public class SecurityInformation : SecurityResult<SecurityViolation>
     {
         private CertificateSecurityInformation subject;
+
+        //TODO added check!!!
+        /// <summary>
+        /// The subject key identifier.
+        /// </summary>
+        public AsymmetricAlgorithm PublicKey { get; internal set; }
 
         /// <summary>
         /// Information about the issuer/sender (signature) or recipient (decryption).
