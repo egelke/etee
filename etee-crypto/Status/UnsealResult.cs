@@ -58,6 +58,13 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// </value>
         public UnsealSecurityInformation SecurityInformation { get; internal set; }
 
+
+        public byte[] SenderId => SecurityInformation.OuterSignature.SignerId;
+
+        public X509Certificate2 RecipientCertificate => SecurityInformation.Encryption.Subject?.Certificate;
+
+        public byte[] RecipientId => SecurityInformation.Encryption.SubjectId;
+
         /// <summary>
         /// The sender of the message, i.e. the signer of the outer message.
         /// </summary>
@@ -75,13 +82,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// for this library.
         /// </para>
         /// </value>
-        public X509Certificate2 AuthenticationCertificate
-        {
-            get
-            {
-                return SecurityInformation.OuterSignature.Signer;
-            }
-        }
+        public X509Certificate2 AuthenticationCertificate => SecurityInformation.OuterSignature.Signer;
 
         /// <summary>
         /// The issuer of the message, i.e. the signer of the inner message.
@@ -93,13 +94,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// In general these represent the same entity, but aren't necessary the same certificate.
         /// </para>
         /// </remarks>
-        public X509Certificate2 SigningCertificate
-        {
-            get
-            {
-                return SecurityInformation.InnerSignature.Signer;
-            }
-        }
+        public X509Certificate2 SigningCertificate => SecurityInformation.InnerSignature.Signer;
 
         /// <summary>
         /// The value of the authentication (outer) signature.
@@ -107,24 +102,12 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// <remarks>
         /// This value is used for the time-mark authority.
         /// </remarks>
-        public byte[] SignatureValue
-        {
-            get
-            {
-                return SecurityInformation.OuterSignature.SignatureValue;
-            }
-        }
+        public byte[] SignatureValue => SecurityInformation.OuterSignature.SignatureValue;
 
         /// <summary>
         /// The time the message was sealed on.
         /// </summary>
-        public DateTime? SealedOn
-        {
-            get
-            {
-                return SecurityInformation.OuterSignature.SigningTime;
-            }
-        }
+        public DateTime? SealedOn => SecurityInformation.OuterSignature.SigningTime;
 
         /// <summary>
         /// The time until the current message can be validated.
@@ -134,24 +117,11 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// can only be trusted as long as it can be validated with
         /// absolute certainly.
         /// </remarks>
-        public DateTime? SealValidUntil
-        {
-            get
-            {
-                return SecurityInformation.OuterSignature.TimestampRenewalTime;
-            }
-        }
-
+        public DateTime? SealValidUntil => SecurityInformation.OuterSignature.TimestampRenewalTime;
         /// <summary>
         /// Indicated if the message is non repudiatable by the sender.
         /// </summary>
-        public bool IsNonRepudiatable
-        {
-            get
-            {
-                return SecurityInformation.InnerSignature.IsNonRepudiatable;
-            }
-        }
+        public bool IsNonRepudiatable => SecurityInformation.InnerSignature.IsNonRepudiatable;
 
     }
 }

@@ -54,9 +54,6 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// <seealso cref="SecretKey"/>
     public interface IDataSealer
     {
-        //TODO check - was added
-        Dictionary<byte[], AsymmetricAlgorithm> PublicKeys { get; }
-
         /// <summary>
         /// Seals a message for one or more known recipients via eHealth ETK's.
         /// </summary>
@@ -141,6 +138,8 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <returns>The sealed message, this should be transported to the receivers.</returns>
         Stream Seal(Stream unsealed, params X509Certificate2[] certificates);
 
+        Stream Seal(Stream unsealed, params WebKey[] webKeys);
+
         /// <summary>
         /// Seals a message for unknown recipients and zero, one or more known recipients the same time via eHealth SecretKey and eHealth ETK's
         /// </summary>
@@ -223,5 +222,9 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// </code>
         /// </example>
         Stream Seal(Stream unsealed, SecretKey key, params EncryptionToken[] tokens);
+
+        
+
+        Stream Seal(Stream unsealed, SecretKey skey, EncryptionToken[] tokens, WebKey[] webKeys);
     }
 }

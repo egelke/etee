@@ -26,6 +26,7 @@ using Org.BouncyCastle.Security;
 using Egelke.EHealth.Etee.Crypto.Utils;
 using Org.BouncyCastle.X509.Store;
 using System.Collections;
+using System.Net;
 
 namespace Egelke.EHealth.Etee.Crypto.Receiver
 {
@@ -43,9 +44,9 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// <param name="authCertChains">Own eHealth issued certificate that where used to create encryption certificates, with the chain if not present in the windows store</param>
         /// <param name="level">The required level of the sender signatures or <c>null</c> for only basic validation without revocation checks</param>
         /// <returns>Instance of the IDataUnsealer</returns>
-        public static IDataUnsealer Create(Level? level, X509Certificate2Collection encCerts, X509Certificate2Collection authCertChains)
+        public static IDataUnsealer Create(Level? level, X509Certificate2Collection encCerts, X509Certificate2Collection authCertChains, params WebKey[] ownWebKeys)
         {
-            return new TripleUnwrapper(level, null, encCerts, ToStore(authCertChains));
+            return new TripleUnwrapper(level, null, encCerts, ToStore(authCertChains), ownWebKeys);
         }
 
         /// <summary>
@@ -65,11 +66,16 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// <returns>Instance of the IDataUnsealer</returns>
         public static IDataUnsealer Create(Level? level, params EHealthP12[] p12s)
         {
+            return Create(level, p12s, null);
+        }
+
+        public static IDataUnsealer Create(Level? level, EHealthP12[] p12s, WebKey[] ownWebKeys)
+        {
             X509Certificate2Collection encCerts;
             X509Certificate2Collection allCerts;
 
             Extract(p12s, out encCerts, out allCerts);
-            return Create(level, encCerts, allCerts);
+            return Create(level, encCerts, allCerts, ownWebKeys);
         }
 
         /// <summary>
@@ -81,12 +87,12 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// <param name="level">The required level of the sender signatures, either T-Level, LT-Level or LTA-Level</param>
         /// <param name="timemarkauthority">The client of the time-mark authority</param>
         /// <returns>Instance of the IDataUnsealer for messages of the specified a time-mark authority</returns>
-        public static IDataUnsealer CreateFromTimemarkAuthority(Level level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, X509Certificate2Collection authCertChains)
+        public static IDataUnsealer CreateFromTimemarkAuthority(Level level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, X509Certificate2Collection authCertChains, params WebKey[] ownWebKeys)
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
             if (timemarkauthority == null) throw new ArgumentNullException("time-mark authority", "This method requires an time-mark authority specified");
 
-            return new TripleUnwrapper(level, timemarkauthority, encCerts, ToStore(authCertChains));
+            return new TripleUnwrapper(level, timemarkauthority, encCerts, ToStore(authCertChains), ownWebKeys);
         }
 
         /// <summary>
@@ -112,11 +118,16 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// <returns>Instance of the IDataUnsealer for messages of the specified a time-mark authority</returns>
         public static IDataUnsealer CreateFromTimemarkAuthority(Level level, ITimemarkProvider timemarkauthority, params EHealthP12[] p12s)
         {
+            return CreateFromTimemarkAuthority(level, timemarkauthority, p12s, null);
+        }
+
+        public static IDataUnsealer CreateFromTimemarkAuthority(Level level, ITimemarkProvider timemarkauthority, EHealthP12[] p12s, WebKey[] ownWebKeys)
+        {
             X509Certificate2Collection encCerts;
             X509Certificate2Collection allCerts;
 
             Extract(p12s, out encCerts, out allCerts);
-            return CreateFromTimemarkAuthority(level, timemarkauthority, encCerts, allCerts);
+            return CreateFromTimemarkAuthority(level, timemarkauthority, encCerts, allCerts, ownWebKeys);
         }
 
         private static IX509Store ToStore(X509Certificate2Collection certs)

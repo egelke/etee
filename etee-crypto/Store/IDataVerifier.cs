@@ -31,8 +31,6 @@ namespace Egelke.EHealth.Etee.Crypto.Store
     /// </summary>
     public interface IDataVerifier
     {
-        Dictionary<byte[], AsymmetricAlgorithm> PublicKeys { get; }
-
         /// <summary>
         /// Verifies the provided message.
         /// </summary>
@@ -51,5 +49,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// <param name="sealedData">The message to verify</param>
         /// <returns>The result and additional information about the authentication part of the message</returns>
         SignatureSecurityInformation Verify(Stream sealedData);
+
+        SignatureSecurityInformation Verify(Stream sealedData, WebKey sender);
     }
 }

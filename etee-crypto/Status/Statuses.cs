@@ -393,6 +393,11 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// validate. See the <see cref="SecurityInformation.Subject"/> property
         /// for more information.
         /// </para>
+        /// <para>
+        /// If the <see cref="SecurityInformation.Subject"/> property is null,
+        /// the issue is with the WebAuth identified wit the 
+        /// <see cref="SecurityInformation.SubjectId"/> property.
+        /// </para>
         /// </summary>
         [TrustLevel(TrustStatus.None)]
         [ValidationResult(ValidationStatus.Valid)]

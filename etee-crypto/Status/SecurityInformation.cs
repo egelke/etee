@@ -31,28 +31,15 @@ namespace Egelke.EHealth.Etee.Crypto.Status
     /// </summary>
     public class SecurityInformation : SecurityResult<SecurityViolation>
     {
-        private CertificateSecurityInformation subject;
-
-        //TODO added check!!!
-        /// <summary>
-        /// The subject key identifier.
-        /// </summary>
-        public AsymmetricAlgorithm PublicKey { get; internal set; }
-
         /// <summary>
         /// Information about the issuer/sender (signature) or recipient (decryption).
         /// </summary>
-        public CertificateSecurityInformation Subject
-        {
-            get
-            {
-                return subject;
-            }
-            internal set
-            {
-                subject = value;
-            }
-        }
+        public CertificateSecurityInformation Subject { get; internal set; }
+
+        /// <summary>
+        /// The subject key identifier.
+        /// </summary>
+        public byte[] SubjectId { get; internal set; }
 
         /// <summary>
         /// Detailed list of all the security violations for this object.
@@ -113,6 +100,18 @@ namespace Egelke.EHealth.Etee.Crypto.Status
             StringBuilder builder = new StringBuilder();
 
             builder.Append(base.ToString(level));
+            
+            builder.Append(lv1);
+            builder.Append("SubjectId: ");
+            if (SubjectId != null)
+            {
+                builder.AppendLine(BitConverter.ToString(SubjectId));
+            }
+            else
+            {
+                builder.AppendLine("<<Not Provided>>");
+            }
+
             builder.Append(lv1);
             builder.AppendLine("Subject: ");
             if (Subject != null)
@@ -124,6 +123,8 @@ namespace Egelke.EHealth.Etee.Crypto.Status
                 builder.Append(lv2);
                 builder.AppendLine("<<Not Provided>>");
             }
+
+            
 
             return builder.ToString();
         }

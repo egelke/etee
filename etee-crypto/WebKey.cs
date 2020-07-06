@@ -1,6 +1,6 @@
 ﻿/*
  * This file is part of .Net ETEE for eHealth.
- * Copyright (C) 2014 Egelke
+ * Copyright (C) 2014-2020 Egelke
  * 
  * .Net ETEE for eHealth is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,114 +23,103 @@ using Egelke.EHealth.Etee.Crypto.Utils;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.X509.Extension;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
     /// <summary>
-    /// Represents an symmetric secret key or Key Encryption Key.
+    /// Represents an asymetic key or Web Authentication.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// This class represents a secret, but shared, key from the KGSS.  It can be used to seal messages so it can only be viewed by the 
-    /// that the KGSS allows to retrieve the same key.  It isn't advised to use the same key for more then one message.  
-    /// </para>
-    /// </remarks>
     public class WebKey
     {
-        private byte[] id;
+        private static AsymmetricKeyParameter ToBCPublicKey(AsymmetricAlgorithm key)
+        {
+            if (key is DSA)
+            {
+                return DotNetUtilities.GetDsaPublicKey((DSA)key);
+            }
+
+            if (key is RSA)
+            {
+                return DotNetUtilities.GetRsaPublicKey((RSA)key);
+            }
+
+            throw new ArgumentException("Unsupported algorithm specified", "privateKey");
+        }
 
         private AsymmetricAlgorithm key;
 
         /// <summary>
-        /// Constructor for the string representation of the KEK.
+        /// Constructor for the Object representation of the WebKey.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// The xml representation of the "GetNewKeyResponseContent" contains both the id as the key
-        /// that can be provided to this constructor.  The xml representation "GetKeyResponseContent"
-        /// only contains the key param for this constructor, the id param should be the same as
-        /// in the xml representation of "GetKeyRequestContent".
-        /// </para>
-        /// </remarks>
-        /// <param name="id">The ID of the KEK.  Senders get it from the KGSS web service, receivers 
-        /// get it directly from the sender in an application specific way.</param>
-        /// <param name="key">The KEK itself, always retrieved from the KGSS web service</param>
-        public WebKey(String id, String key)
-            : this(Convert.FromBase64String(id), key.ToAsymmetricAlgorithm())
+        public WebKey(AsymmetricAlgorithm key)
+        {
+            this.Id = new SubjectKeyIdentifierStructure(ToBCPublicKey(key)).GetKeyIdentifier();
+            this.key = key;
+        }
+
+        /* TODO::When activate when we know the format the public key service returns.
+        /// <summary>
+        /// Constructor for the string representation of the WebKey.
+        /// </summary>
+        /// <param name="id">The ID of the WebKey, normally the Subject Key Identifier.</param>
+        /// <param name="key">The WebKey itself</param>
+        public WebKey(String id, AsymmetricAlgorithm key)
+            : this(Convert.FromBase64String(id), key)
         {
 
         }
+        */
 
         /// <summary>
-        /// Constructor for the binary representation of the KEK.
+        /// Constructor for the Object representation of the WebKey.
         /// </summary>
-        ///         /// <remarks>
-        /// <para>
-        /// The binary representation of the "GetNewKeyResponseContent" contains both the id as the key
-        /// that can be provided to this constructor.  The binary representation "GetKeyResponseContent"
-        /// only contains the key param for this constructor, the id param should be the same as
-        /// in the binary representation of "GetKeyRequestContent".
-        /// </para>
-        /// </remarks>
-        /// <param name="id">The ID of the KEK.  Senders get it from the KGSS web service, receivers 
-        /// get it directly from the sender in an application specific way</param>
-        /// <param name="key">The KEK itself, always retrieved from the KGSS web service</param>
+        /// <param name="id">The ID of the WebKey, normally the Subject Key Identifier.</param>
+        /// <param name="key">The WebKey itself</param>
         public WebKey(byte[] id, AsymmetricAlgorithm key)
         {
-            this.id = id;
+            this.Id = id;
             this.key = key;
         }
 
 
         /// <summary>
-        /// The binary form of the KEK id.
+        /// The binary form of the WebKey id.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This is the only part of the KEK that the application itself must transmit to the receiver,
+        /// This is the only part of the WebKey that the application itself must transmit to the receiver,
         /// together with the message itself.  This is public information, so there is no need to seal it
         /// for transport.
         /// </para>
         /// <para>
-        /// Use this representation of the KEK id if the transport support binary information.
+        /// Use this representation of the WebKey id if the transport support binary information.
         /// </para>
         /// </remarks>
-        public byte[] Id
-        {
-            get
-            {
-                return id;
-            }
-        }
+        public byte[] Id { get;  }
 
         /// <summary>
-        /// The string form of the KEK id.
+        /// The string form of the WebKey id.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This is the only part of the KEK that the application itself must transmit to the receiver,
+        /// This is the only part of the WebKey that the application itself must transmit to the receiver,
         /// together with the message itself.  This is public information, so there is no need to seal it
         /// for transport.
         /// </para>
         /// <para>
-        /// Use this representation of the KEK id if the transport only support text information.
+        /// Use this representation of the WebKey id if the transport only support text information.
         /// </para>
         /// </remarks>
-        public String IdString
-        {
-            get
-            {
-                return Convert.ToBase64String(id);
-            }
-        }
+        public String IdString => Convert.ToBase64String(Id);
 
-        internal AsymmetricKeyParameter BCKey
-        {
-            get
-            {
-                return key.ToAsymmetricKeyParameter();
-            }
-        }
+
+        internal AsymmetricCipherKeyPair BCKeyPair => DotNetUtilities.GetKeyPair(key);
+
+
+        internal AsymmetricKeyParameter BCPublicKey => ToBCPublicKey(key);
+
 
     }
 }

@@ -36,13 +36,28 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Egelke.EHealth.Client.Pki;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.X509.Extension;
 
 namespace Egelke.EHealth.Etee.Crypto.Utils
 {
     internal static class CertVerifier
     {
         private static TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
-        
+
+        public static byte[] GetSubjectKeyIdentifier(this Org.BouncyCastle.X509.X509Certificate cert)
+        {
+            Asn1OctetString ski = cert.GetExtensionValue(X509Extensions.SubjectKeyIdentifier);
+            if (ski != null)
+            {
+                return new SubjectKeyIdentifier(ski).GetKeyIdentifier();
+            }
+            else
+            {
+                return new SubjectKeyIdentifierStructure(cert.GetPublicKey()).GetKeyIdentifier();
+            }
+        }
+
         public static CertificateSecurityInformation Verify(this Org.BouncyCastle.X509.X509Certificate cert, DateTime date, int[] keyUsageIndexes, int minimumKeySize, IX509Store certs, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
         {
             CertificateSecurityInformation result = new CertificateSecurityInformation();
@@ -208,7 +223,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                     (self.IsValid(time) && other.IsValid(time) && self.NotBefore > other.NotBefore);
         }
 
-        private static bool VerifyKeySize(AsymmetricKeyParameter key, int minKeySize)
+        internal static bool VerifyKeySize(AsymmetricKeyParameter key, int minKeySize)
         {
             if (key is RsaKeyParameters)
             {

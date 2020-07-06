@@ -52,7 +52,7 @@ namespace Egelke.EHealth.Etee.Crypto.Status
         /// <summary>
         /// The subject key identifier.
         /// </summary>
-        public byte[] SignerId { get; internal set; }
+        public byte[] SignerId => this.SubjectId;
 
         /// <summary>
         /// The (UTC) time the time-stamp should be renewed (if applicable).

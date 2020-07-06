@@ -56,8 +56,6 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
     /// </remarks>
     public interface IDataUnsealer
     {
-        Dictionary<byte[], AsymmetricAlgorithm> PublicKeys { get; }
-
         /// <summary>
         /// Unseals a protected message of which you have the secret (but shared) key.
         /// </summary>
@@ -116,6 +114,9 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
         /// </example>
         UnsealResult Unseal(Stream sealedData, SecretKey key);
 
+        UnsealResult Unseal(Stream sealedData, WebKey sender);
+
+        UnsealResult Unseal(Stream sealedData, WebKey sender, SecretKey encKey);
 
         /// <summary>
         /// Unseals a protected message addressed to you.

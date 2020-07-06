@@ -52,7 +52,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// <returns>The completer of the required level that will verify the message, using the embedded timestamps if needed</returns>
         public static IDataVerifier Create(Level? level)
         {
-            return new TripleUnwrapper(level, null, null, null);
+            return new TripleUnwrapper(level, null, null, null, null);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleUnwrapper(level, null, null, null);
+            return new TripleUnwrapper(level, null, null, null, null);
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleUnwrapper(level, timemarkAuthority, null, null);
+            return new TripleUnwrapper(level, timemarkAuthority, null, null, null);
         }
     }
 }

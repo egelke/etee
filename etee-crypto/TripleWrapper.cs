@@ -42,6 +42,7 @@ using Egelke.EHealth.Etee.Crypto.Sender;
 using System.Linq;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.X509.Extension;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
@@ -58,23 +59,17 @@ namespace Egelke.EHealth.Etee.Crypto
         //The sender signature certificate
         private X509Certificate2 signature;
 
-        private AsymmetricAlgorithm keyPair; 
-
-        private byte[] keyId;
+        private WebKey ownWebKey;
 
         private ITimestampProvider timestampProvider;
 
         private X509Certificate2Collection extraStore;
 
-        public Dictionary<byte[], AsymmetricAlgorithm> PublicKeys { get; private set; }
-
-        internal TripleWrapper(Level level, AsymmetricAlgorithm keyPair, ITimestampProvider timestampProvider, byte[] keyId = null) {
+        internal TripleWrapper(Level level, WebKey ownWebKey, ITimestampProvider timestampProvider) {
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only levels B, T, LT and LTA are allowed");
 
-            this.keyPair = keyPair;
-            this.keyId = keyId ?? keyPair.GetSubjectKeyIdentifier();
+            this.ownWebKey = ownWebKey;
             this.timestampProvider = timestampProvider;
-            PublicKeys = new Dictionary<byte[], AsymmetricAlgorithm>();
         }
 
         internal TripleWrapper(Level level, X509Certificate2 authentication, X509Certificate2 signature, ITimestampProvider timestampProvider, X509Certificate2Collection extraStore)
@@ -121,14 +116,23 @@ namespace Egelke.EHealth.Etee.Crypto
         public Stream Seal(Stream unsealed, params X509Certificate2[] certs)
         {
             ITempStreamFactory factory = NewFactory(unsealed);
-            return Seal(factory, unsealed, null, certs);
+            return Seal(factory, unsealed, null, certs, null);
         }
 
-        //TODO check
+        public Stream Seal(Stream unsealed, params WebKey[] webKeys)
+        {
+            return Seal(unsealed, null, null, webKeys);
+        }
+
         public Stream Seal(Stream unsealed, SecretKey key, params EncryptionToken[] tokens)
         {
+            return Seal(unsealed, key, tokens, null);
+        }
+
+        public Stream Seal(Stream unsealed, SecretKey key, EncryptionToken[] tokens, WebKey[] webKeys)
+        {
             ITempStreamFactory factory = NewFactory(unsealed);
-            return Seal(factory, unsealed, key, ConverToX509Certificates(tokens));
+            return Seal(factory, unsealed, key, tokens == null ? null : ConverToX509Certificates(tokens), webKeys);
         }
 
         #endregion
@@ -148,10 +152,10 @@ namespace Egelke.EHealth.Etee.Crypto
             return certs;
         }
 
-        private Stream Seal(ITempStreamFactory factory, Stream unsealedStream, SecretKey key, X509Certificate2[] certs)
+        private Stream Seal(ITempStreamFactory factory, Stream unsealedStream, SecretKey skey, X509Certificate2[] certs, WebKey[] webKeys)
         {
-            trace.TraceEvent(TraceEventType.Information, 0, "Sealing message of {0} bytes for {1} known recipients and {2} unknown recipients to level {3}",
-                unsealedStream.Length, certs.Length, key == null ? 0 : 1, this.level);
+            trace.TraceEvent(TraceEventType.Information, 0, "Sealing message of {0} bytes for {1}/{2} known recipients and {3} unknown recipients to level {3}",
+                unsealedStream.Length, certs?.Length, webKeys?.Length, skey == null ? 0 : 1, this.level);
 
             using (
                 Stream innerDetached = new MemoryStream(),
@@ -165,8 +169,8 @@ namespace Egelke.EHealth.Etee.Crypto
                 //Inner sign
                 if (signature != null)
                     SignDetached(innerDetached, unsealedStream, signature);
-                else if (keyPair != null)
-                    SignDetached(innerDetached, unsealedStream, keyPair, keyId);
+                else if (ownWebKey != null)
+                    SignDetached(innerDetached, unsealedStream, ownWebKey.BCKeyPair, ownWebKey.Id);
                 else
                     throw new InvalidOperationException("Tripple wrapper must have either cert of keypair for signing");
 
@@ -181,9 +185,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 innerEmbedded.Position = 0;
 
                 //Encrypt
-                //TODO check!!!
-                WebKey webKey = new WebKey(keyId, keyPair);
-                Encrypt(encrypted, innerEmbedded, certs, key, webKey);
+                Encrypt(encrypted, innerEmbedded, certs, skey, webKeys);
 
                 //Loop, since eID doesn't like to be use in very short succession
                 int retry = 0;
@@ -200,7 +202,7 @@ namespace Egelke.EHealth.Etee.Crypto
                         if (signature != null)
                             SignDetached(outerDetached, encrypted, authentication);
                         else
-                            SignDetached(outerDetached, encrypted, keyPair, keyId);
+                            SignDetached(outerDetached, encrypted, ownWebKey.BCKeyPair, ownWebKey.Id);
                         success = true;
                     }
                     catch (CryptographicException ce)
@@ -263,9 +265,8 @@ namespace Egelke.EHealth.Etee.Crypto
             signed.Write(detachedSignatureBytes, 0, detachedSignatureBytes.Length);
         }
 
-        protected void SignDetached(Stream signed, Stream unsigned, AsymmetricAlgorithm keyPair, byte[] keyId)
+        protected void SignDetached(Stream signed, Stream unsigned, BC::Crypto.AsymmetricCipherKeyPair bcKeyPair, byte[] keyId)
         {
-            BC::Crypto.AsymmetricCipherKeyPair bcKeyPair = DotNetUtilities.GetKeyPair(keyPair);
             trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", Convert.ToBase64String(keyId));
 
             SignatureAlgorithm signAlgo = EteeActiveConfig.Seal.NativeSignatureAlgorithm;
@@ -283,7 +284,7 @@ namespace Egelke.EHealth.Etee.Crypto
             signed.Write(detachedSignatureBytes, 0, detachedSignatureBytes.Length);
         }
 
-        protected void Encrypt(Stream cipher, Stream clear, ICollection<X509Certificate2> certs, SecretKey key, WebKey webKey = null)
+        protected void Encrypt(Stream cipher, Stream clear, ICollection<X509Certificate2> certs, SecretKey key, WebKey[] webKeys)
         {
             trace.TraceEvent(TraceEventType.Information, 0, "Encrypting message for {0} known and {1} unknown recipient",
                 certs == null ? 0 : certs.Count, key == null ? 0 : 1);
@@ -302,15 +303,13 @@ namespace Egelke.EHealth.Etee.Crypto
                 encryptGenerator.AddKekRecipient("AES", key.BCKey, key.Id);
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Added unknown recipient [Algorithm={0}, keyId={1}]", "AES", key.IdString);
             }
-
-            if (webKey != null)
+            if (webKeys != null)
             {
-                //TODO check!!!
-                //X509certificate (null) from where to take and last parameter name
-                //BC::X509.X509Certificate bcCert = DotNetUtilities.ToRSA(pubKey as RsaKeyParameters);
-                var pubKey = PublicKeys[webKey.Id].ToAsymmetricKeyParameter();
-                encryptGenerator.AddKeyAgreementRecipient("RSA", webKey.BCKey, pubKey, null,"");
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Added unknown recipient [Algorithm={0}, keyId={1}]", "RSA", webKey.IdString);
+                foreach(WebKey webKey in webKeys)
+                {
+                    encryptGenerator.AddKeyTransRecipient(webKey.BCPublicKey, webKey.Id);
+                    trace.TraceEvent(TraceEventType.Verbose, 0, "Added web recipient [Algorithm={0}, keyId={1}]", "RSA", webKey.IdString);
+                }
             }
 
             Stream encryptingStream = encryptGenerator.Open(cipher, EteeActiveConfig.Seal.EncryptionAlgorithm.Value);
@@ -356,9 +355,9 @@ namespace Egelke.EHealth.Etee.Crypto
             timemarkKey.SigningTime = ExtractSigningTime(signerInfo);
             timemarkKey.Signer = ExtractSignerCert(embeddedCerts, signerInfo, providedSigner);
             if (timemarkKey.Signer != null)
-                timemarkKey.SignerId = timemarkKey.Signer.PublicKey.Key.GetSubjectKeyIdentifier();
+                timemarkKey.SignerId = DotNetUtilities.FromX509Certificate(timemarkKey.Signer).GetSubjectKeyIdentifier();
             else
-                timemarkKey.SignerId = ExtractSignerId(signerInfo);
+                timemarkKey.SignerId = signerInfo.SignerID.ExtractSignerId();
 
             //Extract the various data from unsiged attributes of signer info
             IDictionary unsignedAttributes = signerInfo.UnsignedAttributes != null ? signerInfo.UnsignedAttributes.ToDictionary() : new Hashtable();
@@ -480,10 +479,7 @@ namespace Egelke.EHealth.Etee.Crypto
             }
         }
 
-        private byte[] ExtractSignerId(SignerInformation signerInfo)
-        {
-            return signerInfo.SignerID.SubjectKeyIdentifier;
-        }
+        
 
         private TimeStampToken ExtractTimestamp(IDictionary unsignedAttributes)
         {
