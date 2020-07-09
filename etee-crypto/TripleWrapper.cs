@@ -82,6 +82,7 @@ namespace Egelke.EHealth.Etee.Crypto
 #if !NETFRAMEWORK
             logger = loggerFactory.CreateLogger("Egelke.EHealth.Etee");
 #endif
+            this.level = level;
             this.ownWebKey = ownWebKey;
             this.timestampProvider = timestampProvider;
         }

@@ -62,8 +62,6 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         static ITimestampProvider tsa;
 
-        Level? level;
-
         bool useSenderWKey;
 
         bool useReceiverWKey;
@@ -91,64 +89,165 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         }
 
         [TestMethod]
-        public void NullLevel()
+        public void B_Level_BothWebAuth()
         {
-            level = null;
-            validationStatus = ValidationStatus.Valid;
-            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
-            useSenderWKey = true;
-            useReceiverWKey = true;
-
-            trace.TraceInformation("Null-Level: Sealing");
-            Stream output = Seal();
-
-            trace.TraceInformation("Null-Level: Verify");
-            Verify(output);
-
-            output.Position = 0;
-
-            trace.TraceInformation("Null-Level: Unseal");
-            Unseal(output);
-
-            output.Close();
-        }
-
-        [TestMethod]
-        public void B_Level()
-        {
-            level = Level.B_Level;
             validationStatus = ValidationStatus.Valid;
             trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
             useSenderWKey = true;
             useReceiverWKey = true;
 
             trace.TraceInformation("B-Level: Sealing");
-            Stream output = Seal();
+            Stream output = Seal(Level.B_Level);
+
+            using (Stream f = File.OpenWrite("fromAliceWebToBobWeb.cms"))
+            {
+                output.CopyTo(f);
+            }
+            output.Position = 0;
 
             trace.TraceInformation("B-Level: Verify");
-            Verify(output);
+            Verify(output, null);
 
             output.Position = 0;
 
+            Verify(output, Level.B_Level);
+
+            output.Position = 0;
+
+            Assert.ThrowsException<InvalidMessageException>(() => Verify(output, Level.T_Level));
+
+            output.Position = 0;
+
+
             trace.TraceInformation("B-Level: Unseal");
-            Unseal(output);
+            Unseal(output, Level.B_Level);
 
             output.Close();
         }
 
+        [TestMethod]
+        public void B_Level_WebAuthSender()
+        {
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+            useSenderWKey = true;
+            useReceiverWKey = false;
 
-        //todo make it green
-        private void Verify(Stream output)
+            trace.TraceInformation("B-Level: Sealing");
+            Stream output = Seal(Level.B_Level);
+
+            using (Stream f = File.OpenWrite("fromAliceWebToBobCert.cms"))
+            {
+                output.CopyTo(f);
+            }
+            output.Position = 0;
+
+            trace.TraceInformation("B-Level: Verify");
+            Verify(output, null);
+
+            output.Position = 0;
+
+            Verify(output, Level.B_Level);
+
+            output.Position = 0;
+
+            Assert.ThrowsException<InvalidMessageException>(() => Verify(output, Level.T_Level));
+
+            output.Position = 0;
+
+
+            trace.TraceInformation("B-Level: Unseal");
+            Unseal(output, Level.B_Level);
+
+            output.Close();
+        }
+
+        [TestMethod]
+        public void B_Level_WebAuthReceiver()
+        {
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Unsure;
+            useSenderWKey = false;
+            useReceiverWKey = true;
+
+            trace.TraceInformation("B-Level: Sealing");
+            Stream output = Seal(Level.B_Level);
+
+            using (Stream f = File.OpenWrite("fromAliceCertToBobWeb.cms"))
+            {
+                output.CopyTo(f);
+            }
+            output.Position = 0;
+
+            trace.TraceInformation("B-Level: Verify");
+            Verify(output, null);
+
+            output.Position = 0;
+
+            Verify(output, Level.B_Level);
+
+            output.Position = 0;
+
+            Assert.ThrowsException<InvalidMessageException>(() => Verify(output, Level.T_Level));
+
+            output.Position = 0;
+
+
+            trace.TraceInformation("B-Level: Unseal");
+            Unseal(output, Level.B_Level);
+
+            output.Close();
+        }
+
+        [TestMethod]
+        public void T_Level_BothWebAuth()
+        {
+            validationStatus = ValidationStatus.Valid;
+            trustStatus = EHealth.Etee.Crypto.Status.TrustStatus.Full;
+            useSenderWKey = true;
+            useReceiverWKey = true;
+
+            trace.TraceInformation("B-Level: Sealing");
+            Stream output = Seal(Level.T_Level);
+
+            using (Stream f = File.OpenWrite("fromAliceWebToBobWeb_WithTS.cms"))
+            {
+                output.CopyTo(f);
+            }
+            output.Position = 0;
+
+            trace.TraceInformation("B-Level: Verify");
+            Verify(output, null);
+
+            output.Position = 0;
+
+            Verify(output, Level.B_Level);
+
+            output.Position = 0;
+
+            Verify(output, Level.T_Level);
+
+
+            output.Position = 0;
+
+            trace.TraceInformation("B-Level: Unseal");
+            Unseal(output, Level.T_Level);
+
+            output.Close();
+        }
+
+        private void Verify(Stream cryptMsg, Level? level)
         {
             IDataVerifier verifier = new DataVerifierFactory().Create(level);
 
             SignatureSecurityInformation result;
-            if (useSenderWKey) {
-               result = verifier.Verify(output, senderWKey);
+            if (useSenderWKey) 
+            {
+               result = verifier.Verify(cryptMsg, senderWKey);
             }
             else
             {
-                result = verifier.Verify(output);
+                result = verifier.Verify(cryptMsg);
             }
             Console.WriteLine(result.ToString());
 
@@ -157,30 +256,32 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             if (useSenderWKey)
             {
                 Assert.IsNull(result.Signer);
+                Assert.IsFalse(result.IsNonRepudiatable);
             }
             else
             {
                 Assert.IsNotNull(result.Signer);
+                Assert.IsTrue(result.IsNonRepudiatable);
             }
             Assert.IsNotNull(result.SignerId);
             Assert.AreEqual((level & Level.T_Level) == Level.T_Level, result.TimestampRenewalTime > DateTime.UtcNow);
             Assert.IsNotNull(result.SignatureValue);
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
-            Assert.IsFalse(result.IsNonRepudiatable);
+            
         }
 
-        private void Unseal(Stream output)
+        private void Unseal(Stream cryptoMsg, Level? level)
         {
             IDataUnsealer unsealer = new DataUnsealerFactory().Create(level, new EHealthP12[] { alice, bob }, new WebKey[] { receiverWKey });
 
             UnsealResult result;
             if (useSenderWKey)
             {
-                result = unsealer.Unseal(output, senderWKey);
+                result = unsealer.Unseal(cryptoMsg, senderWKey);
             }
             else
             {
-                result = unsealer.Unseal(output);
+                result = unsealer.Unseal(cryptoMsg);
             }
             Console.WriteLine(result.SecurityInformation.ToString());
 
@@ -221,29 +322,29 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsNotNull(result.SecurityInformation.ToString());
         }
 
-        private Stream Seal()
+        private Stream Seal(Level level)
         {
             IDataSealer sealer;
-            if (!level.HasValue || level.Value == Level.B_Level)
+            if (level == Level.B_Level)
             {
                 if (useSenderWKey)
                 {
-                    sealer = new DataSealerFactory().Create(level == null ? Level.B_Level : level.Value, senderWKey);
+                    sealer = new DataSealerFactory().Create(level, senderWKey);
                 }
                 else
                 {
-                    sealer = new EhDataSealerFactory().Create(level == null ? Level.B_Level : level.Value, alice);
+                    sealer = new EhDataSealerFactory().Create(level, alice);
                 }
             }
             else
             {
                 if (useSenderWKey)
                 {
-                    sealer = new DataSealerFactory().Create(level.Value, tsa, senderWKey);
+                    sealer = new DataSealerFactory().Create(level, tsa, senderWKey);
                 }
                 else
                 {
-                    sealer = new EhDataSealerFactory().Create(level == null ? Level.B_Level : level.Value, tsa, alice);
+                    sealer = new EhDataSealerFactory().Create(level, tsa, alice);
                 }
             }
 
@@ -261,9 +362,9 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             return output;
         }
 
-        private Stream Complete(Stream toComplete)
+        private Stream Complete(Stream toComplete, Level level)
         {
-            IDataCompleter completer = new DataCompleterFactory().Create(level.Value, tsa);
+            IDataCompleter completer = new DataCompleterFactory().Create(level, tsa);
             Stream output = completer.Complete(toComplete);
             return output;
         }
