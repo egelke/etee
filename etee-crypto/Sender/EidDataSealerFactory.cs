@@ -16,6 +16,8 @@
  * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if !NETSTANDARD2_0
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -146,3 +148,5 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         
     }
 }
+
+#endif
