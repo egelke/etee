@@ -25,7 +25,6 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Egelke.EHealth.Etee.Crypto.Utils;
-using System.Diagnostics;
 using System.Text;
 using System.Security.Cryptography;
 using Org.BouncyCastle.X509.Store;
@@ -42,15 +41,23 @@ using Org.BouncyCastle.Tsp;
 using System.Linq;
 using Egelke.EHealth.Etee.Crypto.Store;
 using Egelke.EHealth.Etee.Crypto.Receiver;
-using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.X509;
 using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
+
+#if NETFRAMEWORK
+using System.Diagnostics;
+#else
+using Microsoft.Extensions.Logging;
+#endif
 
 namespace Egelke.EHealth.Etee.Crypto
 {
     internal class TripleUnwrapper : IDataUnsealer, IDataVerifier, ITmaDataVerifier
     {
-        private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
+#if NETFRAMEWORK
+        private readonly TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
+#else
+        private readonly ILogger logger;
+#endif
 
         private Level? level;
         private IX509Store encCertStore;
@@ -58,10 +65,17 @@ namespace Egelke.EHealth.Etee.Crypto
         private IDictionary<byte[], AsymmetricCipherKeyPair> ownKeyPairs;
         private ITimemarkProvider timemarkauthority;
 
-        internal TripleUnwrapper(Level? level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, IX509Store authCertStore, WebKey[] ownWebKeys)
+        internal TripleUnwrapper(
+#if !NETFRAMEWORK
+            ILoggerFactory loggerFactory,
+#endif
+            Level? level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, IX509Store authCertStore, WebKey[] ownWebKeys)
         {
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only null or levels B, T, LT and LTA are allowed");
 
+#if !NETFRAMEWORK
+            logger = loggerFactory.CreateLogger("Egelke.EHealth.Etee");
+#endif
             this.level = level;
             this.timemarkauthority = timemarkauthority;
             this.encCertStore = encCerts == null || encCerts.Count == 0 ? null : new WinX509CollectionStore(encCerts);
@@ -69,7 +83,7 @@ namespace Egelke.EHealth.Etee.Crypto
             this.ownKeyPairs = ownWebKeys?.ToDictionary(_ => _.Id, _ => _.BCKeyPair, ArrayEqualityComparer.Instance);
         }
 
-        #region DataUnsealer Members
+#region DataUnsealer Members
 
         public UnsealResult Unseal(Stream sealedData)
         {
@@ -81,9 +95,9 @@ namespace Egelke.EHealth.Etee.Crypto
             return Unseal(sealedData, sender, null);
         }
 
-        #endregion
+#endregion
 
-        #region Anonymous Data Unsealer Members
+#region Anonymous Data Unsealer Members
 
         public UnsealResult Unseal(Stream sealedData, SecretKey key)
         {
@@ -106,9 +120,9 @@ namespace Egelke.EHealth.Etee.Crypto
             }
         }
 
-        #endregion
+#endregion
 
-        #region Data Verifier Members
+#region Data Verifier Members
 
         public SignatureSecurityInformation Verify(Stream sealedData)
         {
@@ -117,7 +131,11 @@ namespace Egelke.EHealth.Etee.Crypto
 
         public SignatureSecurityInformation Verify(Stream sealedData, WebKey sender)
         {
+#if NETFRAMEWORK
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying the sealed message {0} bytes according to the level {1}", sealedData.Length, this.level);
+#else
+            logger.LogInformation("Verifying the sealed message {0} bytes according to the level {1}", sealedData.Length, this.level);
+#endif
 
             try
             {
@@ -141,7 +159,11 @@ namespace Egelke.EHealth.Etee.Crypto
             SignatureSecurityInformation info = Verify(sealedData, sender);
             if (info.SigningTime == null)
             {
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Error, 0, "The sealed message did not contain a signing time, which is required with the timemarkKey output parameter");
+#else
+                logger.LogError("The sealed message did not contain a signing time, which is required with the timemarkKey output parameter");
+#endif
                 throw new InvalidMessageException("Verification with time-marking can't be done on Java v1 messages, only on v2 messages and .Net v1 messages");
             }
 
@@ -153,16 +175,20 @@ namespace Egelke.EHealth.Etee.Crypto
             return info;
         }
 
-        #endregion
+#endregion
 
-        #region Tma Data Verifier Members
+#region Tma Data Verifier Members
 
         public SignatureSecurityInformation Verify(Stream sealedData, DateTime date)
         {
             ITimemarkProvider provider = this.timemarkauthority;
             try
             {
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Information, 0, "Presetting the time-mark to: {0}", date);
+#else
+                logger.LogInformation("Presetting the time-mark to: {0}", date);
+#endif
                 this.timemarkauthority = new FixedTimemarkProvider(date);
                 return Verify(sealedData);
             }
@@ -177,7 +203,11 @@ namespace Egelke.EHealth.Etee.Crypto
             ITimemarkProvider provider = this.timemarkauthority;
             try
             {
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Information, 0, "Presetting the time-mark to: {0}", date);
+#else
+                logger.LogInformation("Presetting the time-mark to: {0}", date);
+#endif
                 this.timemarkauthority = new FixedTimemarkProvider(date);
                 return Verify(sealedData, out timemarkKey);
             }
@@ -187,12 +217,15 @@ namespace Egelke.EHealth.Etee.Crypto
             }
         }
 
-        #endregion
+#endregion
 
         private UnsealResult Unseal(Stream sealedData, SecretKey key, WebKey sender, bool streaming)
         {
+#if NETFRAMEWORK
             trace.TraceEvent(TraceEventType.Information, 0, "Unsealing message of {0} bytes for {1} recipient with level {2}", sealedData.Length, key == null ? "known" : "unknown", this.level);
-
+#else
+            logger.LogInformation("Unsealing message of {0} bytes for {1} recipient with level {2}", sealedData.Length, key == null ? "known" : "unknown", this.level);
+#endif
             UnsealResult result = new UnsealResult();
             result.SecurityInformation = new UnsealSecurityInformation();
             ITempStreamFactory factory = streaming && sealedData.Length > Settings.Default.InMemorySize ? (ITempStreamFactory)new TempFileStreamFactory() : (ITempStreamFactory)new MemoryStreamFactory();
@@ -227,23 +260,39 @@ namespace Egelke.EHealth.Etee.Crypto
 
         private SignatureSecurityInformation VerifyStreaming(Stream verifiedContent, Stream signed, WebKey sender, SignatureSecurityInformation outer)
         {
+#if NETFRAMEWORK
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying the {0} signature streamed", outer == null ? "inner" : "outer");
+#else
+            logger.LogInformation("Verifying the {0} signature streamed", outer == null ? "inner" : "outer");
+#endif
             try
             {
                 CmsSignedDataParser signedData;
                 try
                 {
                     signedData = new CmsSignedDataParser(signed);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Read the cms header");
+#else
+                    logger.LogDebug("Read the cms header");
+#endif
                 }
                 catch (Exception e)
                 {
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Error, 0, "The message isn't a CMS Signed Data message: {0}", e.Message);
+#else
+                    logger.LogError("The message isn't a CMS Signed Data message: {0}", e.Message);
+#endif
                     throw new InvalidMessageException("The message isn't a triple wrapped message", e);
                 }
 
                 signedData.GetSignedContent().ContentStream.CopyTo(verifiedContent);
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Copied the signed data & calculated the message digest");
+#else
+                logger.LogDebug("Copied the signed data & calculated the message digest");
+#endif
 
                 IX509Store certs = signedData.GetCertificates("COLLECTION");
                 SignerInformationStore signerInfos = signedData.GetSignerInfos();
@@ -262,25 +311,41 @@ namespace Egelke.EHealth.Etee.Crypto
 
         private SignatureSecurityInformation VerifyInMem(Stream verifiedContent, Stream signed, WebKey sender, SignatureSecurityInformation outer)
         {
+#if NETFRAMEWORK
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying the {0} signature in memory", outer == null ? "inner" : "outer");
+#else
+            logger.LogInformation("Verifying the {0} signature in memory", outer == null ? "inner" : "outer");
+#endif
             try
             {
                 CmsSignedData signedData;
                 try
                 {
                     signedData = new CmsSignedData(signed);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Read the cms header");
+#else
+                    logger.LogDebug("Read the cms header");
+#endif
                 }
                 catch (Exception e)
                 {
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Error, 0, "The message isn't a CMS Signed Data message: {0}", e.Message);
+#else
+                    logger.LogError("The message isn't a CMS Signed Data message: {0}", e.Message);
+#endif
                     throw new InvalidMessageException("The message isn't a triple wrapped message", e);
                 }
 
                 if (verifiedContent != null)
                 {
                     signedData.SignedContent.Write(verifiedContent);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Copied the signed data");
+#else
+                    logger.LogDebug("Copied the signed data");
+#endif
                 }
 
                 IX509Store certs = signedData.GetCertificates("COLLECTION");
@@ -296,7 +361,11 @@ namespace Egelke.EHealth.Etee.Crypto
         //todo test is up
         private SignatureSecurityInformation Verify(SignerInformationStore signerInfos, IX509Store certs, WebKey sender, SignatureSecurityInformation outer)
         {
+#if NETFRAMEWORK
             trace.TraceEvent(TraceEventType.Information, 0, "Verifying the {0} signature information", outer == null ? "outer" : "inner");
+#else
+            logger.LogInformation("Verifying the {0} signature information", outer == null ? "outer" : "inner");
+#endif
             SignatureSecurityInformation result = new SignatureSecurityInformation();
 
             //Check if signed (only allow single signatures)
@@ -304,16 +373,28 @@ namespace Egelke.EHealth.Etee.Crypto
             IEnumerator iterator = signerInfos.GetSigners().GetEnumerator();
             if (!iterator.MoveNext()) {
                 result.securityViolations.Add(SecurityViolation.NotSigned);
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Warning, 0, "Although it is a correct CMS file it isn't signed");
+#else
+                logger.LogWarning("Although it is a correct CMS file it isn't signed");
+#endif
                 return result;
             }
 
             signerInfo = (SignerInformation)iterator.Current;
 
+#if NETFRAMEWORK
             trace.TraceEvent(TraceEventType.Verbose, 0, "Found signature, with signer ID = issuer {0} and serial number {1}", signerInfo.SignerID.Issuer, signerInfo.SignerID.SerialNumber);
+#else
+            logger.LogDebug("Found signature, with signer ID = issuer {0} and serial number {1}", signerInfo.SignerID.Issuer, signerInfo.SignerID.SerialNumber);
+#endif
             if (iterator.MoveNext())
             {
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Error, 0, "Found more then one signature, this isn't supported (yet)");
+#else
+                logger.LogError("Found more then one signature, this isn't supported (yet)");
+#endif
                 throw new InvalidMessageException("An eHealth compliant message can have only one signer");
             }
 
@@ -332,10 +413,20 @@ namespace Egelke.EHealth.Etee.Crypto
             if (!found)
             {
                 result.securityViolations.Add(SecurityViolation.NotAllowedSignatureDigestAlgorithm);
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Warning, 0, "The signature digest + encryption algorithm {0} + {1} isn't allowed, only {2} are",
                     signerInfo.DigestAlgOid, signerInfo.EncryptionAlgOid, algos);
+#else
+                logger.LogWarning("The signature digest + encryption algorithm {0} + {1} isn't allowed, only {2} are",
+                    signerInfo.DigestAlgOid, signerInfo.EncryptionAlgOid, algos);
+#endif
+
             }
+#if NETFRAMEWORK
             trace.TraceEvent(TraceEventType.Verbose, 0, "Verified the signature digest and encryption algorithm");
+#else
+            logger.LogDebug("Verified the signature digest and encryption algorithm");
+#endif
 
             //Find the singing certificate and relevant info
             byte[] ski = null;
@@ -349,21 +440,33 @@ namespace Egelke.EHealth.Etee.Crypto
                 {
                     //found no certificate
                     result.securityViolations.Add(SecurityViolation.NotFoundSigner);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Warning, 0, "Could not find the signer certificate");
+#else
+                    logger.LogWarning("Could not find the signer certificate");
+#endif
                     return result;
                 }
 
                 //Getting the first certificate
                 signerCert = (Org.BouncyCastle.X509.X509Certificate)signerCerts.Current;
-
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Found the signer certificate: {0}", signerCert.SubjectDN.ToString());
+#else
+                logger.LogDebug("Found the signer certificate: {0}", signerCert.SubjectDN.ToString());
+#endif
 
                 //Check if the outer certificate matches the inner certificate
                 if (outer != null)
                 {
                     Org.BouncyCastle.X509.X509Certificate authCert = DotNetUtilities.FromX509Certificate(outer.Subject.Certificate);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Comparing The signer certificate {0} ({1}) with the authentication certificate {2} ({3})",
                             signerCert.SubjectDN, signerCert.IssuerDN, authCert.SubjectDN, authCert.IssuerDN);
+#else
+                    logger.LogDebug("Comparing The signer certificate {0} ({1}) with the authentication certificate {2} ({3})",
+                            signerCert.SubjectDN, signerCert.IssuerDN, authCert.SubjectDN, authCert.IssuerDN);
+#endif
                     //_safe_ check if the serial numbers of the subject name are equal and they have the same issuer
                     if (!authCert.SubjectDN.GetOidList().Contains(X509Name.SerialNumber)
                         || !signerCert.SubjectDN.GetOidList().Contains(X509Name.SerialNumber)
@@ -373,15 +476,24 @@ namespace Egelke.EHealth.Etee.Crypto
                         || !authCert.IssuerDN.Equals(signerCert.IssuerDN))
                     {
                         result.securityViolations.Add(SecurityViolation.SubjectDoesNotMachEnvelopingSubject);
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Warning, 0, "The signer certificate {0} ({1}) does not match the authentication certificate {2} ({3})",
                             signerCert.SubjectDN, signerCert.IssuerDN, authCert.SubjectDN, authCert.IssuerDN);
+#else
+                        logger.LogWarning("The signer certificate {0} ({1}) does not match the authentication certificate {2} ({3})",
+                            signerCert.SubjectDN, signerCert.IssuerDN, authCert.SubjectDN, authCert.IssuerDN);
+#endif
                     }
                 }
 
                 if (signerCerts.MoveNext())
                 {
                     //found several certificates...
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Error, 0, "Several certificates correspond to the signer");
+#else
+                    logger.LogError("Several certificates correspond to the signer");
+#endif
                     throw new NotSupportedException("More then one certificate found that corresponds to the sender information in the message, this isn't supported by the library");
                 }
             }
@@ -396,7 +508,11 @@ namespace Egelke.EHealth.Etee.Crypto
                     //we do not have certificate and ski
                     if (ski == null)
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Error, 0, "The outer signature does not contain any certificates");
+#else
+                        logger.LogError("The outer signature does not contain any certificates");
+#endif
                         throw new InvalidMessageException("The outer signature is missing certificates");
                     }
                     else 
@@ -410,7 +526,11 @@ namespace Egelke.EHealth.Etee.Crypto
                     result.Subject = outer.Subject;
                     result.SubjectId = outer.SignerId;
                     signerCert = outer.Signer != null ? DotNetUtilities.FromX509Certificate(outer.Signer) : null;
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "An already validated certificates was provided: {0}", signerCert?.SubjectDN.ToString());
+#else
+                    logger.LogDebug("An already validated certificates was provided: {0}", signerCert?.SubjectDN.ToString());
+#endif
                 }
 
             }
@@ -423,19 +543,38 @@ namespace Egelke.EHealth.Etee.Crypto
             if ((signerCert != null && !signerInfo.Verify(signerCert.GetPublicKey())))
             {
                 result.securityViolations.Add(SecurityViolation.NotSignatureValid);
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Warning, 0, "The signature value was invalid");
+#else
+                logger.LogWarning("The signature value was invalid");
+#endif
             }
             if (ski != null)
             {
                 if (sender == null || !Enumerable.SequenceEqual(ski, sender.Id))
+                {
+#if NETFRAMEWORK
+                    trace.TraceEvent(TraceEventType.Error, 0, "Found Sender {0} while expecting {1}", BitConverter.ToString(ski), BitConverter.ToString(sender.Id)); 
+#else
+                    logger.LogError("Found Sender {0} while expecting {1}", BitConverter.ToString(ski), BitConverter.ToString(sender.Id));
+#endif
                     throw new ArgumentException("The Senders WebAuth Key ID did not correspond with the provided one", "sender");
+                }
                 if (!signerInfo.Verify(sender.BCPublicKey))
                 {
                     result.securityViolations.Add(SecurityViolation.NotSignatureValid);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Warning, 0, "The signature value was invalid");
+#else
+                    logger.LogWarning("The signature value was invalid");
+#endif
                 }
             }
+#if NETFRAMEWORK
             trace.TraceEvent(TraceEventType.Verbose, 0, "Signature value verification finished");
+#else
+            logger.LogDebug("Signature value verification finished");
+#endif
 
             //Get the signing time
             bool hasSigningTime = false;
@@ -456,7 +595,11 @@ namespace Egelke.EHealth.Etee.Crypto
                     {
                         signingTime = signingTime.ToUniversalTime();
                     }
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains a signing time: {0}", result.SigningTime);
+#else
+                    logger.LogDebug("The CMS message contains a signing time: {0}", result.SigningTime);
+#endif
                 }
             }
 
@@ -465,21 +608,37 @@ namespace Egelke.EHealth.Etee.Crypto
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
             if (signerInfo != null && signerInfo.UnsignedAttributes != null)
             {
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
+#else
+                logger.LogDebug("The CMS message contains unsigned attributes");
+#endif
                 Org.BouncyCastle.Asn1.Cms.Attribute revocationValuesList = signerInfo.UnsignedAttributes[PkcsObjectIdentifiers.IdAAEtsRevocationValues];
                 if (revocationValuesList != null && revocationValuesList.AttrValues.Count > 0)
                 {
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains Revocation Values");
+#else
+                    logger.LogDebug("The CMS message contains Revocation Values");
+#endif
                     RevocationValues revocationValues = RevocationValues.GetInstance(revocationValuesList.AttrValues[0]);
                     if (revocationValues.GetCrlVals() != null)
                     {
                         crls = new List<CertificateList>(revocationValues.GetCrlVals());
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Verbose, 0, "Found {0} CRL's in the message", crls.Count);
+#else
+                        logger.LogDebug("Found {0} CRL's in the message", crls.Count);
+#endif
                     }
                     if (revocationValues.GetOcspVals() != null)
                     {
                         ocsps = new List<BasicOcspResponse>(revocationValues.GetOcspVals());
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Verbose, 0, "Found {0} OCSP's in the message", ocsps.Count);
+#else
+                        logger.LogDebug("Found {0} OCSP's in the message", ocsps.Count);
+#endif
                     }
                 }
             }
@@ -491,11 +650,19 @@ namespace Egelke.EHealth.Etee.Crypto
                 TimeStampToken tst = null;
                 if (signerInfo != null && signerInfo.UnsignedAttributes != null)
                 {
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains unsigned attributes");
+#else
+                    logger.LogDebug("The CMS message contains unsigned attributes");
+#endif
                     Org.BouncyCastle.Asn1.Cms.Attribute tstList = signerInfo.UnsignedAttributes[PkcsObjectIdentifiers.IdAASignatureTimeStampToken];
                     if (tstList != null && tstList.AttrValues.Count > 0)
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Verbose, 0, "The CMS message contains the Signature Time Stamp Token: {0}", Convert.ToBase64String(tstList.AttrValues[0].GetEncoded()));
+#else
+                        logger.LogDebug("The CMS message contains the Signature Time Stamp Token: {0}", Convert.ToBase64String(tstList.AttrValues[0].GetEncoded()));
+#endif
                         tst = tstList.AttrValues[0].GetEncoded().ToTimeStampToken();
                     }
                 }
@@ -505,25 +672,46 @@ namespace Egelke.EHealth.Etee.Crypto
                     //we are in the outer signature, so we need a time-mark (or time-stamp, but we checked that already)
                     if (timemarkauthority == null)
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Error, 0, "Not time-mark authority is provided while there is not embedded time-stamp, the level includes T-Level and it isn't an inner signature");
+#else
+                        logger.LogError("Not time-mark authority is provided while there is not embedded time-stamp, the level includes T-Level and it isn't an inner signature");
+#endif
                         throw new InvalidMessageException("The message does not contain a time-stamp and there is not time-mark authority provided while T-Level is required");
                     }
                     if (signerCert == null)
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Error, 0, "Trying to do a time-mark with a WebAuth key which is not (yet) supported");
+#else
+                        logger.LogError("Trying to do a time-mark with a WebAuth key which is not (yet) supported");
+#endif
                         throw new InvalidMessageException("WebAuth does not support Timemarks");
                     }
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Requesting time-mark for message signed by {0}, signed on {1} and with signature value {2}",
                        signerCert.SubjectDN, signingTime, signerInfo.GetSignature());
+#else
+                    logger.LogDebug("Requesting time-mark for message signed by {0}, signed on {1} and with signature value {2}",
+                       signerCert.SubjectDN, signingTime, signerInfo.GetSignature());
+#endif
                     validatedTime = timemarkauthority.GetTimemark(new X509Certificate2(signerCert.GetEncoded()), signingTime, signerInfo.GetSignature()).ToUniversalTime();
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the return time-mark which is: {0}", validatedTime);
+#else
+                    logger.LogDebug("The validated time is the return time-mark which is: {0}", validatedTime);
+#endif
                 }
                 else
                 {
                     //Check the time-stamp
                     if (!tst.IsMatch(new MemoryStream(signerInfo.GetSignature())))
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Warning, 0, "The time-stamp does not match the message");
+#else
+                        logger.LogWarning("The time-stamp does not match the message");
+#endif
                         result.securityViolations.Add(SecurityViolation.InvalidTimestamp);
                     }
 
@@ -531,29 +719,54 @@ namespace Egelke.EHealth.Etee.Crypto
                     if ((this.level & Level.A_level) == Level.A_level)
                     {
                         //TODO::follow the chain of A-timestamps until the root (now we assume the signature time-stamp is the root)
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Verbose, 0, "Validating the time-stamp against the current time for arbitration reasons");
+#else
+                        logger.LogDebug("Validating the time-stamp against the current time for arbitration reasons");
+#endif
                         stamp = tst.Validate(crls, ocsps, DateTime.UtcNow);
                     }
                     else {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Verbose, 0, "Validating the time-stamp against the time-stamp time since no arbitration is needed");
+#else
+                        logger.LogDebug("Validating the time-stamp against the time-stamp time since no arbitration is needed");
+#endif
                         stamp = tst.Validate(crls, ocsps);
                     }
                     result.TimestampRenewalTime = stamp.RenewalTime;
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The time-stamp must be renewed on {0}", result.TimestampRenewalTime);
+#else
+                    logger.LogDebug("The time-stamp must be renewed on {0}", result.TimestampRenewalTime);
+#endif
 
                     //we get the time from the time-stamp
                     validatedTime = stamp.Time;
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time is the time-stamp time which is on {0}", validatedTime);
+#else
+                    logger.LogDebug("The validated time is the time-stamp time which is on {0}", validatedTime);
+#endif
                     if (!hasSigningTime)
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Information, 0, "Implicit signing time {0} is replaced with time-stamp time {1}", signingTime, tst.TimeStampInfo.GenTime);
+#else
+                        logger.LogInformation("Implicit signing time {0} is replaced with time-stamp time {1}", signingTime, tst.TimeStampInfo.GenTime);
+#endif
                         signingTime = stamp.Time;
                     }
 
                     if (stamp.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Warning, 0, "The time-stamp is invalid with {0} errors, including {1}: {2}",
                             stamp.TimestampStatus.Count, stamp.TimestampStatus[0].Status, stamp.TimestampStatus[0].StatusInformation);
+#else
+                        logger.LogWarning("The time-stamp is invalid with {0} errors, including {1}: {2}",
+                            stamp.TimestampStatus.Count, stamp.TimestampStatus[0].Status, stamp.TimestampStatus[0].StatusInformation);
+#endif
                         result.securityViolations.Add(SecurityViolation.InvalidTimestamp);
                     }
                 }
@@ -562,13 +775,22 @@ namespace Egelke.EHealth.Etee.Crypto
                 if (validatedTime > (signingTime + EteeActiveConfig.ClockSkewness + Settings.Default.TimestampGracePeriod)
                     || validatedTime < (signingTime - EteeActiveConfig.ClockSkewness))
                 {
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Warning, 0, "The validated time {0} is not in line with the signing time {1} with a grace period of {2}",
                         validatedTime, signingTime, Settings.Default.TimestampGracePeriod);
+#else
+                    logger.LogWarning("The validated time {0} is not in line with the signing time {1} with a grace period of {2}",
+                        validatedTime, signingTime, Settings.Default.TimestampGracePeriod);
+#endif
                     result.securityViolations.Add(SecurityViolation.SealingTimeInvalid);
                 }
                 else
                 {
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "The validated time {0} is in line with the signing time {1}", validatedTime, signingTime);
+#else
+                    logger.LogDebug("The validated time {0} is in line with the signing time {1}", validatedTime, signingTime);
+#endif
                 }
             }
 
@@ -584,8 +806,13 @@ namespace Egelke.EHealth.Etee.Crypto
                 if (!CertVerifier.VerifyKeySize(sender.BCPublicKey, EteeActiveConfig.Unseal.MinimumSignatureKeySize))
                 {
                     result.securityViolations.Add(SecurityViolation.UntrustedSubject);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Warning, 0, "The sender asymmetric WebAuth key {0} was less then {0} bits",
                                 Convert.ToBase64String(result.SubjectId), EteeActiveConfig.Unseal.MinimumSignatureKeySize);
+#else
+                    logger.LogWarning("The sender asymmetric WebAuth key {0} was less then {0} bits",
+                                Convert.ToBase64String(result.SubjectId), EteeActiveConfig.Unseal.MinimumSignatureKeySize);
+#endif
                 }
             }
 
@@ -600,7 +827,11 @@ namespace Egelke.EHealth.Etee.Crypto
             StringBuilder algos;
             DateTime date = sealedOn == null ? DateTime.UtcNow : sealedOn.Value;
 
+#if NETFRAMEWORK
             trace.TraceEvent(TraceEventType.Information, 0, "Decrypting message for {0} recipient", key == null ? "known" : "unknown");
+#else
+            logger.LogInformation("Decrypting message for {0} recipient", key == null ? "known" : "unknown");
+#endif
             try
             {
                 SecurityInformation result = new SecurityInformation();
@@ -608,15 +839,27 @@ namespace Egelke.EHealth.Etee.Crypto
                 try
                 {
                     cypherData = new CmsEnvelopedDataParser(cypher);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Read the cms header");
+#else
+                    logger.LogDebug("Read the cms header");
+#endif
                 }
                 catch (Exception e)
                 {
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Error, 0, "The messages isn't encrypted");
+#else
+                    logger.LogError("The messages isn't encrypted");
+#endif
                     throw new InvalidMessageException("The message isn't a triple wrapped message", e);
                 }
                 RecipientInformationStore recipientInfos = cypherData.GetRecipientInfos();
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Got the recipient info of the encrypted message");
+#else
+                logger.LogDebug("Got the recipient info of the encrypted message");
+#endif
                 
                 i = 0;
                 found = false;
@@ -631,9 +874,17 @@ namespace Egelke.EHealth.Etee.Crypto
                 if (!found)
                 {
                     result.securityViolations.Add(SecurityViolation.NotAllowedEncryptionAlgorithm);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Warning, 0, "The encryption algorithm {0} isn't allowed, only {1} are", encryptionAlgOid, algos);
+#else
+                    logger.LogWarning("The encryption algorithm {0} isn't allowed, only {1} are", encryptionAlgOid, algos);
+#endif
                 }
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Verbose, 0, "The encryption algorithm is verified: {0}", encryptionAlgOid);
+#else
+                logger.LogDebug("The encryption algorithm is verified: {0}", encryptionAlgOid);
+#endif
 
                 //Key size of the message should not be checked, size is determined by the algorithm
 
@@ -644,7 +895,11 @@ namespace Egelke.EHealth.Etee.Crypto
                 {
                     if (encCertStore == null && !ownKeyPairs.Any())
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Error, 0, "The unsealer does not have an decryption certificate or web auth key nor was a symmetric key provided");
+#else
+                        logger.LogError("The unsealer does not have an decryption certificate or web auth key nor was a symmetric key provided");
+#endif
                         throw new InvalidOperationException("There should be an receiver (=yourself) and/or a key provided");
                     }
 
@@ -655,13 +910,21 @@ namespace Egelke.EHealth.Etee.Crypto
                         var tRecip = recipient as KeyTransRecipientInformation;
                         if (tRecip?.RecipientID?.SerialNumber != null)
                         {
+#if NETFRAMEWORK
                             trace.TraceEvent(TraceEventType.Verbose, 0, "The message is addressed to {0} ({1})", recipient.RecipientID.SerialNumber, recipient.RecipientID.Issuer);
+#else
+                            logger.LogDebug("The message is addressed to {0} ({1})", recipient.RecipientID.SerialNumber, recipient.RecipientID.Issuer);
+#endif
 
                             //try to find the certificate.
                             IList matches = (IList)encCertStore.GetMatches(recipient.RecipientID);
                             foreach (X509Certificate2 match in matches)
                             {
+#if NETFRAMEWORK
                                 trace.TraceEvent(TraceEventType.Verbose, 0, "Found potential match {0} ({1})", match.Subject, match.Issuer);
+#else
+                                logger.LogDebug("Found potential match {0} ({1})", match.Subject, match.Issuer);
+#endif
                                 if (match.IsBetter(encCert, date))
                                 {
                                     recipientInfo = recipient;
@@ -672,7 +935,11 @@ namespace Egelke.EHealth.Etee.Crypto
                         }
                         else if (tRecip?.RecipientID?.SubjectKeyIdentifier != null)
                         {
+#if NETFRAMEWORK
                             trace.TraceEvent(TraceEventType.Verbose, 0, "The message is addressed to SKI {0}", recipient.RecipientID.SubjectKeyIdentifier);
+#else
+                            logger.LogDebug("The message is addressed to SKI {0}", recipient.RecipientID.SubjectKeyIdentifier);
+#endif
 
                             recipientInfo = recipient;
                             encCert = null;
@@ -685,7 +952,11 @@ namespace Egelke.EHealth.Etee.Crypto
                     //Did we find a receiver?
                     if (recipientKey == null)
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Error, 0, "The recipients doe not contain any of your encryption certificates");
+#else
+                        logger.LogError("The recipients doe not contain any of your encryption certificates");
+#endif
                         throw new InvalidMessageException("The message isn't a message that is addressed to you.  Or it is an unaddressed message or it is addressed to somebody else");
                     }
 
@@ -703,24 +974,41 @@ namespace Egelke.EHealth.Etee.Crypto
                         if (!CertVerifier.VerifyKeySize((AsymmetricKeyParameter) recipientKey, EteeActiveConfig.Unseal.MinimumEncryptionKeySize.AsymmerticRecipientKey))
                         {
                             result.securityViolations.Add(SecurityViolation.UntrustedSubject);
+#if NETFRAMEWORK
                             trace.TraceEvent(TraceEventType.Warning, 0, "The receiver asymmetric WebAuth key {0} was less then {0} bits",
                                 Convert.ToBase64String(result.SubjectId), EteeActiveConfig.Unseal.MinimumEncryptionKeySize.SymmetricRecipientKey);
+#else
+                            logger.LogWarning("The receiver asymmetric WebAuth key {0} was less then {0} bits",
+                                Convert.ToBase64String(result.SubjectId), EteeActiveConfig.Unseal.MinimumEncryptionKeySize.SymmetricRecipientKey);
+#endif
                         }
                     }
                 }
                 else
                 {
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Found symmetric key: {0}", key.IdString);
+#else
+                    logger.LogDebug("Found symmetric key: {0}", key.IdString);
+#endif
 
                     RecipientID recipientId = new RecipientID();
                     recipientId.KeyIdentifier = key.Id;
                     recipientInfo = recipientInfos.GetFirstRecipient(recipientId);
                     if (recipientInfo == null)
                     {
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Error, 0, "The symmetric key was not found in this cms message");
+#else
+                        logger.LogError("The symmetric key was not found in this cms message");
+#endif
                         throw new InvalidMessageException("The key isn't for this unaddressed message");
                     }
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Found symmetric key in recipients of the cms message");
+#else
+                    logger.LogDebug("Found symmetric key in recipients of the cms message");
+#endif
 
                     //Get receivers key
                     recipientKey = key.BCKey;
@@ -729,8 +1017,13 @@ namespace Egelke.EHealth.Etee.Crypto
                     if ((((KeyParameter)recipientKey).GetKey().Length * 8) < EteeActiveConfig.Unseal.MinimumEncryptionKeySize.SymmetricRecipientKey)
                     {
                         result.securityViolations.Add(SecurityViolation.NotAllowedEncryptionKeySize);
+#if NETFRAMEWORK
                         trace.TraceEvent(TraceEventType.Warning, 0, "The reciever symmetric key was only {0} bits while it should be at least {0}", 
                             ((KeyParameter)recipientKey).GetKey().Length * 8,  EteeActiveConfig.Unseal.MinimumEncryptionKeySize.SymmetricRecipientKey);
+#else
+                        logger.LogWarning("The reciever symmetric key was only {0} bits while it should be at least {0}",
+                            ((KeyParameter)recipientKey).GetKey().Length * 8, EteeActiveConfig.Unseal.MinimumEncryptionKeySize.SymmetricRecipientKey);
+#endif
                     }
                 }
 
@@ -747,19 +1040,36 @@ namespace Egelke.EHealth.Etee.Crypto
                 if (!found)
                 {
                     result.securityViolations.Add(SecurityViolation.NotAllowedKeyEncryptionAlgorithm);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Warning, 0, "Encryption algorithm is {0} while it should be one of the following {1}",
                         recipientInfo.KeyEncryptionAlgOid, algos);
+#else
+                    logger.LogWarning("Encryption algorithm is {0} while it should be one of the following {1}",
+                        recipientInfo.KeyEncryptionAlgOid, algos);
+#endif
                 }
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Finished verifying the encryption algorithm: {0}", recipientInfo.KeyEncryptionAlgOid);
+#else
+                logger.LogDebug("Finished verifying the encryption algorithm: {0}", recipientInfo.KeyEncryptionAlgOid);
+#endif
 
                 //Decrypt!
                 CmsTypedStream clearStream = recipientInfo.GetContentStream(recipientKey);
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Verbose, 0, "Accessed the encrypted content");
+#else
+                logger.LogDebug("Accessed the encrypted content");
+#endif
 
                 try
                 {
                     clearStream.ContentStream.CopyTo(clear);
+#if NETFRAMEWORK
                     trace.TraceEvent(TraceEventType.Verbose, 0, "Decrypted the content");
+#else
+                    logger.LogDebug("Decrypted the content");
+#endif
                 }
                 finally
                 {
@@ -770,7 +1080,11 @@ namespace Egelke.EHealth.Etee.Crypto
             }
             catch (CmsException cmse)
             {
+#if NETFRAMEWORK
                 trace.TraceEvent(TraceEventType.Error, 0, "The message isn't a CMS message");
+#else
+                logger.LogError("The message isn't a CMS message");
+#endif
                 throw new InvalidMessageException("The message isn't a triple wrapped message", cmse);
             }
         }

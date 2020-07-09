@@ -30,6 +30,11 @@ using Org.BouncyCastle.Asn1.X509;
 using Egelke.Eid.Client;
 using System.Linq;
 
+#if !NETFRAMEWORK
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+#endif
+
 namespace Egelke.EHealth.Etee.Crypto.Sender
 {
     /// <summary>
@@ -38,8 +43,27 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// <remarks>
     /// Since version 2.2 this class requires an eID to be present, use the eID lib directly to handle card inserts.
     /// </remarks>
-    public static class EidDataSealerFactory
+    public
+#if NETFRAMEWORK
+        static
+#endif
+        class EidDataSealerFactory
     {
+#if !NETFRAMEWORK
+        private ILoggerFactory _loggerFactory;
+
+        [Obsolete("Drops all logging, please use the other constructor")]
+        public EidDataSealerFactory()
+        {
+            _loggerFactory = NullLoggerFactory.Instance;
+        }
+
+        public EidDataSealerFactory(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+        }
+#endif
+
         /// <summary>
         /// Creates an instance of the <see cref="IDataSealer"/> interface with eID certificate as sender suitable for B-Level only.
         /// </summary>
@@ -48,7 +72,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
         /// <exception cref="EidNotFoundException">No eID found</exception>
         /// <exception cref="EidException">There was an issue with the eID</exception>
-        public static IDataSealer Create(Level level, bool nonRepudiate = false)
+        public
+#if NETFRAMEWORK
+            static
+#endif
+            IDataSealer Create(Level level, bool nonRepudiate = false)
         {
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
@@ -56,7 +84,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             X509Certificate2 authentication;
 
             GetCertificates(out authentication, out signature);
-            return new TripleWrapper(level, authentication, nonRepudiate ? signature : authentication, null, null);
+            return new TripleWrapper(
+#if !NETFRAMEWORK
+                _loggerFactory,
+#endif
+                level, authentication, nonRepudiate ? signature : authentication, null, null);
         }
 
         /// <summary>
@@ -73,7 +105,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
         /// <exception cref="EidNotFoundException">No eID found</exception>
         /// <exception cref="EidException">There was an issue with the eID</exception>
-        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, bool nonRepudiate = false)
+        public
+#if NETFRAMEWORK
+            static
+#endif
+            IDataSealer Create(Level level, ITimestampProvider timestampProvider, bool nonRepudiate = false)
         {
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
@@ -82,7 +118,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             X509Certificate2 authentication;
 
             GetCertificates(out authentication, out signature);
-            return new TripleWrapper(level, authentication, nonRepudiate ? signature : authentication, timestampProvider, null);
+            return new TripleWrapper(
+#if !NETFRAMEWORK
+                _loggerFactory,
+#endif
+                level, authentication, nonRepudiate ? signature : authentication, timestampProvider, null);
         }
 
         /// <summary>
@@ -97,7 +137,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <returns>Instance of the IDataSealer that can be used to protect messages with the inserted eID</returns>
         /// <exception cref="EidNotFoundException">No eID found</exception>
         /// <exception cref="EidException">There was an issue with the eID</exception>
-        public static IDataSealer CreateForTimemarkAuthority(Level level, bool nonRepudiate = false)
+        public
+#if NETFRAMEWORK
+            static
+#endif
+            IDataSealer CreateForTimemarkAuthority(Level level, bool nonRepudiate = false)
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
@@ -105,7 +149,11 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
             X509Certificate2 authentication;
 
             GetCertificates(out authentication, out signature);
-            return new TripleWrapper(level, authentication, nonRepudiate ? signature : authentication, null, null);
+            return new TripleWrapper(
+#if !NETFRAMEWORK
+                _loggerFactory,
+#endif
+                level, authentication, nonRepudiate ? signature : authentication, null, null);
         }
 
         private static void GetCertificates(out X509Certificate2 authentication, out X509Certificate2 signature)

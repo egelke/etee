@@ -26,6 +26,11 @@ using Org.BouncyCastle.Security;
 using BC = Org.BouncyCastle;
 using System.Security.Cryptography;
 
+#if !NETFRAMEWORK
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+#endif
+
 namespace Egelke.EHealth.Etee.Crypto.Sender
 {
     /// <summary>
@@ -34,8 +39,26 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// <remarks>
     /// This instance is specific for a sender, so if your program supports multiple senders it will need multiple instance.
     /// </remarks>
-    public static class EhDataSealerFactory
+    public
+#if NETFRAMEWORK
+        static
+#endif
+        class EhDataSealerFactory
     {
+#if !NETFRAMEWORK
+        private ILoggerFactory _loggerFactory;
+
+        [Obsolete("Drops all logging, please use the other constructor")]
+        public EhDataSealerFactory()
+        {
+            _loggerFactory = NullLoggerFactory.Instance;
+        }
+
+        public EhDataSealerFactory(ILoggerFactory loggerFactory)
+        {
+            _loggerFactory = loggerFactory;
+        }
+#endif
 
         /// <summary>
         /// Creates an instance of the <see cref="IDataSealer"/> interface with eHealth certificate as sender suitable for B-Level only.
@@ -50,12 +73,20 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
         /// <param name="p12">The eHealth certificate as wrapper of the pkcs12 file</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
-        public static IDataSealer Create(Level level, EHealthP12 p12)
+        public
+#if NETFRAMEWORK
+            static
+#endif
+            IDataSealer Create(Level level, EHealthP12 p12)
         {
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
             X509Certificate2 cert = p12["authentication"];
-            return new TripleWrapper(level, cert, cert, null, p12.ToCollection());
+            return new TripleWrapper(
+#if !NETFRAMEWORK
+                _loggerFactory,
+#endif
+                level, cert, cert, null, p12.ToCollection());
         }
 
         /// <summary>
@@ -78,13 +109,21 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <param name="level">The level of the sealing, B-Level not allowed</param>
         /// <param name="timestampProvider">The client of the time-stamp authority</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
-        public static IDataSealer Create(Level level, ITimestampProvider timestampProvider, EHealthP12 p12)
+        public
+#if NETFRAMEWORK
+            static
+#endif
+            IDataSealer Create(Level level, ITimestampProvider timestampProvider, EHealthP12 p12)
         {
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
 
             X509Certificate2 cert = p12["authentication"];
-            return new TripleWrapper(level, cert, cert, timestampProvider, p12.ToCollection());
+            return new TripleWrapper(
+#if !NETFRAMEWORK
+                _loggerFactory,
+#endif
+                level, cert, cert, timestampProvider, p12.ToCollection());
         }
 
         /// <summary>
@@ -104,12 +143,20 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <param name="p12">The eHealth certificate as wrapper of the pkcs12 file</param>
         /// <param name="level">The level of the sealing, B-Level not allowed</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender for a time-mark authority</returns>
-        public static IDataSealer CreateForTimemarkAuthority(Level level, EHealthP12 p12)
+        public
+#if NETFRAMEWORK
+            static
+#endif
+            IDataSealer CreateForTimemarkAuthority(Level level, EHealthP12 p12)
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
             X509Certificate2 cert = p12["authentication"];
-            return new TripleWrapper(level, cert, cert, null, p12.ToCollection());
+            return new TripleWrapper(
+#if !NETFRAMEWORK
+                _loggerFactory,
+#endif
+                level, cert, cert, null, p12.ToCollection());
         }
 
     }

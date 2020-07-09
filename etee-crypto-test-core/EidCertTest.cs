@@ -594,11 +594,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             IDataVerifier verifier;
             if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa) 
             {
-                verifier = DataVerifierFactory.Create(level);
+                verifier = new DataVerifierFactory().Create(level);
             }
             else
             {
-                verifier = DataVerifierFactory.CreateFromTimemarkAuthority(level.Value, new CurrentTimemarkProvider());
+                verifier = new DataVerifierFactory().CreateFromTimemarkAuthority(level.Value, new CurrentTimemarkProvider());
             }
 
             SignatureSecurityInformation result = verifier.Verify(output);
@@ -619,11 +619,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             IDataVerifier verifier;
             if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa)
             {
-                verifier = DataVerifierFactory.Create(level);
+                verifier = new DataVerifierFactory().Create(level);
             }
             else
             {
-                verifier = DataVerifierFactory.CreateFromTimemarkAuthority(level.Value, new CurrentTimemarkProvider());
+                verifier = new DataVerifierFactory().CreateFromTimemarkAuthority(level.Value, new CurrentTimemarkProvider());
             }
 
             SignatureSecurityInformation result = verifier.Verify(output);
@@ -642,7 +642,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         private void VerifyAsTma(Stream output)
         {
             TimemarkKey key;
-            ITmaDataVerifier verifier = DataVerifierFactory.CreateAsTimemarkAuthority(level.Value);
+            ITmaDataVerifier verifier = new DataVerifierFactory().CreateAsTimemarkAuthority(level.Value);
 
             SignatureSecurityInformation result = verifier.Verify(output, DateTime.UtcNow, out key);
             Console.WriteLine(result.ToString());
@@ -663,11 +663,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             IDataUnsealer unsealer;
             if (!level.HasValue || level.Value == Level.B_Level || !useTmaInsteadOfTsa) 
             {
-                unsealer = DataUnsealerFactory.Create(level, alice, bob);
+                unsealer = new DataUnsealerFactory().Create(level, alice, bob);
             }
             else 
             {
-                unsealer = DataUnsealerFactory.CreateFromTimemarkAuthority(level.Value, new CurrentTimemarkProvider(), alice, bob);
+                unsealer = new DataUnsealerFactory().CreateFromTimemarkAuthority(level.Value, new CurrentTimemarkProvider(), alice, bob);
             }
             
             UnsealResult result = unsealer.Unseal(output);
@@ -698,11 +698,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             {
                 if (ehCert != null)
                 {
-                    sealer = EhDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, ehCert);
+                    sealer = new EhDataSealerFactory().Create(level == null ? Level.B_Level : level.Value, ehCert);
                 }
                 else
                 {
-                    sealer = EidDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, nonRepudiatable);
+                    sealer = new EidDataSealerFactory().Create(level == null ? Level.B_Level : level.Value, nonRepudiatable);
                 }
             }
             else
@@ -710,16 +710,16 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
                 if (ehCert != null)
                 {
                     if (useTmaInsteadOfTsa)
-                        sealer = EhDataSealerFactory.CreateForTimemarkAuthority(level.Value, ehCert);
+                        sealer = new EhDataSealerFactory().CreateForTimemarkAuthority(level.Value, ehCert);
                     else
-                        sealer = EhDataSealerFactory.Create(level.Value, tsa, ehCert);
+                        sealer = new EhDataSealerFactory().Create(level.Value, tsa, ehCert);
                 }
                 else
                 {
                     if (useTmaInsteadOfTsa)
-                        sealer = EidDataSealerFactory.CreateForTimemarkAuthority(level.Value, nonRepudiatable);
+                        sealer = new EidDataSealerFactory().CreateForTimemarkAuthority(level.Value, nonRepudiatable);
                     else
-                        sealer = EidDataSealerFactory.Create(level.Value, tsa, nonRepudiatable);
+                        sealer = new EidDataSealerFactory().Create(level.Value, tsa, nonRepudiatable);
                 }
             }
 
@@ -732,11 +732,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             IDataCompleter completer;
             if (useTmaInsteadOfTsa)
             {
-                completer = DataCompleterFactory.CreateForTimeMarkAuthority(level.Value);
+                completer = new DataCompleterFactory().CreateForTimeMarkAuthority(level.Value);
             }
             else
             {
-                completer = DataCompleterFactory.Create(level.Value, tsa);
+                completer = new DataCompleterFactory().Create(level.Value, tsa);
             }
             Stream output = completer.Complete(toComplete);
             return output;

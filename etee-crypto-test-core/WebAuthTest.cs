@@ -140,7 +140,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         //todo make it green
         private void Verify(Stream output)
         {
-            IDataVerifier verifier = DataVerifierFactory.Create(level);
+            IDataVerifier verifier = new DataVerifierFactory().Create(level);
 
             SignatureSecurityInformation result;
             if (useSenderWKey) {
@@ -171,7 +171,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         private void Unseal(Stream output)
         {
-            IDataUnsealer unsealer = DataUnsealerFactory.Create(level, new EHealthP12[] { alice, bob }, new WebKey[] { receiverWKey });
+            IDataUnsealer unsealer = new DataUnsealerFactory().Create(level, new EHealthP12[] { alice, bob }, new WebKey[] { receiverWKey });
 
             UnsealResult result;
             if (useSenderWKey)
@@ -228,22 +228,22 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             {
                 if (useSenderWKey)
                 {
-                    sealer = DataSealerFactory.Create(level == null ? Level.B_Level : level.Value, senderWKey);
+                    sealer = new DataSealerFactory().Create(level == null ? Level.B_Level : level.Value, senderWKey);
                 }
                 else
                 {
-                    sealer = EhDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, alice);
+                    sealer = new EhDataSealerFactory().Create(level == null ? Level.B_Level : level.Value, alice);
                 }
             }
             else
             {
                 if (useSenderWKey)
                 {
-                    sealer = DataSealerFactory.Create(level.Value, tsa, senderWKey);
+                    sealer = new DataSealerFactory().Create(level.Value, tsa, senderWKey);
                 }
                 else
                 {
-                    sealer = EhDataSealerFactory.Create(level == null ? Level.B_Level : level.Value, tsa, alice);
+                    sealer = new EhDataSealerFactory().Create(level == null ? Level.B_Level : level.Value, tsa, alice);
                 }
             }
 
@@ -263,7 +263,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         private Stream Complete(Stream toComplete)
         {
-            IDataCompleter completer = DataCompleterFactory.Create(level.Value, tsa);
+            IDataCompleter completer = new DataCompleterFactory().Create(level.Value, tsa);
             Stream output = completer.Complete(toComplete);
             return output;
         }
