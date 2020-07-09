@@ -3,7 +3,7 @@
     <TargetFrameworks>net452;net46;netcoreapp2.0;netstandard2.0</TargetFrameworks>
     <RootNamespace>Egelke.EHealth.Etee.Crypto</RootNamespace>
     <AssemblyName>Egelke.EHealth.Etee.Crypto</AssemblyName>
-    <Version>2.2.0-Beta1</Version>
+    <Version>2.2.0-Beta2</Version>
     <Authors>Egelke BVBA</Authors>
     <Product>Egelke BVBA</Product>
     <Description>.Net End-To-End Encryption Library for eHealth</Description>
@@ -13,7 +13,9 @@
     <PackageTags>eHealth Encrpytion</PackageTags>
     <PackageReleaseNotes>Allow Keypair encryption (no certificate).
 Migrate to default BouncyCastle (Portable)
-Fix all Siemens names to Egelke</PackageReleaseNotes>
+Multi-target (.Net Framework and .Net Standard variants)
+Fix all Siemens names to Egelke
+</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <SignAssembly>true</SignAssembly>
     <RepositoryUrl>https://github.com/egelke/etee.git</RepositoryUrl>
