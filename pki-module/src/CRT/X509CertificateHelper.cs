@@ -34,6 +34,7 @@ using System.IO;
 using Org.BouncyCastle.Security;
 using System.Threading.Tasks;
 using System.Collections;
+using System.Security.Cryptography;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -276,19 +277,41 @@ namespace Egelke.EHealth.Client.Pki
             BCAO.BasicOcspResponse basicOcspResponse = singleOcspRespLeaf.Reference.Reference;
 
             //get the signer name
+            BCX.X509Certificate ocspSignerBc;
             BCAX.X509Name responderName = basicOcspResp.ResponderId.ToAsn1Object().Name;
-            if (responderName == null)
+            byte[] keyHash = basicOcspResp.ResponderId.ToAsn1Object().GetKeyHash();
+            if (responderName != null)
             {
+                //Get the signer certificate via name
+                var selector = new BCS.X509CertStoreSelector();
+                selector.Subject = responderName;
+                ocspSignerBc = basicOcspResp
+                    .GetCertificates("Collection")
+                    .GetMatches(selector)
+                    .Cast<BCX.X509Certificate>()
+                    .FirstOrDefault();
+            } 
+            else if (keyHash != null) 
+            {
+                //Get the signer certificate via key hash
+                var sha1 = SHA1.Create();
+                ocspSignerBc = basicOcspResp
+                    .GetCertificates("Collection")
+                    .GetMatches(null)
+                    .Cast<BCX.X509Certificate>()
+                    .Where(c => {
+                        byte[] certKey = c.CertificateStructure.SubjectPublicKeyInfo.PublicKeyData.GetBytes();
+                        byte[] certkeyHash = sha1.ComputeHash(certKey);
+                        return Enumerable.SequenceEqual(certkeyHash, keyHash);
+                    })
+                    .FirstOrDefault();
+            } 
+            else
+            { 
                 trace.TraceEvent(TraceEventType.Error, 0, "OCSP response for {0} does not have a ResponderID", certificate.Subject);
                 throw new RevocationUnknownException("OCSP response for {0} does not have a ResponderID");
             }
 
-            //Get the signer certificate
-            var selector = new BCS.X509CertStoreSelector();
-            selector.Subject = responderName;
-            BCX.X509Certificate ocspSignerBc = (BCX.X509Certificate)basicOcspResp
-                .GetCertificates("Collection").GetMatches(selector)
-                .Cast<BCX.X509Certificate>().FirstOrDefault();
             if (ocspSignerBc == null)
                 throw new RevocationUnknownException("The OCSP is signed by a unknown certificate");
 

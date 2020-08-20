@@ -66,6 +66,9 @@ namespace Egelke.EHealth.Client.Pki.Test
         [TestMethod]
         public void NewTsViaEHealth()
         {
+            //Read this to enable TLS1.2 on old .Net Framework:
+            //https://docs.microsoft.com/en-us/dotnet/framework/network-programming/tls#configuring-security-via-the-windows-registry
+
             var tsa = new TimeStampAuthorityClient(
                 new StsBinding(), 
                 new EndpointAddress(
@@ -76,7 +79,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             //tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
             //tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
             tsa.ClientCredentials.ServiceCertificate.DefaultCertificate = ehSsl; //not really used, but better then the workaround
-            tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "684d0c3a2243cc2f59285be5234b89fc2bd33f6b");
+            tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "f794b1966a1bd1a1760bbe3a1e72f9cae1fa118c");
 
             var provider = new EHealthTimestampProvider(tsa);
 

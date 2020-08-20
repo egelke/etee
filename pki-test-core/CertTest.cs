@@ -128,5 +128,25 @@ namespace Egelke.EHealth.Client.Pki.Test
             Assert.AreEqual(1, crls.Count);
             Assert.AreEqual(1, ocsps.Count);
         }
+
+        [TestMethod]
+        public void Vitalink_GetRevocation()
+        {
+            X509Certificate2 target = new X509Certificate2(@"files/vitalink.crt");
+            X509Certificate2Collection extraStore = new X509Certificate2Collection();
+            extraStore.Add(new X509Certificate2(@"files/eHealthIssuing.crt"));
+
+            IList<CertificateList> crls = new List<CertificateList>();
+            IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>();
+            Chain rsp = target.BuildChain(DateTime.UtcNow, extraStore, crls, ocsps);
+
+            Assert.AreEqual(0, rsp.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.AreEqual(3, rsp.ChainElements.Count);
+            Assert.AreEqual("CN=\"EHP=1990001916, VITALINKGATEWAY\", OU=eHealth-platform Belgium, OU=VLAAMS AGENTSCHAP ZORG EN GEZONDHEID, OU=\"EHP=1990001916\", OU=VITALINKGATEWAY, O=Federal Government, C=BE", rsp.ChainElements[0].Certificate.Subject);
+            Assert.AreEqual("CN=ZetesConfidens Private Trust PKI - eHealth issuing CA 001, SERIALNUMBER=001, O=ZETES SA, C=BE", rsp.ChainElements[1].Certificate.Subject);
+            Assert.AreEqual("CN=ZetesConfidens Private Trust PKI - root CA 001, SERIALNUMBER=001, O=ZETES SA, C=BE", rsp.ChainElements[2].Certificate.Subject);
+            Assert.AreEqual(0, crls.Count);
+            Assert.AreEqual(2, ocsps.Count);
+        }
     }
 }
