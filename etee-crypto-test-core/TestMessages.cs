@@ -2,6 +2,7 @@
 using Egelke.EHealth.Etee.Crypto;
 using Egelke.EHealth.Etee.Crypto.Receiver;
 using Egelke.EHealth.Etee.Crypto.Status;
+using Egelke.EHealth.Etee.Crypto.Store;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
         static EHealthP12 bob = new EHealthP12("bob/bobs_private_key_store.p12", "test");
 
         private IDataUnsealer bUnsealer = new DataUnsealerFactory(Config.LoggerFactory).Create(Level.B_Level, bob);
+        private IDataVerifier bVerfier = new DataVerifierFactory(Config.LoggerFactory).Create(Level.B_Level);
 
         [TestMethod]
         public void WebAuth()
@@ -41,6 +43,22 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             //Assert.IsTrue(result.SecurityInformation.OuterSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
             //Assert.IsTrue(result.SecurityInformation.InnerSignature.SecurityViolations.Contains(SecurityViolation.UntrustedSubject));
             //Assert.IsTrue(result.SecurityInformation.InnerSignature.Subject.SecurityViolations.Contains(CertSecurityViolation.NotTimeValid));
+        }
+
+        [TestMethod]
+        public void VitaLink()
+        {
+            SignatureSecurityInformation result;
+            FileStream file = new FileStream("msg/vitalink.cms", FileMode.Open);
+            using (file)
+            {
+
+                result = bVerfier.Verify(file);
+            }
+            System.Console.WriteLine(result);
+
+            Assert.AreEqual(ValidationStatus.Valid, result.ValidationStatus);
+            Assert.AreEqual(TrustStatus.Full, result.TrustStatus);
         }
 
         
