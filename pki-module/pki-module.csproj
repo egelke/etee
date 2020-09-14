@@ -5,7 +5,7 @@
     <RootNamespace>Egelke.EHealth.Client.Pki</RootNamespace>
     <AssemblyName>Egelke.EHealth.Client.Pki</AssemblyName>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.2.0-beta5</Version>
+    <Version>2.2.0</Version>
     <Authors>Egelke BVBA</Authors>
     <Product>https://github.com/egelke/eHI</Product>
     <Description>PKI tools useful for eHealth</Description>
