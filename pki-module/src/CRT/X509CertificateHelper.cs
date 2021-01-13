@@ -1,6 +1,6 @@
 ﻿/*
  *  This file is part of eH-I.
- *  Copyright (C) 2014-2015 Egelke BVBA
+ *  Copyright (C) 2014-2021 Egelke BVBA
  *
  *  eH-I is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -59,7 +59,7 @@ namespace Egelke.EHealth.Client.Pki
     {
         //private const int CRYPT_E_EXISTS = unchecked((int)0x80092005);
 
-        private static readonly TimeSpan ClockSkewness = new TimeSpan(0, 1, 0);
+        private static readonly TimeSpan ClockSkewness = new TimeSpan(0, 5, 0);
         private static readonly TraceSource trace = new TraceSource("Egelke.EHealth.Tsa");
 
         /// <summary>
