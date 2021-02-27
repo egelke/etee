@@ -14,6 +14,8 @@ using System.ServiceModel.Description;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Egelke.EHealth.Client.Sso;
+using Egelke.EHealth.Client.Sso.Sts;
 
 namespace Egelke.EHealth.Client.Pki.Test
 {
@@ -60,9 +62,9 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
             else if (ts.CertificateChain.ChainElements.Count == 3)
             {
-                Assert.AreEqual(new DateTime(2021, 12, 15, 8, 0, 0), ts.RenewalTime);
-                Assert.AreEqual(0, ocps.Count);
-                Assert.AreEqual(2, crls.Count);
+                Assert.AreEqual(new DateTime(2031, 01, 21, 0, 0, 0), ts.RenewalTime);
+                Assert.AreEqual(2, ocps.Count);
+                Assert.AreEqual(0, crls.Count);
             }
             else
             {
@@ -78,6 +80,32 @@ namespace Egelke.EHealth.Client.Pki.Test
             Assert.AreEqual(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
 
-        
+        [TestMethod]
+        public void NewTsViaEHealth()
+        {
+            //Read this to enable TLS1.2 on old .Net Framework:
+            //https://docs.microsoft.com/en-us/dotnet/framework/network-programming/tls#configuring-security-via-the-windows-registry
+
+            var tsa = new TimeStampAuthorityClient(
+                new StsBinding(),
+                new EndpointAddress(new Uri("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2")));
+            //tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
+            //tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
+            //tsa.ClientCredentials.ServiceCertificate.DefaultCertificate = ehSsl; //not really used, but better then the workaround
+            tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "f794b1966a1bd1a1760bbe3a1e72f9cae1fa118c");
+
+            var provider = new EHealthTimestampProvider(tsa);
+
+            byte[] tsBytes = provider.GetTimestampFromDocumentHash(hash, "http://www.w3.org/2001/04/xmlenc#sha256");
+
+            TimeStampToken tst = tsBytes.ToTimeStampToken();
+
+            Assert.IsTrue(tst.IsMatch(new MemoryStream(msg)));
+
+            IList<CertificateList> crls = new List<CertificateList>();
+            IList<BasicOcspResponse> ocps = new List<BasicOcspResponse>();
+            tst.Validate(crls, ocps);
+            tst.Validate(crls, ocps, null);
+        }
     }
 }

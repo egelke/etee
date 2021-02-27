@@ -5,7 +5,7 @@
     <AssemblyName>Egelke.EHealth.Client</AssemblyName>
     <RootNamespace>Egelke.EHealth.Client</RootNamespace>
     <SignAssembly>true</SignAssembly>
-    <version>2.2.0</version>
+    <version>2.2.1</version>
     <authors>Egelke BVBA</authors>
     <owners>Egelke BVBA</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -14,13 +14,10 @@
     <RepositoryUrl>https://github.com/egelke/eHI</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>eHealth STS SSO SAML</PackageTags>
-    <AssemblyVersion>2.2.0.0</AssemblyVersion>
-    <FileVersion>2.2.0.0</FileVersion>
+    <AssemblyVersion>2.2.1.0</AssemblyVersion>
+    <FileVersion>2.2.1.0</FileVersion>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
-    <PackageReleaseNotes>
-      Update packaging (no project structure)
-      Removed obsolete EHealthP12
-    </PackageReleaseNotes>
+    <PackageReleaseNotes>Increased clock skewness to 5 min (to account for a larger clock drifft in ACC).</PackageReleaseNotes>
     <Product>eHealth-Interoperability</Product>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Egelke.EHealth.Client</PackageId>

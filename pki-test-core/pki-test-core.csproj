@@ -19,6 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="EHealthP12\ehealth.acc-p12" />
+    <None Remove="EHealthP12\eHealth.acc-p12.pwd" />
     <None Remove="files\vitalink.crt" />
   </ItemGroup>
 
@@ -36,6 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\library-core\library-core.csproj" />
     <ProjectReference Include="..\pki-module\pki-module.csproj" />
   </ItemGroup>
 
