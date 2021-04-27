@@ -19,6 +19,10 @@ namespace library_core_tests
 
         IConfiguration configuration;
 
+        public string Thumbprint => configuration.GetValue<string>("thumbprint");
+
+
+
         public X509Certificate2 Certificate
         {
             get
@@ -26,7 +30,7 @@ namespace library_core_tests
                 using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
                 {
                     store.Open(OpenFlags.ReadOnly);
-                    return store.Certificates.Find(X509FindType.FindByThumbprint, configuration.GetValue<string>("thumbprint"), false)[0];
+                    return store.Certificates.Find(X509FindType.FindByThumbprint, Thumbprint, false)[0];
                 }
             }
         }

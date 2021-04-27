@@ -39,11 +39,14 @@
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
 		<Reference Include="System.Security" />
+		<Reference Include="System.ServiceModel" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' != 'net461'">
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="5.0.0" />
 		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
+		<PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
+		<PackageReference Include="System.ServiceModel.Security" Version="4.8.1" />
 	</ItemGroup>
 
 	<ItemGroup>
