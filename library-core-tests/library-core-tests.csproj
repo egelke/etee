@@ -8,8 +8,10 @@
 	</PropertyGroup>
 
 
-
 	<ItemGroup>
+		<Content Include="eccert.p12">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 		<Content Include="test.xml">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -46,7 +48,6 @@
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="5.0.0" />
 		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
 		<PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
-		<PackageReference Include="System.ServiceModel.Security" Version="4.8.1" />
 	</ItemGroup>
 
 	<ItemGroup>

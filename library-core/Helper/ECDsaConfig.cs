@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Egelke.EHealth.Client.Sso.Helper
+namespace Egelke.Wcf.Client.Helper
 {
     public class ECDsaConfig
     {

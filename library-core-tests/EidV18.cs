@@ -1,11 +1,16 @@
-using Egelke.EHealth.Client.Sso.Helper;
+using Egelke.Wcf.Client;
+using Egelke.Wcf.Client.Helper;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
 using System.Text;
 using System.Threading;
@@ -129,23 +134,81 @@ namespace library_core_tests
                 cert = (X509Certificate2)certList[0];
             }
 
-            Assert.True(signedXml.CheckSignature(cert.GetECDsaPublicKey()));
+
+            publicRsa = cert.GetRSAPublicKey();
+            publicEcdsa = cert.GetECDsaPublicKey();
+            if (publicRsa != null)
+            {
+                Assert.True(signedXml.CheckSignature());
+            }
+            else if (publicEcdsa != null)
+            {
+                Assert.True(signedXml.CheckSignature(publicEcdsa));
+            }
+            else
+            {
+                Assert.True(false);
+            }
         }
 
-        //[Fact]
+        [Fact]
         public void WcfClient()
         {
-            var binding = new BasicHttpBinding(BasicHttpSecurityMode.TransportWithMessageCredential);
-            binding.Security.Message.ClientCredentialType = BasicHttpMessageCredentialType.Certificate;
-            binding.Security.Message.AlgorithmSuite = new MySecurityAlgorithmSuite();
+            using (HttpListener listener = new HttpListener())
+            {
+                listener.Prefixes.Add("http://localhost:6587/");
+                listener.Start();
+                listener.BeginGetContext(ar =>
+                {
+                    HttpListenerContext context = listener.EndGetContext(ar);
+                    HttpListenerRequest request = context.Request;
 
-            EndpointAddress ep = new EndpointAddress("https://localhost/MathService/Ep1");
-            ChannelFactory<IEcho> channelFactory = new ChannelFactory<IEcho>(binding, ep);
-            //channelFactory.Credentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, Config.Instance.Thumbprint);
+                    var inputRead = new StreamReader(request.InputStream, request.ContentEncoding);
+                    String inputString = inputRead.ReadToEnd();
+                    Debug.WriteLine(inputString);
 
-            IEcho client = channelFactory.CreateChannel();
+                    HttpListenerResponse response = context.Response;
+                    if (inputString.Contains("http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"))
+                    {
+                        response.StatusCode = 200;
+                        response.StatusDescription = "Success - Probably";
+                        response.ContentType = "application/soap+xml";
+                        response.ContentEncoding = Encoding.UTF8;
+                        string responseString = "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\"><s:Body><EchoResponse xmlns=\"urn:test\"><pong>boe</pong></EchoResponse></s:Body></s:Envelope>";
+                        byte[] responseBytes = Encoding.UTF8.GetBytes(responseString);
+                        response.ContentLength64 = responseBytes.LongLength;
+                        response.OutputStream.Write(responseBytes, 0, responseBytes.Length);
+                        response.OutputStream.Close();
+                    }
+                    else
+                    {
+                        response.StatusCode = 400;
+                        response.StatusDescription = "Failure - For sure";
+                    }
 
-            client.Ping("boe");
+                    response.Close();
+                }, null);
+
+                
+                var binding = new CustomBinding();
+                binding.Elements.Add(new CustomSecurityBindingElement());
+                binding.Elements.Add(new TextMessageEncodingBindingElement());
+                binding.Elements.Add(new HttpTransportBindingElement());
+
+                EndpointAddress ep = new EndpointAddress("http://localhost:6587/MathService/Ep1");
+                ChannelFactory<IEcho> channelFactory = new ChannelFactory<IEcho>(binding, ep);
+                if (Config.Instance.Thumbprint != null)
+                    channelFactory.Credentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, Config.Instance.Thumbprint);
+                else
+                    channelFactory.Credentials.ClientCertificate.Certificate = Config.Instance.Certificate;
+
+                IEcho client = channelFactory.CreateChannel();
+
+                String pong = client.Echo("boe");
+                Assert.Equal("boe", pong);
+
+                listener.Stop();
+            }
         }
 
         public void Dispose()
@@ -159,41 +222,11 @@ namespace library_core_tests
 
     }
 
-    public class MySecurityAlgorithmSuite : SecurityAlgorithmSuite
-    {
-        public MySecurityAlgorithmSuite() : base() { }
-
-        public override string DefaultCanonicalizationAlgorithm { get { return "http://www.w3.org/2001/10/xml-exc-c14n#"; } }
-        public override string DefaultDigestAlgorithm { get { return "http://www.w3.org/2001/04/xmlenc#sha256"; } }
-        public override string DefaultEncryptionAlgorithm { get { return "http://www.w3.org/2001/04/xmlenc#aes128-cbc"; } }
-        public override int DefaultEncryptionKeyDerivationLength { get { return 256; } }
-        public override string DefaultSymmetricKeyWrapAlgorithm { get { return "http://www.w3.org/2001/04/xmlenc#kw-aes256"; } }
-        public override string DefaultAsymmetricKeyWrapAlgorithm { get { return "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"; } }
-        public override string DefaultSymmetricSignatureAlgorithm { get { return "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256"; } }
-        public override string DefaultAsymmetricSignatureAlgorithm { get { return "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256"; } }
-        public override int DefaultSignatureKeyDerivationLength { get { return 192; } }
-        public override int DefaultSymmetricKeyLength { get { return 256; } }
-
-#if NETFRAMEWORK
-        public override bool IsSymmetricKeyLengthSupported(int length) { return length == 256; }
-        public override bool IsAsymmetricKeyLengthSupported(int length) { return length >= 1024 && length <= 4096; }
-#else
-        public bool IsSymmetricKeyLengthSupported(int length) { return length == 256; }
-        public bool IsAsymmetricKeyLengthSupported(int length) { return length >= 1024 && length <= 4096; }
-#endif
-
-
-        public override string ToString()
-        {
-            return "ECDSA256";
-        }
-    }
-
-
-    [ServiceContract()]
+    [ServiceContract(Namespace ="urn:test")]
     interface IEcho
     {
-        [OperationContract()]
-        string Ping(string value);
+        [OperationContract(Action ="urn:test:ping", ReplyAction = "*")]
+        [return: MessageParameter(Name = "pong")]
+        string Echo(string ping);
     }
 }

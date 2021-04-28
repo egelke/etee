@@ -27,10 +27,16 @@ namespace library_core_tests
         {
             get
             {
-                using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                if (Thumbprint != null) {
+                    using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                    {
+                        store.Open(OpenFlags.ReadOnly);
+                        return store.Certificates.Find(X509FindType.FindByThumbprint, Thumbprint, false)[0];
+                    }
+                } 
+                else
                 {
-                    store.Open(OpenFlags.ReadOnly);
-                    return store.Certificates.Find(X509FindType.FindByThumbprint, Thumbprint, false)[0];
+                    return new X509Certificate2("eccert.p12", "Test_001");
                 }
             }
         }
