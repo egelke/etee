@@ -6,6 +6,7 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Security;
 using System.Text;
+using System.Xml;
 
 namespace Egelke.Wcf.Client
 {
@@ -127,48 +128,62 @@ namespace Egelke.Wcf.Client
 
         public Message Request(Message message)
         {
-            return _innerChannel.Request(wrap(message));
+            return Verify(_innerChannel.Request(Wrap(message)));
         }
 
         public Message Request(Message message, TimeSpan timeout)
         {
-            Message rsp = _innerChannel.Request(wrap(message), timeout);
-            if (rsp != null)
-            {
-                var wss = WSS.Create(MessageSecurityVersion);
-                int i = rsp.Headers.FindHeader("Security", wss.SecExtNs);
-                if (i >= 0)
-                {
-                    MessageHeaderInfo sec = rsp.Headers[i];
-                    //TODO::verify
-                    rsp.Headers.UnderstoodHeaders.Add(sec);
-                }
-            }
-            return rsp;
+            return Verify(_innerChannel.Request(Wrap(message), timeout));
         }
 
         public IAsyncResult BeginRequest(Message message, AsyncCallback callback, object state)
         {
-            return _innerChannel.BeginRequest(wrap(message), callback, state);
+            return _innerChannel.BeginRequest(Wrap(message), callback, state);
         }
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return _innerChannel.BeginRequest(wrap(message), timeout, callback, state);
+            return _innerChannel.BeginRequest(Wrap(message), timeout, callback, state);
         }
 
         public Message EndRequest(IAsyncResult result)
         {
-            return _innerChannel.EndRequest(result);
+            return Verify(_innerChannel.EndRequest(result));
         }
 
-        private Message wrap(Message message)
+        private Message Wrap(Message message)
         {
             return new CustomSecurityAppliedMessage(message)
             {
                 ClientCredentials = this.ClientCredentials,
                 MessageSecurityVersion = this.MessageSecurityVersion
             };
+        }
+
+        private Message Verify(Message message)
+        {
+            if (message != null)
+            {
+                var wss = WSS.Create(MessageSecurityVersion);
+                int i = message.Headers.FindHeader("Security", wss.SecExtNs);
+                if (i >= 0)
+                {
+                    MessageHeaderInfo sec = message.Headers[i];
+                    XmlDictionaryReader headerReader = message.Headers.GetReaderAtHeader(i);
+
+                    var doc = new XmlDocument();
+                    doc.Load(headerReader);
+
+                    wss.VerifyResponse(doc.DocumentElement);
+
+                    message.Headers.UnderstoodHeaders.Add(sec);
+                }
+                else
+                {
+                    //TODO::OK to have unsecure responses?
+                }
+            }
+            return message;
         }
     }
 }

@@ -40,8 +40,49 @@ namespace Egelke.Wcf.Client.Helper
 
         public abstract string TokenPofileX509Ns { get; }
 
+        public void VerifyResponse(XmlElement header)
+        {
+            if (header.LocalName != "Security" || header.NamespaceURI != SecExtNs)
+                throw new ArgumentException("Header not supported", nameof(header));
 
-        public void Apply(ref XmlElement header, X509Certificate2 clientCert) {
+
+            foreach(XmlNode node in header.ChildNodes)
+            {
+                var xmlElement = node as XmlElement;
+                if (xmlElement == null) continue;
+
+                switch(xmlElement.LocalName)
+                {
+                    case "Timestamp":
+                        VerifyTimestamp(xmlElement, TimeSpan.FromMinutes(5.0), TimeSpan.FromHours(1));
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
+
+        private void VerifyTimestamp(XmlElement ts, TimeSpan clockSkewness, TimeSpan staleLimit)
+        {
+            DateTime created = ExtractDateFromChild(ts, "Created");
+            if (created < (DateTime.UtcNow - clockSkewness)) throw new MessageSecurityException("Message created before now");
+
+            DateTime expires = ExtractDateFromChild(ts, "Expires");
+            if (DateTime.UtcNow > (expires + clockSkewness)) throw new MessageSecurityException("Message expired");
+            if (DateTime.UtcNow > (created + staleLimit+ clockSkewness)) throw new MessageSecurityException("Message is stale");
+        }
+
+        private DateTime ExtractDateFromChild(XmlElement el, String name)
+        {
+            XmlNamespaceManager nsmgr = new XmlNamespaceManager(el.OwnerDocument.NameTable);
+            nsmgr.AddNamespace(UtilityPrefix, UtilityNs);
+
+            XmlElement childElement = el.SelectSingleNode("./"+UtilityPrefix+":"+name, nsmgr) as XmlElement;
+            if (childElement == null) throw new MessageSecurityException("Timestamp does not contain a "+name+" element");
+            return DateTime.Parse(childElement.InnerText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+        }
+
+        public void ApplyOnRequest(ref XmlElement header, X509Certificate2 clientCert) {
             string soapPrefix = header.Prefix;
             string soapNs = header.NamespaceURI;
             XmlDocument doc = header.OwnerDocument;

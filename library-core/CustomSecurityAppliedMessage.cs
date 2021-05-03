@@ -115,7 +115,7 @@ namespace Egelke.Wcf.Client
 
                 //Parse the result
                 var wss = WSS.Create(MessageSecurityVersion);
-                wss.Apply(ref header, ClientCredentials.ClientCertificate.Certificate);
+                wss.ApplyOnRequest(ref header, ClientCredentials.ClientCertificate.Certificate);
 
                 //Write the modified version with security header to the original streams.
                 env.Save(writer);
