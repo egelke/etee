@@ -135,7 +135,8 @@ namespace Egelke.Wcf.Client
             Message rsp = _innerChannel.Request(wrap(message), timeout);
             if (rsp != null)
             {
-                int i = rsp.Headers.FindHeader("Security", WSS10.SECEXT_NS);
+                var wss = WSS.Create(MessageSecurityVersion);
+                int i = rsp.Headers.FindHeader("Security", wss.SecExtNs);
                 if (i >= 0)
                 {
                     MessageHeaderInfo sec = rsp.Headers[i];
