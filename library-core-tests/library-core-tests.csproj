@@ -45,13 +45,13 @@
 
 	<ItemGroup Condition="'$(TargetFramework)' != 'net461'">
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="5.0.0" />
-		<!--
 		<PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
 		<PackageReference Include="System.ServiceModel.Security" Version="4.8.1" />
-		-->
+		<!--
 		<Reference Include="System.Private.ServiceModel">
 			<HintPath>..\..\..\public\dotnet\wcf\artifacts\bin\System.Private.ServiceModel\Debug\netstandard2.0\System.Private.ServiceModel.dll</HintPath>
 		</Reference>
+		-->
 	</ItemGroup>
 
 	<ItemGroup>

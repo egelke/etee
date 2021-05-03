@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Egelke.Wcf.Client.Helper;
+using System;
 using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -131,7 +132,18 @@ namespace Egelke.Wcf.Client
 
         public Message Request(Message message, TimeSpan timeout)
         {
-            return _innerChannel.Request(wrap(message), timeout);
+            Message rsp = _innerChannel.Request(wrap(message), timeout);
+            if (rsp != null)
+            {
+                int i = rsp.Headers.FindHeader("Security", WSS10.SECEXT_NS);
+                if (i >= 0)
+                {
+                    MessageHeaderInfo sec = rsp.Headers[i];
+                    //TODO::verify
+                    rsp.Headers.UnderstoodHeaders.Add(sec);
+                }
+            }
+            return rsp;
         }
 
         public IAsyncResult BeginRequest(Message message, AsyncCallback callback, object state)
