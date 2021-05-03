@@ -2,12 +2,20 @@
 using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
+using System.ServiceModel.Security;
 using System.Text;
 
 namespace Egelke.Wcf.Client
 {
     public class CustomSecurityRequestChannel : IRequestChannel
     {
+        public SecurityVersion MessageSecurityVersion
+        {
+            get; set;
+        }
+
+        public ClientCredentials ClientCredentials { get; set; }
 
         public CustomSecurityRequestChannel(IRequestChannel innerChannel, EndpointAddress to, Uri via)
         {
@@ -118,27 +126,36 @@ namespace Egelke.Wcf.Client
 
         public Message Request(Message message)
         {
-            return _innerChannel.Request(message);
+            return _innerChannel.Request(wrap(message));
         }
 
         public Message Request(Message message, TimeSpan timeout)
         {
-            return _innerChannel.Request(message, timeout);
+            return _innerChannel.Request(wrap(message), timeout);
         }
 
         public IAsyncResult BeginRequest(Message message, AsyncCallback callback, object state)
         {
-            return _innerChannel.BeginRequest(message, callback, state);
+            return _innerChannel.BeginRequest(wrap(message), callback, state);
         }
 
         public IAsyncResult BeginRequest(Message message, TimeSpan timeout, AsyncCallback callback, object state)
         {
-            return _innerChannel.BeginRequest(message, timeout, callback, state);
+            return _innerChannel.BeginRequest(wrap(message), timeout, callback, state);
         }
 
         public Message EndRequest(IAsyncResult result)
         {
             return _innerChannel.EndRequest(result);
+        }
+
+        private Message wrap(Message message)
+        {
+            return new CustomSecurityAppliedMessage(message)
+            {
+                ClientCredentials = this.ClientCredentials,
+                MessageSecurityVersion = this.MessageSecurityVersion
+            };
         }
     }
 }

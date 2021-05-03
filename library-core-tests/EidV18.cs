@@ -1,20 +1,10 @@
-using Egelke.Wcf.Client;
 using Egelke.Wcf.Client.Helper;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
-using System.ServiceModel;
-using System.ServiceModel.Channels;
-using System.ServiceModel.Security;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
 using Xunit;
 
@@ -151,66 +141,6 @@ namespace library_core_tests
             }
         }
 
-        [Fact]
-        public void WcfClient()
-        {
-            using (HttpListener listener = new HttpListener())
-            {
-                listener.Prefixes.Add("http://localhost:6587/");
-                listener.Start();
-                listener.BeginGetContext(ar =>
-                {
-                    HttpListenerContext context = listener.EndGetContext(ar);
-                    HttpListenerRequest request = context.Request;
-
-                    var inputRead = new StreamReader(request.InputStream, request.ContentEncoding);
-                    String inputString = inputRead.ReadToEnd();
-                    Debug.WriteLine(inputString);
-
-                    HttpListenerResponse response = context.Response;
-                    if (inputString.Contains("http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"))
-                    {
-                        response.StatusCode = 200;
-                        response.StatusDescription = "Success - Probably";
-                        response.ContentType = "application/soap+xml";
-                        response.ContentEncoding = Encoding.UTF8;
-                        string responseString = "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\"><s:Body><EchoResponse xmlns=\"urn:test\"><pong>boe</pong></EchoResponse></s:Body></s:Envelope>";
-                        byte[] responseBytes = Encoding.UTF8.GetBytes(responseString);
-                        response.ContentLength64 = responseBytes.LongLength;
-                        response.OutputStream.Write(responseBytes, 0, responseBytes.Length);
-                        response.OutputStream.Close();
-                    }
-                    else
-                    {
-                        response.StatusCode = 400;
-                        response.StatusDescription = "Failure - For sure";
-                    }
-
-                    response.Close();
-                }, null);
-
-                
-                var binding = new CustomBinding();
-                binding.Elements.Add(new CustomSecurityBindingElement());
-                binding.Elements.Add(new TextMessageEncodingBindingElement());
-                binding.Elements.Add(new HttpTransportBindingElement());
-
-                EndpointAddress ep = new EndpointAddress("http://localhost:6587/MathService/Ep1");
-                ChannelFactory<IEcho> channelFactory = new ChannelFactory<IEcho>(binding, ep);
-                if (Config.Instance.Thumbprint != null)
-                    channelFactory.Credentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, Config.Instance.Thumbprint);
-                else
-                    channelFactory.Credentials.ClientCertificate.Certificate = Config.Instance.Certificate;
-
-                IEcho client = channelFactory.CreateChannel();
-
-                String pong = client.Echo("boe");
-                Assert.Equal("boe", pong);
-
-                listener.Stop();
-            }
-        }
-
         public void Dispose()
         {
             eid?.Dispose();
@@ -222,11 +152,5 @@ namespace library_core_tests
 
     }
 
-    [ServiceContract(Namespace ="urn:test")]
-    interface IEcho
-    {
-        [OperationContract(Action ="urn:test:ping", ReplyAction = "*")]
-        [return: MessageParameter(Name = "pong")]
-        string Echo(string ping);
-    }
+
 }

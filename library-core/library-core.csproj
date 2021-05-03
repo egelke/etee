@@ -1,22 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-    <RootNamespace>Egelke.Wcf.Client</RootNamespace>
-    <AssemblyName>Egelke.Wcf.Client</AssemblyName>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.0.0</Version>
-    <Authors>Egelke BV</Authors>
-    <Company>Egelke BV</Company>
-    <Product>eHealth-Interoperability</Product>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+		<RootNamespace>Egelke.Wcf.Client</RootNamespace>
+		<AssemblyName>Egelke.Wcf.Client</AssemblyName>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Version>3.0.0</Version>
+		<Authors>Egelke BV</Authors>
+		<Company>Egelke BV</Company>
+		<Product>eHealth-Interoperability</Product>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <Reference Include="System.ServiceModel" />
-  </ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+		<Reference Include="System.Security" />
+		<Reference Include="System.ServiceModel" />
+		<Reference Include="System.IdentityModel" />
+	</ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
-	  <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
-  </ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="5.0.0" />
+		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
+		<!--
+		<PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
+	    <PackageReference Include="System.ServiceModel.Security" Version="4.8.1" />
+		-->
+		<Reference Include="System.Private.ServiceModel">
+			<HintPath>..\..\..\public\dotnet\wcf\artifacts\bin\System.Private.ServiceModel\Debug\netstandard2.0\System.Private.ServiceModel.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+
 </Project>

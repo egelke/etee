@@ -2,13 +2,26 @@
 using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
+using System.ServiceModel.Security;
 using System.Text;
 
 namespace Egelke.Wcf.Client
 {
     public class CustomSecurityChannelFactory<TChannel> : IChannelFactory<TChannel>
     {
+        
         private IChannelFactory<TChannel> _innerChannelFactory;
+
+        public SecurityVersion MessageSecurityVersion
+        {
+            get; set;
+        }
+
+        public ClientCredentials ClientCredentials
+        {
+            get; set;
+        }
 
         public CustomSecurityChannelFactory(IChannelFactory<TChannel> innerChannelFactory)
         {
@@ -117,7 +130,11 @@ namespace Egelke.Wcf.Client
            
             if (typeof(TChannel) == typeof(IRequestChannel))
             {
-                return (TChannel)(object)new CustomSecurityRequestChannel(((IChannelFactory<IRequestChannel>)_innerChannelFactory).CreateChannel(to, via), to, via);
+                return (TChannel)(object)new CustomSecurityRequestChannel(((IChannelFactory<IRequestChannel>)_innerChannelFactory).CreateChannel(to, via), to, via)
+                {
+                    ClientCredentials = this.ClientCredentials,
+                    MessageSecurityVersion = this.MessageSecurityVersion
+                };
             }
             else
             {
