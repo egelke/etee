@@ -46,6 +46,7 @@ namespace Egelke.Wcf.Client.Helper
                 throw new ArgumentException("Header not supported", nameof(header));
 
 
+            bool hasTimestamp = false;
             foreach(XmlNode node in header.ChildNodes)
             {
                 var xmlElement = node as XmlElement;
@@ -54,12 +55,14 @@ namespace Egelke.Wcf.Client.Helper
                 switch(xmlElement.LocalName)
                 {
                     case "Timestamp":
+                        hasTimestamp = true;
                         VerifyTimestamp(xmlElement, TimeSpan.FromMinutes(5.0), TimeSpan.FromHours(1));
                         break;
                     default:
                         throw new NotSupportedException();
                 }
             }
+            if (!hasTimestamp) throw new MessageSecurityException("Message does not contain a timestamp");
         }
 
         private void VerifyTimestamp(XmlElement ts, TimeSpan clockSkewness, TimeSpan staleLimit)
