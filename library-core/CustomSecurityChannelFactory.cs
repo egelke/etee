@@ -13,15 +13,13 @@ namespace Egelke.Wcf.Client
         
         private IChannelFactory<TChannel> _innerChannelFactory;
 
-        public SecurityVersion MessageSecurityVersion
-        {
-            get; set;
-        }
 
-        public ClientCredentials ClientCredentials
-        {
-            get; set;
-        }
+        public ClientCredentials ClientCredentials { get; set; }
+
+        public SecurityVersion MessageSecurityVersion { get; set; }
+
+        public SignParts SignParts { get; set; }
+
 
         public CustomSecurityChannelFactory(IChannelFactory<TChannel> innerChannelFactory)
         {
@@ -133,7 +131,8 @@ namespace Egelke.Wcf.Client
                 return (TChannel)(object)new CustomSecurityRequestChannel(((IChannelFactory<IRequestChannel>)_innerChannelFactory).CreateChannel(to, via), to, via)
                 {
                     ClientCredentials = this.ClientCredentials,
-                    MessageSecurityVersion = this.MessageSecurityVersion
+                    MessageSecurityVersion = this.MessageSecurityVersion,
+                    SignParts = this.SignParts
                 };
             }
             else

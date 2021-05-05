@@ -18,19 +18,20 @@ namespace Egelke.Wcf.Client
     {
 
 
-        public SecurityVersion MessageSecurityVersion
-        {
-            get; set;
-        }
+        public SecurityVersion MessageSecurityVersion { get; set; }
+
+        public SignParts SignParts { get; set; } 
 
         public CustomSecurityBindingElement()
         {
             MessageSecurityVersion = SecurityVersion.WSSecurity11 ;
+            SignParts = SignParts.Timestamp;
         }
 
         public CustomSecurityBindingElement(CustomSecurityBindingElement that)
         {
             this.MessageSecurityVersion = that.MessageSecurityVersion;
+            this.SignParts = that.SignParts;
         }
 
         public override BindingElement Clone()
@@ -54,7 +55,8 @@ namespace Egelke.Wcf.Client
             return new CustomSecurityChannelFactory<TChannel>(context.BuildInnerChannelFactory<TChannel>())
             {
                 ClientCredentials = clientCredentials,
-                MessageSecurityVersion = this.MessageSecurityVersion
+                MessageSecurityVersion = this.MessageSecurityVersion,
+                SignParts = this.SignParts
             };
         }
     }

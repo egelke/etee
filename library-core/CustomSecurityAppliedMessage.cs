@@ -30,9 +30,11 @@ namespace Egelke.Wcf.Client
             _innerMessage = innerMessage;
         }
 
+        public ClientCredentials ClientCredentials { get; set; }
+
         public SecurityVersion MessageSecurityVersion { get; set; }
 
-        public ClientCredentials ClientCredentials { get; set; }
+        public SignParts SignParts { get; set; }
 
         /// <inheritdoc/>
         public override bool IsEmpty
@@ -85,6 +87,8 @@ namespace Egelke.Wcf.Client
         {
             using (var memStream = new MemoryStream())
             {
+                var wss = WSS.Create(MessageSecurityVersion);
+
                 //Write the document without security headers in memory
                 if (_innerMessage.Properties.Encoder.MediaType != "text/xml")
                     throw new NotSupportedException("Only supports test encoding so far");
@@ -95,27 +99,39 @@ namespace Egelke.Wcf.Client
                 memStream.Position = 0;
 
                 //parse the document to add the security headers
-                var env = new XmlDocument();
-                env.PreserveWhitespace = true;
+                var env = new XmlDocument
+                {
+                    PreserveWhitespace = true
+                };
                 env.Load(memStream);
 
                 //Make preperations to do some xpath
                 string soapPrefix = env.DocumentElement.Prefix;
                 string soapNs = env.DocumentElement.NamespaceURI;
                 XmlNamespaceManager nsmgr = new XmlNamespaceManager(env.NameTable);
-                nsmgr.AddNamespace(String.Empty, soapNs);
+                nsmgr.AddNamespace("s", soapNs);
+
+                //Find the body, add an id if needed.
+                XmlElement body = (XmlElement)env.DocumentElement.SelectSingleNode("./s:Body", nsmgr);
+                string bodyIdValue = body.GetAttribute("Id", wss.UtilityNs);
+                if (bodyIdValue == string.Empty)
+                {
+                    bodyIdValue = "uuid-" + Guid.NewGuid().ToString("D");
+                    var bodyId = env.CreateAttribute(wss.UtilityPrefix, "Id", wss.UtilityNs);
+                    bodyId.Value = bodyIdValue;
+                    body.SetAttributeNode(bodyId);
+                }
 
                 //Find the soap header, create if needed.
-                XmlElement header = (XmlElement) env.DocumentElement.SelectSingleNode("./Header", nsmgr);
+                XmlElement header = (XmlElement)env.DocumentElement.SelectSingleNode("./s:Header", nsmgr);
                 if (header == null)
                 {
                     header = env.CreateElement(soapPrefix, "Header", soapNs);
                     env.DocumentElement.InsertBefore(header, env.DocumentElement.FirstChild);
                 }
 
-                //Parse the result
-                var wss = WSS.Create(MessageSecurityVersion);
-                wss.ApplyOnRequest(ref header, ClientCredentials.ClientCertificate.Certificate);
+                //Apply the security
+                wss.ApplyOnRequest(ref header, bodyIdValue, ClientCredentials.ClientCertificate.Certificate, SignParts);
 
                 //Write the modified version with security header to the original streams.
                 env.Save(writer);

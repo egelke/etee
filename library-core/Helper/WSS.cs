@@ -85,7 +85,7 @@ namespace Egelke.Wcf.Client.Helper
             return DateTime.Parse(childElement.InnerText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
         }
 
-        public void ApplyOnRequest(ref XmlElement header, X509Certificate2 clientCert) {
+        public void ApplyOnRequest(ref XmlElement header, string bodyId, X509Certificate2 clientCert, SignParts signParts) {
             string soapPrefix = header.Prefix;
             string soapNs = header.NamespaceURI;
             XmlDocument doc = header.OwnerDocument;
@@ -105,11 +105,11 @@ namespace Egelke.Wcf.Client.Helper
             tsId.Value = "uuid-" + Guid.NewGuid().ToString("D");
             ts.Attributes.Append(tsId);
             XmlElement created = doc.CreateElement(UtilityPrefix, "Created", UtilityNs);
-            XmlText createdValue = doc.CreateTextNode(DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+            XmlText createdValue = doc.CreateTextNode(DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK", CultureInfo.InvariantCulture));
             created.AppendChild(createdValue);
             ts.AppendChild(created);
             XmlElement expires = doc.CreateElement(UtilityPrefix, "Expires", UtilityNs);
-            XmlText expiresValue = doc.CreateTextNode(DateTime.UtcNow.AddMinutes(5.0).ToString("O", CultureInfo.InvariantCulture));
+            XmlText expiresValue = doc.CreateTextNode(DateTime.UtcNow.AddMinutes(5.0).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK", CultureInfo.InvariantCulture));
             expires.AppendChild(expiresValue);
             ts.AppendChild(expires);
 
@@ -135,15 +135,42 @@ namespace Egelke.Wcf.Client.Helper
                 SigningKey = clientCert.GetRSAPrivateKey()
             };
 
-            Reference reference = new Reference
+            if ((signParts & SignParts.Timestamp) == SignParts.Timestamp)
             {
-                Uri = "#" + tsId.Value,
-                DigestMethod = SignedXml.XmlDsigSHA1Url
-            };
-            var transform = new XmlDsigExcC14NTransform();
-            reference.AddTransform(transform);
+                var reference = new Reference
+                {
+                    Uri = "#" + tsId.Value,
+                    DigestMethod = SignedXml.XmlDsigSHA1Url
+                };
+                var transform = new XmlDsigExcC14NTransform();
+                reference.AddTransform(transform);
 
-            signedDoc.SignedInfo.AddReference(reference);
+                signedDoc.SignedInfo.AddReference(reference);
+            }
+            if ((signParts & SignParts.Body) == SignParts.Body)
+            {
+                var reference = new Reference
+                {
+                    Uri = "#" + bodyId,
+                    DigestMethod = SignedXml.XmlDsigSHA1Url
+                };
+                var transform = new XmlDsigExcC14NTransform();
+                reference.AddTransform(transform);
+
+                signedDoc.SignedInfo.AddReference(reference);
+            }
+            if ((signParts & SignParts.BinarySecurityToken) == SignParts.BinarySecurityToken)
+            {
+                var reference = new Reference
+                {
+                    Uri = "#" + bstId.Value,
+                    DigestMethod = SignedXml.XmlDsigSHA1Url
+                };
+                var transform = new XmlDsigExcC14NTransform();
+                reference.AddTransform(transform);
+
+                signedDoc.SignedInfo.AddReference(reference);
+            }
 
             signedDoc.SignedInfo.SignatureMethod = SignedXml.XmlDsigRSASHA1Url;
             signedDoc.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;

@@ -7,9 +7,14 @@
 		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
-
 	<ItemGroup>
 		<Content Include="eccert.p12">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="ehealth-79021802145-acc.p12">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="ehealth-79021802145-acc.pwd">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 		<Content Include="test.xml">
@@ -56,6 +61,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\library-core\library-core.csproj" />
+	  <ProjectReference Include="..\pki-module\pki-module.csproj" />
 	</ItemGroup>
 
 </Project>

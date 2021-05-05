@@ -1,49 +1,63 @@
-﻿using System;
+﻿using Egelke.Wcf.Client;
+using System;
 using System.Collections.Generic;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Security;
 using System.Text;
 
 namespace Egelke.EHealth.Client.Sso.Sts
 {
     public class StsBinding : Binding
     {
-        //private SecurityBindingElement security;
 
-        private MessageEncodingBindingElement messageEncoding;
+        public bool BypassProxyOnLocal { get; set; }
 
-        private TransportBindingElement transport;
+        public bool UseDefaultWebProxy { get; set; }
+
+        public Uri ProxyAddress { get; set; }
 
         public StsBinding()
         {
-            //security = CreateSecurity();
-            messageEncoding = CreateMessageEncoding();
-            transport = CreateTransport();
+            BypassProxyOnLocal = true;
+            UseDefaultWebProxy = true;
         }
 
         public override BindingElementCollection CreateBindingElements()
         {
             BindingElementCollection elements = new BindingElementCollection();
-            elements.Add(messageEncoding);
-            elements.Add(transport);
+            elements.Add(CreateSecurity());
+            elements.Add(CreateMessageEncoding());
+            elements.Add(CreateTransport());
             return elements.Clone();
+        }
+
+        private BindingElement CreateSecurity()
+        {
+            return new CustomSecurityBindingElement()
+            {
+                MessageSecurityVersion = SecurityVersion.WSSecurity10,
+                SignParts = SignParts.All
+            };
         }
 
         private MessageEncodingBindingElement CreateMessageEncoding()
         {
-            TextMessageEncodingBindingElement encoding = new TextMessageEncodingBindingElement();
-            encoding.MessageVersion = MessageVersion.Soap11;
-            return encoding;
+            return new TextMessageEncodingBindingElement() {
+                MessageVersion = MessageVersion.Soap11
+            };
         }
 
         private TransportBindingElement CreateTransport()
         {
-            HttpsTransportBindingElement transport = new HttpsTransportBindingElement();
-            transport.AuthenticationScheme = System.Net.AuthenticationSchemes.Anonymous;
-            //transport.HostNameComparisonMode = HostNameComparisonMode.WeakWildcard;
-
-            return transport;
+            return new HttpsTransportBindingElement()
+            {
+                AuthenticationScheme = System.Net.AuthenticationSchemes.Anonymous,
+                BypassProxyOnLocal = BypassProxyOnLocal,
+                UseDefaultWebProxy = UseDefaultWebProxy,
+                ProxyAddress = ProxyAddress
+            };
         }
 
-        public override string Scheme => transport.Scheme;
+        public override string Scheme => "https";
     }
 }

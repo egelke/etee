@@ -12,12 +12,12 @@ namespace Egelke.Wcf.Client
 {
     public class CustomSecurityRequestChannel : IRequestChannel
     {
-        public SecurityVersion MessageSecurityVersion
-        {
-            get; set;
-        }
 
         public ClientCredentials ClientCredentials { get; set; }
+
+        public SecurityVersion MessageSecurityVersion { get; set; }
+
+        public SignParts SignParts { get; set; }
 
         public CustomSecurityRequestChannel(IRequestChannel innerChannel, EndpointAddress to, Uri via)
         {
@@ -156,7 +156,8 @@ namespace Egelke.Wcf.Client
             return new CustomSecurityAppliedMessage(message)
             {
                 ClientCredentials = this.ClientCredentials,
-                MessageSecurityVersion = this.MessageSecurityVersion
+                MessageSecurityVersion = this.MessageSecurityVersion,
+                SignParts = this.SignParts
             };
         }
 
