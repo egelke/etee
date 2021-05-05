@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Egelke.Wcf.Client.Helper
 {
-    public class WSS10 : WSS
+    internal class WSS10 : WSS
     {
         public static string NS = 
             "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0";

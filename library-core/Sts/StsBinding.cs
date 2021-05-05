@@ -1,4 +1,5 @@
 ﻿using Egelke.Wcf.Client;
+using Egelke.Wcf.Client.Security;
 using System;
 using System.Collections.Generic;
 using System.ServiceModel.Channels;

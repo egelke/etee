@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -6,13 +7,20 @@ using System.ServiceModel.Description;
 using System.ServiceModel.Security;
 using System.Text;
 
-namespace Egelke.Wcf.Client
+namespace Egelke.Wcf.Client.Security
 {
-    public class CustomSecurityChannelFactory<TChannel> : IChannelFactory<TChannel>
+    internal class CustomSecurityChannelFactory<TChannel> : IChannelFactory<TChannel>
     {
-        
+        private readonly ILogger _logger;
+
         private IChannelFactory<TChannel> _innerChannelFactory;
 
+        public CustomSecurityChannelFactory(ILogger logger, IChannelFactory<TChannel> innerChannelFactory)
+        {
+            _logger = logger;
+            _innerChannelFactory = innerChannelFactory;
+            
+        }
 
         public ClientCredentials ClientCredentials { get; set; }
 
@@ -20,11 +28,6 @@ namespace Egelke.Wcf.Client
 
         public SignParts SignParts { get; set; }
 
-
-        public CustomSecurityChannelFactory(IChannelFactory<TChannel> innerChannelFactory)
-        {
-            _innerChannelFactory = innerChannelFactory;
-        }
 
         public T GetProperty<T>() where T : class
         {
@@ -128,7 +131,7 @@ namespace Egelke.Wcf.Client
            
             if (typeof(TChannel) == typeof(IRequestChannel))
             {
-                return (TChannel)(object)new CustomSecurityRequestChannel(((IChannelFactory<IRequestChannel>)_innerChannelFactory).CreateChannel(to, via), to, via)
+                return (TChannel)(object)new CustomSecurityRequestChannel(_logger, ((IChannelFactory<IRequestChannel>)_innerChannelFactory).CreateChannel(to, via), to, via)
                 {
                     ClientCredentials = this.ClientCredentials,
                     MessageSecurityVersion = this.MessageSecurityVersion,

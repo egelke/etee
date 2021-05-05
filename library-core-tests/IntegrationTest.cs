@@ -1,6 +1,7 @@
 ﻿using Egelke.EHealth.Client.Pki;
 using Egelke.EHealth.Client.Sso.Sts;
 using Egelke.Wcf.Client;
+using Egelke.Wcf.Client.Security;
 using Egelke.Wcf.Client.Sts.Saml11;
 using System;
 using System.Collections.Generic;

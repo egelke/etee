@@ -1,4 +1,5 @@
 ﻿using Egelke.Wcf.Client.Helper;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,7 +12,7 @@ using System.ServiceModel.Security;
 using System.Text;
 using System.Xml;
 
-namespace Egelke.Wcf.Client
+namespace Egelke.Wcf.Client.Security
 {
     /// <summary>
     /// Add the actual security headers to the message after the other channels created the message.
@@ -19,14 +20,17 @@ namespace Egelke.Wcf.Client
     /// <seealso href="https://github.com/dotnet/wcf/blob/main/src/System.Private.ServiceModel/src/System/ServiceModel/Security/SecurityAppliedMessage.cs">Insipred on</seealso>
     public class CustomSecurityAppliedMessage : Message
     {
+        private ILogger _logger;
+
         private Message _innerMessage;
 
         /// <summary>
         /// Constructor that wraps a message.
         /// </summary>
         /// <param name="innerMessage">Message from the previous channels</param>
-        public CustomSecurityAppliedMessage(Message innerMessage)
+        public CustomSecurityAppliedMessage(ILogger logger, Message innerMessage)
         {
+            _logger = logger;
             _innerMessage = innerMessage;
         }
 
@@ -97,6 +101,12 @@ namespace Egelke.Wcf.Client
                     _innerMessage.WriteMessage(memWriter);
                 }
                 memStream.Position = 0;
+                if (_logger != null && _logger.IsEnabled(LogLevel.Trace))
+                {
+                    String org = new StreamReader(memStream).ReadToEnd();
+                    _logger.LogTrace(org);
+                    memStream.Position = 0;
+                }
 
                 //parse the document to add the security headers
                 var env = new XmlDocument

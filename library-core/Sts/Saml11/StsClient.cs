@@ -20,17 +20,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ServiceModel.Channels;
-using System.Net.Security;
 using System.ServiceModel;
 using System.Xml;
 using System.Security.Cryptography.X509Certificates;
-using System.IO;
-using System.Collections.ObjectModel;
-using System.ServiceModel.Security.Tokens;
+
+using Microsoft.Extensions.Logging;
+using Egelke.Wcf.Client.Helper;
 
 namespace Egelke.Wcf.Client.Sts.Saml11
 {
-    [ServiceContractAttribute(Namespace = "urn:be:fgov:ehealth:sts:protocol:v1", ConfigurationName = "StsSaml11", Name = "Saml11TokenServicePortType")]
+    [ServiceContract(Namespace = "urn:be:fgov:ehealth:sts:protocol:v1", ConfigurationName = "StsSaml11", Name = "Saml11TokenServicePortType")]
     public interface StsPortType
     {
         [OperationContractAttribute(Action = "*", ReplyAction = "*")]
@@ -39,29 +38,35 @@ namespace Egelke.Wcf.Client.Sts.Saml11
 
     public class StsClient : ClientBase<StsPortType>
     {
+        private readonly ILogger _logger;
 
-        public StsClient()
+        public StsClient(ILogger<StsClient> logger = null)
         {
+            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
         }
 
-        public StsClient(string endpointConfigurationName) :
+        public StsClient(string endpointConfigurationName, ILogger<StsClient> logger = null) :
             base(endpointConfigurationName)
         {
+            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
         }
 
-        public StsClient(string endpointConfigurationName, string remoteAddress) :
+        public StsClient(string endpointConfigurationName, string remoteAddress, ILogger<StsClient> logger = null) :
             base(endpointConfigurationName, remoteAddress)
         {
+            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
         }
 
-        public StsClient(string endpointConfigurationName, EndpointAddress remoteAddress) :
+        public StsClient(string endpointConfigurationName, EndpointAddress remoteAddress, ILogger<StsClient> logger = null) :
             base(endpointConfigurationName, remoteAddress)
         {
+            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
         }
 
-        public StsClient(Binding binding, EndpointAddress remoteAddress) :
+        public StsClient(Binding binding, EndpointAddress remoteAddress, ILogger<StsClient> logger = null) :
             base(binding, remoteAddress)
         {
+            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
         }
 
         public XmlElement RequestTicket(String package, X509Certificate2 sessionCert, TimeSpan duration, IList<XmlElement> assertingClaims, IList<XmlElement> requestedClaims)
@@ -88,19 +93,17 @@ namespace Egelke.Wcf.Client.Sts.Saml11
             if (authCert.NotBefore.ToUniversalTime() > DateTime.UtcNow || authCert.NotAfter.ToUniversalTime() <= DateTime.UtcNow) throw new ArgumentException("Expired Authentication certificate is used");
             if (sessionCert.NotBefore.ToUniversalTime() > notBefore || sessionCert.NotAfter.ToUniversalTime() < notOnOrAfter) throw new ArgumentException("Session certificate isn't valid during the (entire) period that is requested");
 
-            Message requestMsg;
-            Request request = new Request(package, authCert, sessionCert, notBefore, notOnOrAfter, assertingClaims, requestedClaims);
-            MemoryStream buffer = new MemoryStream();
-            XmlWriter writer = XmlWriter.Create(buffer);
-            using (writer)
+            var request = new Request()
             {
-                request.Save(writer);
-                writer.Flush();
-
-                buffer.Position = 0;
-                XmlReader reader = XmlReader.Create(buffer);
-                requestMsg = Message.CreateMessage(MessageVersion.Soap11, "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecureToken", reader);
-            }
+                Package = package,
+                AuthCert = authCert,
+                SessionCert = sessionCert,
+                NotBefore = notBefore,
+                NotOnOrAfter = notOnOrAfter,
+                AssertingClaims = assertingClaims,
+                RequestedClaims = requestedClaims
+            };
+            Message requestMsg = Message.CreateMessage(MessageVersion.Soap11, "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecureToken", request);
             Message responseMsg = base.Channel.RequestSecureToken(requestMsg);
 
             Response response = new Response();

@@ -1,4 +1,5 @@
 ﻿using Egelke.Wcf.Client.Helper;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ServiceModel;
@@ -8,10 +9,21 @@ using System.ServiceModel.Security;
 using System.Text;
 using System.Xml;
 
-namespace Egelke.Wcf.Client
+namespace Egelke.Wcf.Client.Security
 {
     public class CustomSecurityRequestChannel : IRequestChannel
     {
+        private ILogger _logger;
+
+        private IRequestChannel _innerChannel;
+
+        public CustomSecurityRequestChannel(ILogger logger, IRequestChannel innerChannel, EndpointAddress to, Uri via)
+        {
+            _logger = logger;
+            _innerChannel = innerChannel;
+            RemoteAddress = to;
+            Via = via;
+        }
 
         public ClientCredentials ClientCredentials { get; set; }
 
@@ -19,14 +31,6 @@ namespace Egelke.Wcf.Client
 
         public SignParts SignParts { get; set; }
 
-        public CustomSecurityRequestChannel(IRequestChannel innerChannel, EndpointAddress to, Uri via)
-        {
-            _innerChannel = innerChannel;
-            RemoteAddress = to;
-            Via = via;
-        }
-
-        private IRequestChannel _innerChannel;
 
         public EndpointAddress RemoteAddress { get; }
 
@@ -153,7 +157,7 @@ namespace Egelke.Wcf.Client
 
         private Message Wrap(Message message)
         {
-            return new CustomSecurityAppliedMessage(message)
+            return new CustomSecurityAppliedMessage(_logger, message)
             {
                 ClientCredentials = this.ClientCredentials,
                 MessageSecurityVersion = this.MessageSecurityVersion,

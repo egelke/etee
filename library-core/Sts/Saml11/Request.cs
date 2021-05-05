@@ -20,20 +20,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.X509Certificates; 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1;
 using System.ServiceModel.Channels;
-using System.Text.RegularExpressions;
 using System.Security.Cryptography.Xml;
-using System.Collections.ObjectModel;
-using System.ServiceModel.Security.Tokens;
-using System.IdentityModel.Tokens;
 using Egelke.Wcf.Client.Helper;
 
 namespace Egelke.Wcf.Client.Sts.Saml11
 {
-    internal class Request
+    internal class Request : BodyWriter
     {
         private const String samlp = "urn:oasis:names:tc:SAML:1.0:protocol";
 
@@ -45,30 +41,17 @@ namespace Egelke.Wcf.Client.Sts.Saml11
 
         private const String xsd = "http://www.w3.org/2001/XMLSchema";
 
-        public Request()
+        public Request() : base(false)
         {
-
-        }
-
-        public Request(String package, X509Certificate2 authCert, X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<XmlElement> assertingClaims, IList<XmlElement> requestedClaims)
-        {
-            body = new XmlDocument();
-            body.PreserveWhitespace = true;
-
-            this.Package = package;
-            this.AuthCert = authCert;
-            this.SessionCert = sessionCert;
-            this.NotBefore = notBefore;
-            this.NotOnOrAfter = notOnOrAfter;
-            this.AssertingClaims = assertingClaims;
-            this.RequestedClaims = requestedClaims;
+            body = new XmlDocument
+            {
+                PreserveWhitespace = true
+            };
         }
 
         private bool generated = false;
 
         private readonly XmlDocument body;
-
-        private readonly Regex claimTypeSplit = new Regex("{|}");
 
         public String RequestId { get; set; }
 
@@ -86,7 +69,7 @@ namespace Egelke.Wcf.Client.Sts.Saml11
 
         public X509Certificate2 AuthCert { get; set; }
 
-        public void Save(XmlWriter writer)
+        protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
             if (!generated) Generate();
             body.Save(writer);
@@ -337,8 +320,6 @@ namespace Egelke.Wcf.Client.Sts.Saml11
             reqAttibute.Attributes.Append(reqAttributeName);
         }
 
-
-
         private static String FormatX509Name(X500DistinguishedName name)
         {
             Asn1StreamParser parser = new Asn1StreamParser(name.RawData);
@@ -346,7 +327,7 @@ namespace Egelke.Wcf.Client.Sts.Saml11
             return _name.ToString(true, X509Name.RFC1779Symbols);
         }
 
-                    
+
     }
 
 

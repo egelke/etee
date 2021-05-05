@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Egelke.Wcf.Client.Helper;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IdentityModel.Selectors;
 using System.Net.Security;
@@ -8,7 +10,7 @@ using System.ServiceModel.Description;
 using System.ServiceModel.Security;
 using System.Text;
 
-namespace Egelke.Wcf.Client
+namespace Egelke.Wcf.Client.Security
 {
     /// <summary>
     /// 
@@ -16,23 +18,27 @@ namespace Egelke.Wcf.Client
     /// <seealso href="https://github.com/dotnet/wcf/blob/main/src/System.Private.ServiceModel/src/System/ServiceModel/Channels/TransportSecurityBindingElement.cs">Inspired on</seealso>
     public class CustomSecurityBindingElement : BindingElement
     {
+        private readonly ILogger _logger;
 
 
-        public SecurityVersion MessageSecurityVersion { get; set; }
 
-        public SignParts SignParts { get; set; } 
-
-        public CustomSecurityBindingElement()
+        public CustomSecurityBindingElement(ILogger<CustomSecurity> logger = null)
         {
             MessageSecurityVersion = SecurityVersion.WSSecurity11 ;
             SignParts = SignParts.Timestamp;
+            _logger = logger ?? TraceLogger.CreateTraceLogger<CustomSecurity>();
         }
 
         public CustomSecurityBindingElement(CustomSecurityBindingElement that)
         {
             this.MessageSecurityVersion = that.MessageSecurityVersion;
             this.SignParts = that.SignParts;
+            this._logger = that._logger;
         }
+
+        public SecurityVersion MessageSecurityVersion { get; set; }
+
+        public SignParts SignParts { get; set; }
 
         public override BindingElement Clone()
         {
@@ -52,7 +58,7 @@ namespace Egelke.Wcf.Client
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
         {
             var clientCredentials = (ClientCredentials)context.BindingParameters[typeof(ClientCredentials)];
-            return new CustomSecurityChannelFactory<TChannel>(context.BuildInnerChannelFactory<TChannel>())
+            return new CustomSecurityChannelFactory<TChannel>(_logger, context.BuildInnerChannelFactory<TChannel>())
             {
                 ClientCredentials = clientCredentials,
                 MessageSecurityVersion = this.MessageSecurityVersion,

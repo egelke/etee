@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace Egelke.Wcf.Client.Helper
 {
-    public class KeyInfoSecurityTokenReference : KeyInfoClause
+    internal class KeyInfoSecurityTokenReference : KeyInfoClause
     {
         public WSS Wss { get; }
 

@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace Egelke.Wcf.Client.Helper
 {
-    public class SignedWSS : SignedXml
+    internal class SignedWSS : SignedXml
     {
         public WSS Wss { get; }
 

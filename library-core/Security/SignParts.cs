@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Egelke.Wcf.Client
+namespace Egelke.Wcf.Client.Security
 {
     [Flags]
     public enum SignParts : int

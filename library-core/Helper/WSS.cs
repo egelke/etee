@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Egelke.Wcf.Client.Security;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -10,7 +11,7 @@ using System.Xml;
 
 namespace Egelke.Wcf.Client.Helper
 {
-    public abstract class WSS
+    internal abstract class WSS
     {
         public static WSS Create(SecurityVersion securityVersion)
         {
