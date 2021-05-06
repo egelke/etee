@@ -86,6 +86,46 @@ namespace library_core_tests
         }
 
         [Fact]
+        public void Soap12Wss11()
+        {
+            /*
+            var binding = new WSHttpBinding(SecurityMode.TransportWithMessageCredential, false);
+            binding.Security.Message.EstablishSecurityContext = false;
+            binding.Security.Message.ClientCredentialType = MessageCredentialType.Certificate;
+            */
+
+            var binding = new CustomBinding();
+            binding.Elements.Add(new CustomSecurityBindingElement()
+            {
+                MessageSecurityVersion = SecurityVersion.WSSecurity11
+            });
+            binding.Elements.Add(new TextMessageEncodingBindingElement()
+            {
+                MessageVersion = MessageVersion.Soap12WSAddressing10
+            });
+            binding.Elements.Add(new HttpsTransportBindingElement()
+            {
+                //BypassProxyOnLocal = false,
+                //UseDefaultWebProxy = false,
+                //ProxyAddress = new Uri("http://localhost:8866")
+            });
+
+
+            //var ep = new EndpointAddress("https://localhost:44373/Echo/service.svc/soap11wss10");
+            var ep = new EndpointAddress("https://localhost:8080/services/Echo12");
+            ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            if (Config.Instance.Thumbprint != null)
+                channelFactory.Credentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, Config.Instance.Thumbprint);
+            else
+                channelFactory.Credentials.ClientCertificate.Certificate = Config.Instance.Certificate;
+
+            IEchoService client = channelFactory.CreateChannel();
+
+            String pong = client.Echo("boe");
+            Assert.Equal("boe", pong);
+        }
+
+        [Fact]
         public void Soap11Wss10SignAll()
         {
             var binding = new CustomBinding();

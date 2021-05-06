@@ -18,6 +18,19 @@ namespace Egelke.Wcf.Client.Helper
             ECDsaConfig.Init();
         }
 
+        public static string NS =
+            "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0";
+
+        public static string UTILITY_NS =
+            "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
+
+        public static string TOKEN_PROFILE_X509_NS =
+            "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0";
+
+        public static string SECEXT_NS =
+            "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
+
+
         public static WSS Create(SecurityVersion securityVersion)
         {
             if (securityVersion == SecurityVersion.WSSecurity10)
@@ -26,7 +39,7 @@ namespace Egelke.Wcf.Client.Helper
             }
             else if (securityVersion == SecurityVersion.WSSecurity11)
             {
-                throw new NotImplementedException();
+                return new WSS11();
             }
             else
             {
@@ -34,17 +47,17 @@ namespace Egelke.Wcf.Client.Helper
             }
         }
 
-        public abstract string Ns { get; }
+        public string Ns => NS;
 
-        public abstract string SecExtNs { get; }
+        public string SecExtNs => SECEXT_NS;
 
         public string SecExtPrefix => "wsse";
 
-        public abstract string UtilityNs { get; }
+        public string UtilityNs => UTILITY_NS;
 
         public string UtilityPrefix => "wsu";
 
-        public abstract string TokenPofileX509Ns { get; }
+        public string TokenPofileX509Ns => TOKEN_PROFILE_X509_NS;
 
         public void VerifyResponse(XmlElement header)
         {

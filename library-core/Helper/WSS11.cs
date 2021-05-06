@@ -4,8 +4,9 @@ using System.Text;
 
 namespace Egelke.Wcf.Client.Helper
 {
-    internal class WSS10 : WSS
+    internal class WSS11 : WSS
     {
+
 
     }
 }
