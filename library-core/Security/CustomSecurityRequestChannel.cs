@@ -177,9 +177,9 @@ namespace Egelke.Wcf.Client.Security
                     XmlDictionaryReader headerReader = message.Headers.GetReaderAtHeader(i);
 
                     var doc = new XmlDocument();
-                    doc.Load(headerReader);
+                    var header = (XmlElement) doc.ReadNode(headerReader);
 
-                    wss.VerifyResponse(doc.DocumentElement);
+                    wss.VerifyResponse(header);
 
                     message.Headers.UnderstoodHeaders.Add(sec);
                 }

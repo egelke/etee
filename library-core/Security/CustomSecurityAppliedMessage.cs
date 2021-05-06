@@ -94,8 +94,6 @@ namespace Egelke.Wcf.Client.Security
                 var wss = WSS.Create(MessageSecurityVersion);
 
                 //Write the document without security headers in memory
-                if (_innerMessage.Properties.Encoder.MediaType != "text/xml")
-                    throw new NotSupportedException("Only supports test encoding so far");
                 using (var memWriter = XmlDictionaryWriter.CreateTextWriter(memStream, Encoding.UTF8, false))
                 {
                     _innerMessage.WriteMessage(memWriter);
