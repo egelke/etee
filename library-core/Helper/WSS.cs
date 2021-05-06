@@ -13,6 +13,11 @@ namespace Egelke.Wcf.Client.Helper
 {
     internal abstract class WSS
     {
+        static WSS()
+        {
+            ECDsaConfig.Init();
+        }
+
         public static WSS Create(SecurityVersion securityVersion)
         {
             if (securityVersion == SecurityVersion.WSSecurity10)
@@ -131,10 +136,22 @@ namespace Egelke.Wcf.Client.Helper
 
             sec.AppendChild(bst);
 
-            var signedDoc = new SignedWSS(this, doc)
+            var signedDoc = new SignedWSS(this, doc);
+            if (clientCert.GetRSAPrivateKey() != null)
             {
-                SigningKey = clientCert.GetRSAPrivateKey()
-            };
+                signedDoc.SigningKey = clientCert.GetRSAPrivateKey();
+                signedDoc.SignedInfo.SignatureMethod = SignedXml.XmlDsigRSASHA1Url;
+            }
+            else if (clientCert.GetECDsaPrivateKey() != null)
+            {
+                signedDoc.SigningKey = clientCert.GetECDsaPrivateKey();
+                signedDoc.SignedInfo.SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256";
+            }
+            else
+            {
+                throw new ArgumentException("Certificate key unsupported", nameof(clientCert));
+            }
+            signedDoc.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
 
             if ((signParts & SignParts.Timestamp) == SignParts.Timestamp)
             {
@@ -172,9 +189,6 @@ namespace Egelke.Wcf.Client.Helper
 
                 signedDoc.SignedInfo.AddReference(reference);
             }
-
-            signedDoc.SignedInfo.SignatureMethod = SignedXml.XmlDsigRSASHA1Url;
-            signedDoc.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
 
             signedDoc.KeyInfo.AddClause(new KeyInfoSecurityTokenReference(this, bstId.Value));
 
