@@ -104,8 +104,9 @@ namespace Siemens.EHealth.Client.StsTest
             StsClient target = new StsClient(
                 new StsBinding(), 
                 new EndpointAddress(
+                    //new Uri("https://localhost:8080/services/sts")
                     new Uri("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1")
-                    ,EndpointIdentity.CreateDnsIdentity("*.int.pub.ehealth.fgov.be")
+                    , EndpointIdentity.CreateDnsIdentity("*.int.pub.ehealth.fgov.be")
                     )
                 );
             //target.Endpoint.Behaviors.Remove<ClientCredentials>();

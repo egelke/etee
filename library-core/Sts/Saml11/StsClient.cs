@@ -103,13 +103,13 @@ namespace Egelke.Wcf.Client.Sts.Saml11
                 AssertingClaims = assertingClaims,
                 RequestedClaims = requestedClaims
             };
-            Message requestMsg = Message.CreateMessage(MessageVersion.Soap11, "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecureToken", request);
+            Message requestMsg = Message.CreateMessage(MessageVersion.Soap11, "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecurityToken", request);
             Message responseMsg = base.Channel.RequestSecureToken(requestMsg);
 
             Response response = new Response();
             if (responseMsg.IsFault)
             {
-                throw new FaultException(MessageFault.CreateFault(responseMsg, 1024), responseMsg.Headers.Action);
+                throw new FaultException(MessageFault.CreateFault(responseMsg, 10240), responseMsg.Headers.Action);
             }
             response.Load(responseMsg.GetReaderAtBodyContents());
             response.Validate(package, request.RequestId);

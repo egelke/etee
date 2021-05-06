@@ -228,19 +228,10 @@ namespace Egelke.Wcf.Client.Sts.Saml11
             XmlElement attrStatement = body.CreateElement("saml:AttributeStatement", saml);
             parent.AppendChild(attrStatement);
 
-            //XmlAttribute xsNsDelaration = body.CreateAttribute("xmlns:xs");
-            //xsNsDelaration.Value = xsd;
-            //attrStatement.Attributes.Append(xsNsDelaration);
-
             AddInternalSubject(attrStatement);
             foreach (XmlElement claim in AssertingClaims)
             {
-                XmlElement copy = (XmlElement) claim.CloneNode(true);
-                XmlElement imported = (XmlElement) body.ImportNode(copy, true);
-                attrStatement.AppendChild(imported);
-
-                //String[] segments = claimTypeSplit.Split(claim.ClaimType);
-                //AddAttribute(attrStatement, segments[1], segments[2], (String)claim.Resource);
+                ImportAttribute(attrStatement, claim);
             }
         }
 
@@ -276,34 +267,49 @@ namespace Egelke.Wcf.Client.Sts.Saml11
             x509Cert.AppendChild(body.CreateTextNode(Convert.ToBase64String(SessionCert.Export(X509ContentType.Cert))));
         }
 
-        private void AddAttribute(XmlElement parent, String ns, String name, Object value)
+        private void ImportAttribute(XmlElement parent, XmlElement org)
         {
             XmlElement attribute = body.CreateElement("saml:Attribute", saml);
             parent.AppendChild(attribute);
 
             XmlAttribute attributeNs = body.CreateAttribute("AttributeNamespace");
-            attributeNs.Value = ns;
+            attributeNs.Value = org.GetAttribute("AttributeNamespace");
             attribute.Attributes.Append(attributeNs);
 
             XmlAttribute attributeName = body.CreateAttribute("AttributeName");
-            attributeName.Value = name;
+            attributeName.Value = org.GetAttribute("AttributeName");
             attribute.Attributes.Append(attributeName);
 
-            XmlElement attributeValue = body.CreateElement("saml:AttributeValue", saml);
-            attribute.AppendChild(attributeValue);
+            foreach(XmlElement orgValue in org.GetElementsByTagName("AttributeValue", saml))
+            {
+                XmlElement attributeValue = body.CreateElement("saml:AttributeValue", saml);
+                attributeValue.InnerText = orgValue.InnerText;
 
-            XmlAttribute attributeValueType = body.CreateAttribute("xsi:type", xsi);
-            if (value is String)
-            {
-                
-                attributeValue.AppendChild(body.CreateTextNode(value as String));
-                attributeValueType.Value = "xs:string";
+                XmlAttribute attributeValueType = body.CreateAttribute("xsi:type", xsi);
+                String attributeValueTypeValue = orgValue.GetAttribute("type", xsi);
+                String[] valueParts = attributeValueTypeValue.Split(':');
+                if (valueParts.Length > 1) {
+                    String orgPrefix = valueParts[0];
+                    String ns = orgValue.GetNamespaceOfPrefix(orgPrefix);
+                    String newPrefix = attributeValue.GetPrefixOfNamespace(ns);
+                    if (String.IsNullOrEmpty(newPrefix))
+                    {
+                        attributeValue.SetAttribute("xmlns:" + orgPrefix, ns);
+                        attributeValueType.Value = attributeValueTypeValue;
+                    }
+                    else 
+                    {
+                        attributeValueType.Value = newPrefix + ":" + valueParts[1];
+                    }
+                } 
+                else
+                {
+                    attributeValueType.Value = attributeValueTypeValue;
+                }
+                attributeValue.Attributes.Append(attributeValueType);
+
+                attribute.AppendChild(attributeValue);
             }
-            else
-            {
-                throw new InvalidCastException(String.Format("Type {0} not supported", value == null ? "<<null>>" : value.GetType().ToString()));
-            }
-            attributeValue.Attributes.Append(attributeValueType);
         }
 
         private void AddAttributeDesignator(XmlElement parent, String ns, String name)

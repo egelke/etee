@@ -30,7 +30,7 @@ namespace library_core_tests
             {
                 MessageVersion = MessageVersion.Soap11
             });
-            binding.Elements.Add(new HttpTransportBindingElement()
+            binding.Elements.Add(new HttpsTransportBindingElement()
             {
                 //BypassProxyOnLocal = false,
                 //UseDefaultWebProxy = false,
@@ -38,7 +38,7 @@ namespace library_core_tests
             });
 
             //var ep = new EndpointAddress("https://localhost:44373/Echo/service.svc/soap11wss10");
-            var ep = new EndpointAddress("http://localhost:8080/services/Echo");
+            var ep = new EndpointAddress("https://localhost:8080/services/Echo");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             if (Config.Instance.Thumbprint != null)
                 channelFactory.Credentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, Config.Instance.Thumbprint);
@@ -64,7 +64,7 @@ namespace library_core_tests
             {
                 MessageVersion = MessageVersion.Soap11
             });
-            binding.Elements.Add(new HttpTransportBindingElement()
+            binding.Elements.Add(new HttpsTransportBindingElement()
             {
                 //BypassProxyOnLocal = false,
                 //UseDefaultWebProxy = false,
@@ -72,7 +72,7 @@ namespace library_core_tests
             });
 
             //var ep = new EndpointAddress("https://localhost:44373/Echo/service.svc/soap11wss10");
-            var ep = new EndpointAddress("http://localhost:8080/services/Echo");
+            var ep = new EndpointAddress("https://localhost:8080/services/Echo");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             if (Config.Instance.Thumbprint != null)
                 channelFactory.Credentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, Config.Instance.Thumbprint);
@@ -120,7 +120,9 @@ namespace library_core_tests
                 ProxyAddress = new Uri("http://localhost:8866")
             };
 
-            StsClient target = new StsClient(binding, new EndpointAddress(new Uri("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1")));
+            var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
+            //var ep = new EndpointAddress("https://localhost:8080/services/sts");
+            StsClient target = new StsClient(binding, ep);
             if (Config.Instance.Thumbprint != null)
                 target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, Config.Instance.Thumbprint);
             else
