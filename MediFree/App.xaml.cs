@@ -1,4 +1,4 @@
-﻿using MediFree.Common;
+using MediFree.Common;
 
 using System;
 using System.Collections.Generic;

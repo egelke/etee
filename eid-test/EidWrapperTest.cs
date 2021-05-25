@@ -1,4 +1,4 @@
-﻿using Egelke.Fedict.Eid;
+using Egelke.Fedict.Eid;
 using NUnit.Framework;
 using System;
 using System.Security.Cryptography.X509Certificates;

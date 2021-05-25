@@ -1,4 +1,4 @@
-﻿using Egelke.EHealth.Client.Gmf.Msg;
+using Egelke.EHealth.Client.Gmf.Msg;
 using System;
 using System.Collections.Generic;
 using System.IO;

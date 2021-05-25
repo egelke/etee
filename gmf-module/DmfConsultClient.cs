@@ -1,4 +1,4 @@
-﻿using Egelke.EHealth.Client.Pki;
+using Egelke.EHealth.Client.Pki;
 using System;
 using System.Collections.Generic;
 using System.IO;

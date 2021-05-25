@@ -1,4 +1,4 @@
-﻿using Egelke.EHealth.Client.Pki;
+using Egelke.EHealth.Client.Pki;
 using Egelke.EHealth.Client.Pki.DSS;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;

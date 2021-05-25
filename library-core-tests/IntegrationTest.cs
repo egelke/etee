@@ -1,4 +1,4 @@
-﻿using Egelke.EHealth.Client.Pki;
+using Egelke.EHealth.Client.Pki;
 using Egelke.EHealth.Client.Sso.Sts;
 using Egelke.Wcf.Client;
 using Egelke.Wcf.Client.Security;

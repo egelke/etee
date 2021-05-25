@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Egelke.EHealth.Client.Gmf;
 using System.ServiceModel.Channels;

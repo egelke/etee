@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This file is part of eHealth-Interoperability.
  * 
  * eHealth-Interoperability is free software: you can redistribute it and/or modify

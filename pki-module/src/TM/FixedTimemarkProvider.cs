@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  This file is part of eH-I.
  *  Copyright (C) 2014 Egelke BVBA
  *

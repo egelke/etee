@@ -1,4 +1,4 @@
-﻿using Egelke.EHealth.Client.ChapterIV;
+using Egelke.EHealth.Client.ChapterIV;
 using NUnit.Framework;
 using System.Linq;
 using System.ServiceModel;
