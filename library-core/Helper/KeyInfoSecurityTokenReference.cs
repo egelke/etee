@@ -4,7 +4,7 @@ using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Xml;
 
-namespace Egelke.Wcf.Client.Helper
+namespace Egelke.EHealth.Client.Helper
 {
     internal class KeyInfoSecurityTokenReference : KeyInfoClause
     {

@@ -3,12 +3,17 @@ using Egelke.EHealth.Client.Sso.Sts;
 using Egelke.Wcf.Client;
 using Egelke.Wcf.Client.Security;
 using Egelke.Wcf.Client.Sts.Saml11;
+using Microsoft.IdentityModel.Protocols.WsFed;
+using Microsoft.IdentityModel.Protocols.WsTrust;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Selectors;
+using System.IdentityModel.Tokens;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Federation;
 using System.ServiceModel.Security;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -160,6 +165,7 @@ namespace library_core_tests
         }
 
 
+
         [Fact]
         public void EhealthStsSaml11()
         {
@@ -181,32 +187,105 @@ namespace library_core_tests
             attr.AppendChild(attrVal);
             claims.Add(attr);
 
-            attr = (XmlElement) attr.CloneNode(true);
+            attr = (XmlElement)attr.CloneNode(true);
             attr.SetAttribute("AttributeNamespace", "urn:be:fgov:identification-namespace");
             attr.SetAttribute("AttributeName", "urn:be:fgov:ehealth:1.0:certificateholder:person:ssin");
             attrVal = (XmlElement)attr.FirstChild;
             attrVal.SetAttribute("type", "http://www.w3.org/2001/XMLSchema-instance", "xs:string");
             attrValText = (XmlText)attrVal.FirstChild;
             attrValText.Data = ssin;
-            //claims.Add(attr);
+            claims.Add(attr);
 
-            var session = new EHealthP12("ehealth-79021802145-acc.p12", File.ReadAllText("ehealth-79021802145-acc.pwd"));
+            var session = new EHealthP12("ehealth-01050399864-int.p12", File.ReadAllText("ehealth-01050399864-int.pwd"));
+            //var session = new EHealthP12("ehealth-79021802145-acc.p12", File.ReadAllText("ehealth-79021802145-acc.pwd"));
             var binding = new StsBinding()
             {
-                BypassProxyOnLocal = false,
-                UseDefaultWebProxy = false,
-                ProxyAddress = new Uri("http://localhost:8866")
+                //BypassProxyOnLocal = false,
+                //UseDefaultWebProxy = false,
+                //ProxyAddress = new Uri("http://localhost:8866")
             };
 
-            var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
-            //var ep = new EndpointAddress("https://localhost:8080/services/sts");
+            var ep = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/Saml11TokenService/v1");
+            //var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
             StsClient target = new StsClient(binding, ep);
             if (Config.Instance.Thumbprint != null)
                 target.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, Config.Instance.Thumbprint);
             else
                 target.ClientCredentials.ClientCertificate.Certificate = Config.Instance.Certificate;
             XmlElement assertion = target.RequestTicket("Anonymous", session["authentication"], TimeSpan.FromHours(1), claims, claims);
+        }
 
+        [Fact]
+        public void EhealthStsWsTrust()
+        {
+            var issuerBinding = new StsBinding();
+            issuerBinding.BypassProxyOnLocal = false;
+            issuerBinding.UseDefaultWebProxy = false;
+            issuerBinding.ProxyAddress = new Uri("http://localhost:8866");
+
+            var endpointAddress = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1");
+
+            using (var memStream = new MemoryStream())
+            {
+                var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
+                {
+                    TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1",
+                    Claims = new Claims("http://schemas.xmlsoap.org/ws/2006/12/authorization/authclaims", new List<ClaimType>
+                    {
+                        new ClaimType()
+                        {
+                            Uri = "urn:be:fgov:person:ssin",
+                            Value = "79021802145"
+                        }
+                    })
+                };
+                var serializer = new WsTrustSerializer();
+
+                using (var writer = XmlDictionaryWriter.CreateTextWriter(memStream, Encoding.UTF8, false))
+                {
+                    serializer.WriteRequest(writer, WsTrustVersion.Trust13, request);
+                }
+
+                memStream.Position = 0;
+                var reader = XmlDictionaryReader.CreateTextReader(memStream, XmlDictionaryReaderQuotas.Max);
+
+                var requestMessage = Message.CreateMessage(MessageVersion.Soap11, WsTrustActions.Trust13.IssueRequest, reader);
+
+                ChannelFactory<IRequestChannel> channelFactory = new ChannelFactory<IRequestChannel>(issuerBinding, endpointAddress);
+                channelFactory.Credentials.ClientCertificate.Certificate = Config.Instance.Certificate;
+                IRequestChannel channel = channelFactory.CreateChannel();
+
+                Message reply = channel.Request(requestMessage);
+            }
+        }
+
+            [Fact]
+        public void EhealthGenIns()
+        {
+
+            var issuerBinding = new StsBinding();
+            //issuerBinding.Security.Message.ClientCredentialType = BasicHttpMessageCredentialType.Certificate;
+            //issuerBinding.Security.Message.EstablishSecurityContext = false;
+            issuerBinding.BypassProxyOnLocal = false;
+            issuerBinding.UseDefaultWebProxy = false;
+            issuerBinding.ProxyAddress = new Uri("http://localhost:8866");
+
+            var endpointAddress = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1");
+
+            /*
+            var tokenParameters = WSTrustTokenParameters.CreateWSFederationTokenParameters(issuerBinding, endpointAddress);
+
+            
+            var binding = new System.ServiceModel.Federation.WSFederationHttpBinding(tokenParameters);
+
+            var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/GenericInsurability/v1");
+            ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Credentials.ClientCertificate.Certificate = Config.Instance.Certificate;
+            IEchoService client = channelFactory.CreateChannel();
+
+            String pong = client.Echo("boe");
+            Assert.Equal("boe", pong);
+            */
         }
     }
 

@@ -16,7 +16,8 @@
     <AssemblyVersion>2.3.0.0</AssemblyVersion>
     <FileVersion>2.3.0.0</FileVersion>
     <PackageTags>eHealth eSigning TimeStamp PKI PKCS#12 X509</PackageTags>
-    <PackageReleaseNotes>Updated versions</PackageReleaseNotes>
+    <PackageReleaseNotes>Updated dependency versions
+Added ECDSA support</PackageReleaseNotes>
     <SignAssembly>true</SignAssembly>
     <IncludeSource>true</IncludeSource>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -30,25 +31,19 @@
     <AssemblyOriginatorKeyFile>..\release.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Debug|netstandard2.0'">
-    <DocumentationFile>bin\Debug\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Debug|net452'">
-    <DocumentationFile>bin\Debug\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net452'">
-    <DocumentationFile>bin\Release\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|netstandard2.0'">
-    <DocumentationFile>bin\Release\netstandard2.0\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
+	</PropertyGroup>
+
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
+    <PackageReference Include="System.ServiceModel.Http" Version="4.*" />
+	  <PackageReference Include="System.Security.Cryptography.Cng" Version="5.*" />
+	  <PackageReference Include="System.Security.Cryptography.OpenSSL" Version="5.*" />
   </ItemGroup>
 
   <ItemGroup>

@@ -22,7 +22,7 @@ using System.Text;
 using System.Xml;
 using System.Security.Cryptography.Xml;
 
-namespace Egelke.Wcf.Client.Helper
+namespace Egelke.EHealth.Client.Helper
 {
     internal class SignedSaml11 : SignedXml
     {

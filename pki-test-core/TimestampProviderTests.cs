@@ -89,10 +89,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             var tsa = new TimeStampAuthorityClient(
                 new StsBinding(),
                 new EndpointAddress(new Uri("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2")));
-            //tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
-            //tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
-            //tsa.ClientCredentials.ServiceCertificate.DefaultCertificate = ehSsl; //not really used, but better then the workaround
-            tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "f794b1966a1bd1a1760bbe3a1e72f9cae1fa118c");
+            tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "b59b6e7cd6e63f2c68aed7c37ac1943ed291efeb");
 
             var provider = new EHealthTimestampProvider(tsa);
 

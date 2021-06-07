@@ -11,6 +11,12 @@
 		<Content Include="eccert.p12">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+		<Content Include="ehealth-01050399864-int.p12">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="ehealth-01050399864-int.pwd">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 		<Content Include="ehealth-79021802145-acc.p12">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -32,6 +38,7 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.IdentityModel.Protocols.WsTrust" Version="6.8.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
 		<PackageReference Include="xunit" Version="2.4.1" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -53,16 +60,17 @@
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="5.0.0" />
 		<PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
 		<PackageReference Include="System.ServiceModel.Security" Version="4.8.1" />
-		<!--
-		<Reference Include="System.Private.ServiceModel">
-			<HintPath>..\..\..\public\dotnet\wcf\artifacts\bin\System.Private.ServiceModel\Debug\netstandard2.0\System.Private.ServiceModel.dll</HintPath>
-		</Reference>
-		-->
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="System.ServiceModel.Federation" Version="4.8.1" />
 	  <ProjectReference Include="..\library-core\library-core.csproj" />
 	  <ProjectReference Include="..\pki-module\pki-module.csproj" />
+		<PackageReference Include="Microsoft.IdentityModel.Protocols.WsTrust" Version="6.8.0" />
+		<!--
+	  <ProjectReference Include="..\pki-module\pki-module.csproj" />
+	  -->
 	</ItemGroup>
+
 
 </Project>

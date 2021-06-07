@@ -9,7 +9,7 @@ using System.Text;
 using Microsoft.Extensions.Logging.TraceSource;
 #endif
 
-namespace Egelke.Wcf.Client.Helper
+namespace Egelke.EHealth.Client.Helper
 {
     internal class TraceLogger
     {
