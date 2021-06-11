@@ -24,7 +24,7 @@ namespace library_core_tests
 
         public EidV18()
         {
-            ECDsaConfig.Init();
+            //ECDsaConfig.Init();
             clearMsg = System.Text.Encoding.UTF8.GetBytes("Hello world");
 
             eid = Config.Instance.Certificate;

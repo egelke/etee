@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.0;net461;net472</TargetFrameworks>
     <RootNamespace>Egelke.EHealth.Client.Pki.Test</RootNamespace>
     <DebugType>Full</DebugType>
     <IsPackable>false</IsPackable>

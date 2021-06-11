@@ -1,4 +1,4 @@
-using Egelke.Wcf.Client.Helper;
+using Egelke.EHealth.Client.Helper;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

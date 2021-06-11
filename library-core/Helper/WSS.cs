@@ -15,7 +15,7 @@ namespace Egelke.EHealth.Client.Helper
     {
         static WSS()
         {
-            ECDsaConfig.Init();
+            //ECDsaConfig.Init();
         }
 
         public static string NS =

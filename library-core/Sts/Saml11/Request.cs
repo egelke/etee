@@ -25,7 +25,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1;
 using System.ServiceModel.Channels;
 using System.Security.Cryptography.Xml;
-using Egelke.Wcf.Client.Helper;
+using Egelke.EHealth.Client.Helper;
 
 namespace Egelke.Wcf.Client.Sts.Saml11
 {

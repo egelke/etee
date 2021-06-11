@@ -25,7 +25,7 @@ using System.Xml;
 using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.Extensions.Logging;
-using Egelke.Wcf.Client.Helper;
+using Egelke.EHealth.Client.Helper;
 
 namespace Egelke.Wcf.Client.Sts.Saml11
 {

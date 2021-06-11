@@ -29,10 +29,20 @@ using System.Text.RegularExpressions;
 
 namespace Egelke.EHealth.Client.Pki
 {
+    /// <summary>
+    /// To read P12 files produced by eHealth. 
+    /// </summary>
     public class EHealthP12 : IDictionary<String, X509Certificate2>
     {
         private const String SnRegExPattern = @"SERIALNUMBER=(?<sn>\d+)";
 
+        /// <summary>
+        /// Find the last version of the eHealth p12 file based on the inss of the provided eid cert.
+        /// </summary>
+        /// <remarks>Looks for the file in the default location (%USER_PROFILE%/ehealth/keystore)</remarks>
+        /// <param name="eidCert">The eid cert of a person <param>
+        /// <returns>The path of the p12 for that person</returns>
+        /// 
         public static String FindCorresponding(X509Certificate2 eidCert)
         {
             if (eidCert == null) throw new ArgumentNullException("eidCert");
