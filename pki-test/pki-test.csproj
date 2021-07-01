@@ -19,6 +19,7 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Egelke.Eid.Client" Version="1.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -31,8 +32,19 @@
     </PackageReference>
   </ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework.StartsWith(`net4`))'">
+		<Reference Include="System.Security" />
+		<Reference Include="System.ServiceModel" />
+	</ItemGroup>
+
+	<ItemGroup Condition="!'$(TargetFramework.StartsWith(`net4`))'">
+		<PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
+		<PackageReference Include="System.ServiceModel.Security" Version="4.8.1" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\pki-module\pki-module.csproj" />
+		<ProjectReference Include="..\library-core\library-core.csproj" />
 	</ItemGroup>
 
 </Project>

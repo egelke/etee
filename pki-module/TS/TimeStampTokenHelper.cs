@@ -110,7 +110,7 @@ namespace Egelke.EHealth.Client.Pki
         /// <returns>The validation chain of the signing certificate</returns>
         public static Timestamp Validate(this TimeStampToken tst)
         {
-            return tst.Validate(new List<CertificateList>(), new List<BasicOcspResponse>());
+            return tst.Validate(null, new List<CertificateList>(), new List<BasicOcspResponse>(), null);
         }
 
         /// <summary>
@@ -120,7 +120,29 @@ namespace Egelke.EHealth.Client.Pki
         /// <returns>The validation chain of the signing certificate</returns>
         public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst)
         {
-            return await tst.ValidateAsync(new List<CertificateList>(), new List<BasicOcspResponse>());
+            return await tst.ValidateAsync(null, new List<CertificateList>(), new List<BasicOcspResponse>(), null);
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token trusting the time of the token itself
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="extraCerts">Extra intermediate certificates</param>
+        /// <returns>The validation chain of the signing certificate</returns>
+        public static Timestamp Validate(this TimeStampToken tst, X509Certificate2Collection extraCerts)
+        {
+            return tst.Validate(extraCerts, new List<CertificateList>(), new List<BasicOcspResponse>(), null);
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token trusting the time of the token itself
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="extraCerts">Extra intermediate certificates</param>
+        /// <returns>The validation chain of the signing certificate</returns>
+        public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst, X509Certificate2Collection extraCerts)
+        {
+            return await tst.ValidateAsync(extraCerts, new List<CertificateList>(), new List<BasicOcspResponse>(), null);
         }
 
         /// <summary>
@@ -132,7 +154,7 @@ namespace Egelke.EHealth.Client.Pki
         /// <returns>The validation chain of the signing certificate</returns>
         public static Timestamp Validate(this TimeStampToken tst, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps)
         {
-            return tst.Validate(crls, ocsps, null);
+            return tst.Validate(null, crls, ocsps, null);
         }
 
         /// <summary>
@@ -144,7 +166,33 @@ namespace Egelke.EHealth.Client.Pki
         /// <returns>The validation chain of the signing certificate</returns>
         public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps)
         {
-            return await tst.ValidateAsync(crls, ocsps, null);
+            return await tst.ValidateAsync(null, crls, ocsps, null);
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token trusting the time of the token itself
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="extraCerts">Extra intermediate certificates</param>
+        /// <param name="crls">Known Crl's, new retrieved crl's will be added here</param>
+        /// <param name="ocsps">Known Ocsp's, new retrieved ocsp's will be added here</param>
+        /// <returns>The validation chain of the signing certificate</returns>
+        public static Timestamp Validate(this TimeStampToken tst, X509Certificate2Collection extraCerts, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps)
+        {
+            return tst.Validate(extraCerts, crls, ocsps, null);
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token trusting the time of the token itself
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="extraCerts">Extra intermediate certificates</param>
+        /// <param name="crls">Known Crl's, new retrieved crl's will be added here</param>
+        /// <param name="ocsps">Known Ocsp's, new retrieved ocsp's will be added here</param>
+        /// <returns>The validation chain of the signing certificate</returns>
+        public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst, X509Certificate2Collection extraCerts, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps)
+        {
+            return await tst.ValidateAsync(extraCerts, crls, ocsps, null);
         }
 
         /// <summary>
@@ -157,6 +205,33 @@ namespace Egelke.EHealth.Client.Pki
         /// <returns>The validation chain of the signing certificate</returns>
         public static Timestamp Validate(this TimeStampToken tst, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
         {
+            return tst.Validate(null, crls, ocsps, trustedTime);
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token in case of arbitration or with a specified trusted time.
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="crls">Known Crl's, new retrieved crl's will be added here</param>
+        /// <param name="ocsps">Known Ocsp's, new retrieved ocsp's will be added here</param>
+        /// <param name="trustedTime">The trusted time, <c>null</c> for the timestamp time</param>
+        /// <returns>The validation chain of the signing certificate</returns>
+        public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
+        {
+            return await tst.ValidateAsync(null, crls, ocsps, trustedTime);
+        }
+
+        /// <summary>
+        /// Validates the time-stamp token with a specified trusted time.
+        /// </summary>
+        /// <param name="tst">The timestamp to validate</param>
+        /// <param name="extraCerts">Extra intermediate certificates</param>
+        /// <param name="crls">Known Crl's, new retrieved crl's will be added here</param>
+        /// <param name="ocsps">Known Ocsp's, new retrieved ocsp's will be added here</param>
+        /// <param name="trustedTime">The trusted time, <c>null</c> for the timestamp time</param>
+        /// <returns>The validation chain of the signing certificate</returns>
+        public static Timestamp Validate(this TimeStampToken tst, X509Certificate2Collection extraCerts, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
+        {
             var value = tst.CreateTimestamp();
 
             //check if the indicated certificate is the signer
@@ -164,6 +239,7 @@ namespace Egelke.EHealth.Client.Pki
 
             //check and extract the cert
             var extraStore = tst.GetExtraStore();
+            if (extraCerts != null) extraStore.AddRange(extraCerts);
 
             //get the validation time
             DateTime validationTime = value.GetValidationTime(trustedTime);
@@ -181,11 +257,12 @@ namespace Egelke.EHealth.Client.Pki
         /// Validates the time-stamp token in case of arbitration or with a specified trusted time.
         /// </summary>
         /// <param name="tst">The timestamp to validate</param>
+        /// <param name="extraCerts">Extra intermediate certificates</param>
         /// <param name="crls">Known Crl's, new retrieved crl's will be added here</param>
         /// <param name="ocsps">Known Ocsp's, new retrieved ocsp's will be added here</param>
         /// <param name="trustedTime">The trusted time, <c>null</c> for the timestamp time</param>
         /// <returns>The validation chain of the signing certificate</returns>
-        public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
+        public static async Task<Timestamp> ValidateAsync(this TimeStampToken tst, X509Certificate2Collection extraCerts, IList<CertificateList> crls, IList<BasicOcspResponse> ocsps, DateTime? trustedTime)
         {
             var value = tst.CreateTimestamp();
 
@@ -194,6 +271,7 @@ namespace Egelke.EHealth.Client.Pki
 
             //check and extract the cert
             var extraStore = tst.GetExtraStore();
+            if (extraCerts != null) extraStore.AddRange(extraCerts);
 
             //get the validation time
             DateTime validationTime = value.GetValidationTime(trustedTime);

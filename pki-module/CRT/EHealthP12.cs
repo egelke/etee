@@ -64,20 +64,20 @@ namespace Egelke.EHealth.Client.Pki
         public EHealthP12(String file, String pwd)
         {
             password = pwd;
-            FileStream fileStream = new FileStream(file, FileMode.Open);
-            using (fileStream)
+            using (FileStream fileStream = new FileStream(file, FileMode.Open))
             {
                 store = new Pkcs12Store(fileStream, pwd.ToCharArray());
+                fileStream.Close();
             }
         }
 
         public EHealthP12(byte[] data, String pwd)
         {
             password = pwd;
-            MemoryStream memStream = new MemoryStream(data);
-            using (memStream)
+            using (MemoryStream memStream = new MemoryStream(data))
             {
                 store = new Pkcs12Store(memStream, pwd.ToCharArray());
+                memStream.Close();
             }
         }
 
