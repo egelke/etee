@@ -35,6 +35,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Org.BouncyCastle.Security;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -90,17 +91,24 @@ namespace Egelke.EHealth.Client.Pki
             return ((IStructuralEquatable)signatureValueHashed).Equals(timestampHash, StructuralComparisons.StructuralEqualityComparer);
         }
 
-        private static BC::X509Certificate GetSigner(this TimeStampToken tst)
+        private static BC::X509Certificate GetSigner(this TimeStampToken tst, X509Certificate2Collection extraStore)
         {
             //Get the info from the token
-            BC::X509Certificate signer;
             IEnumerator signers = tst.GetCertificates("Collection").GetMatches(tst.SignerID).GetEnumerator();
 
             //Get the one and only one signer
-            if (!signers.MoveNext()) return null;
-            signer = (BC::X509Certificate)signers.Current;
+            if (signers.MoveNext()) return (BC::X509Certificate)signers.Current;
 
-            return signer;
+            //No signer found, lets try the extra store
+            List<BC::X509Certificate> bcExtraList = extraStore.Cast<X509Certificate2>()
+                .Select(c => DotNetUtilities.FromX509Certificate(c))
+                .ToList();
+            IX509Store bcExtraStore = X509StoreFactory.Create("Certificate/Collection", new X509CollectionStoreParameters(bcExtraList));
+
+            signers = bcExtraStore.GetMatches(tst.SignerID).GetEnumerator();
+            if (signers.MoveNext()) return (BC::X509Certificate)signers.Current;
+
+            return null;
         }
 
         /// <summary>
@@ -235,7 +243,7 @@ namespace Egelke.EHealth.Client.Pki
             var value = tst.CreateTimestamp();
 
             //check if the indicated certificate is the signer
-            X509Certificate2 signer = tst.CheckSigner(value);
+            X509Certificate2 signer = tst.CheckSigner(value, extraCerts);
 
             //check and extract the cert
             var extraStore = tst.GetExtraStore();
@@ -267,7 +275,7 @@ namespace Egelke.EHealth.Client.Pki
             var value = tst.CreateTimestamp();
 
             //check if the indicated certificate is the signer
-            X509Certificate2 signer = tst.CheckSigner(value);
+            X509Certificate2 signer = tst.CheckSigner(value, extraCerts);
 
             //check and extract the cert
             var extraStore = tst.GetExtraStore();
@@ -296,9 +304,9 @@ namespace Egelke.EHealth.Client.Pki
             return value;
         }
 
-        private static X509Certificate2 CheckSigner(this TimeStampToken tst, Timestamp value)
+        private static X509Certificate2 CheckSigner(this TimeStampToken tst, Timestamp value, X509Certificate2Collection extraCerts)
         {
-            BC.X509Certificate signerBc = tst.GetSigner();
+            BC.X509Certificate signerBc = tst.GetSigner(extraCerts);
             if (signerBc == null)
             {
                 trace.TraceEvent(TraceEventType.Warning, 0, "The signer of the time-stamp {0} isn't found", tst.TimeStampInfo.SerialNumber);

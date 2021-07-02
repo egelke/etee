@@ -675,10 +675,7 @@ namespace Egelke.EHealth.Client.Pki
 
         private static void AddErrorStatus(List<X509ChainStatus> status, X509ChainStatus extraStatus)
         {
-            foreach (X509ChainStatus noErrorStatus in status.Where(x => x.Status == X509ChainStatusFlags.NoError))
-            {
-                status.Remove(noErrorStatus);
-            }
+            status.RemoveAll(x => x.Status == X509ChainStatusFlags.NoError);
             if (status.Count(x => x.Status == extraStatus.Status) == 0) status.Add(extraStatus);
         }
     }

@@ -13,20 +13,23 @@ using Xunit;
 
 namespace Egelke.EHealth.Client.Pki.Test
 {
-    public class TimestampTests : IClassFixture<CTPRootCAFicture>
+    public class TimestampTests : IClassFixture<CTPRootCAFicture>, IClassFixture<QuoVadisFicture>
     {
-        public TimestampTests(CTPRootCAFicture ctpcaFicture)
+        public TimestampTests(CTPRootCAFicture ctpcaFicture, QuoVadisFicture quoVadisFicture)
         {
             bool install = false;
 
             Dictionary<String, bool> ctpca = ctpcaFicture.Verify();
+            Dictionary<String, bool> quoVadisCa = quoVadisFicture.Verify();
             if (!install)
             {
                 if (!ctpca["Qualified"]) throw new InvalidOperationException("Tests will fail due to missing certipost root qualified ca, switch the install flag in the test code to install");
+                if (!quoVadisCa["1 G3"]) throw new InvalidOperationException("Tests will fail due to missing QuoVadis root CA1 G3, switch the install flag in the test code to install");
             }
             else
             {
                 ctpcaFicture.Install("Qualified");
+                quoVadisFicture.Install("1 G3");
             }
         }
 
@@ -193,31 +196,36 @@ namespace Egelke.EHealth.Client.Pki.Test
 
         }
 
-        //[Fact]
-        public void EHealth1()
+        [Fact]
+        public void EHealthTsWithCert()
         {
             //if (DateTime.UtcNow > new DateTime(2016, 3, 17, 11, 25, 11, DateTimeKind.Utc)) Assert.Inconclusive("The timestamp should have been renewed");
 
             TimeStampToken tst = File.ReadAllBytes("files/ehTs.ts").ToTimeStampToken();
             var extraCerts = new X509Certificate2Collection();
-            //add it if you ever find it.
-            //extraCerts.Add(new X509Certificate2(@"files/Certipost E-Trust Secondary Qualified CA for Legal Persons.cer"));
+            extraCerts.Add(new X509Certificate2(@"files/Certipost E-Trust Secondary Qualified CA for Legal Persons.cer"));
 
             Timestamp ts = tst.Validate(extraCerts);
             Assert.Equal(new DateTime(2014, 3, 15, 11, 50, 48, 128, DateTimeKind.Utc).ToString("o"), ts.Time.ToString("o"));
             Assert.Equal(new DateTime(2016, 3, 17, 10, 25, 11, DateTimeKind.Utc).ToString("o"), ts.RenewalTime.ToString("o"));
             Assert.Equal(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
-            Assert.Equal(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
+            Assert.Equal(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.RevocationStatusUnknown));
         }
 
-        //[Fact]
-        public void EHealth2()
+        [Fact]
+        public void EHealthTsWithoutCert()
         {
             TimeStampToken tst = File.ReadAllBytes("files/ehTs2.ts").ToTimeStampToken();
+            var extraCerts = new X509Certificate2Collection();
+            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-ECIS-PRD-1_SN_CFB3-96A5-AFCB_01.cer"));
+            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-ECIS-PRD-2_SN_2BDB-96DB-5692_01.cer"));
+            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-PLATFORM-BCP-2_SN_B65E-8417-F260_01.cer"));
+            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-PLATFORM-PRD-2_SN_D7E6-28F4-8360_01.cer"));
+            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-PLATFORM-PRD-3_SN_9C8B-842C-C94A_01.cer"));
 
-            Timestamp ts = tst.Validate();
-            Assert.Equal(new DateTime(2021, 7, 01, 8, 47, 54, 0, DateTimeKind.Utc).ToString("o"), ts.Time.ToString("o"));
-            Assert.Equal(new DateTime(2021, 11, 23, 10, 24, 0, DateTimeKind.Utc).ToString("o"), ts.RenewalTime.ToString("o"));
+            Timestamp ts = tst.Validate(extraCerts);
+            Assert.Equal(new DateTime(2021, 7, 01, 14, 52, 9, 924, DateTimeKind.Utc).ToString("o"), ts.Time.ToString("o"));
+            Assert.Equal(new DateTime(2022, 1, 13, 9, 30, 58, DateTimeKind.Utc).ToString("o"), ts.RenewalTime.ToString("o"));
             Assert.Equal(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.Equal(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
         }
