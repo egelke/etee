@@ -1,1 +1,0 @@
-﻿<%@ServiceHost language=c# Debug="true" Service="Egelke.Wcf.Client.Test.Host.EchoService"%>
