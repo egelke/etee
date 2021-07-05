@@ -35,20 +35,14 @@ namespace library_core_tests
         {
             return this.GetNameInfo(X509NameType.SimpleName, false);
         }
+
     }
 
     public class IntegrationTest
     {
         public static IEnumerable<object[]> GetCerts()
         {
-            return certs;
-        }
-
-
-        private static List<object[]> certs;
-
-        static IntegrationTest()
-        {
+            List<object[]> certs;
             using (var readers = new Readers(ReaderScope.User))
             using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
             {
@@ -66,11 +60,53 @@ namespace library_core_tests
                     .ToList();
             }
             certs.Add(new object[] { new MyX509Certificate2("eccert.p12", "Test_001") });
+            return certs;
         }
 
         public IntegrationTest()
         {
             ECDSAConfig.Init(); //needed to enable ECDSA globally.
+            using (var localhost = new X509Certificate2("localhost.cer"))
+            using (var store = new X509Store(StoreName.Root, StoreLocation.CurrentUser))
+            {
+                store.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadWrite);
+                X509Certificate2Collection found = store.Certificates.Find(X509FindType.FindByThumbprint, localhost.Thumbprint, false);
+                if (found.Count == 0)
+                {
+                    throw new InvalidOperationException("localhost cert not trusted");
+                    //store.Add(localhost);
+                }
+            }
+
+        }
+
+        [Theory]
+        [MemberData(nameof(GetCerts))]
+        public void Soap11Wss10Failed(X509Certificate2 cert)
+        {
+            var binding = new CustomBinding();
+            binding.Elements.Add(new CustomSecurityBindingElement()
+            {
+                MessageSecurityVersion = SecurityVersion.WSSecurity10
+            });
+            binding.Elements.Add(new TextMessageEncodingBindingElement()
+            {
+                MessageVersion = MessageVersion.Soap11
+            });
+            binding.Elements.Add(new HttpsTransportBindingElement()
+            {
+                //BypassProxyOnLocal = false,
+                //UseDefaultWebProxy = false,
+                //ProxyAddress = new Uri("http://localhost:8866")
+            });
+
+            var ep = new EndpointAddress("https://localhost:8080/services/echo/soap11");
+            ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Credentials.ClientCertificate.Certificate = cert;
+
+            IEchoService client = channelFactory.CreateChannel();
+
+            Assert.Throws<ProtocolException>(() => client.Echo("boe"));
         }
 
         [Theory]
@@ -93,8 +129,7 @@ namespace library_core_tests
                 //ProxyAddress = new Uri("http://localhost:8866")
             });
 
-            //var ep = new EndpointAddress("https://localhost:44373/Echo/service.svc/soap11wss10");
-            var ep = new EndpointAddress("https://localhost:8080/services/Echo");
+            var ep = new EndpointAddress("https://localhost:8080/services/echo/soap11wss10");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
@@ -124,8 +159,7 @@ namespace library_core_tests
                 //ProxyAddress = new Uri("http://localhost:8866")
             });
 
-            //var ep = new EndpointAddress("https://localhost:44373/Echo/service.svc/soap11wss10");
-            var ep = new EndpointAddress("https://localhost:8080/services/Echo12");
+            var ep = new EndpointAddress("https://localhost:8080/services/echo/soap12wss10");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
@@ -156,8 +190,7 @@ namespace library_core_tests
             });
 
 
-            //var ep = new EndpointAddress("https://localhost:44373/Echo/service.svc/soap11wss10");
-            var ep = new EndpointAddress("https://localhost:8080/services/Echo12");
+            var ep = new EndpointAddress("https://localhost:8080/services/echo/soap12wss11");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
@@ -188,8 +221,7 @@ namespace library_core_tests
                 //ProxyAddress = new Uri("http://localhost:8866")
             });
 
-            //var ep = new EndpointAddress("https://localhost:44373/Echo/service.svc/soap11wss10");
-            var ep = new EndpointAddress("https://localhost:8080/services/Echo");
+            var ep = new EndpointAddress("https://localhost:8080/services/echo/soap11wss10all");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
@@ -204,8 +236,24 @@ namespace library_core_tests
         [Fact]
         public void EhealthStsSaml11()
         {
+            X509Certificate2 cert;
+            using (var readers = new Readers(ReaderScope.User))
+            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            {
+                store.Open(OpenFlags.ReadOnly);
+                cert = readers.ListCards()
+                    .OfType<EidCard>()
+                    .Select(c =>
+                    {
+                        c.Open();
+                        String thumbprint = c.AuthCert.Thumbprint;
+                        c.Close();
+                        return store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
+                    })
+                    .FirstOrDefault();
+            }
+
             var doc = new XmlDocument();
-            X509Certificate2 cert = (X509Certificate2) certs.FirstOrDefault()[0];
             Match match = Regex.Match(cert.Subject, @"SERIALNUMBER=(\d{11}),");
             Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
             string ssin = match.Groups[1].Value;
