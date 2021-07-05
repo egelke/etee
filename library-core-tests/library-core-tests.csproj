@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netcoreapp2.1;net461;net5.0</TargetFrameworks>
@@ -8,44 +8,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="eccert.p12">
+		<Content Include="*.p12">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="ehealth-01050399864-int.p12">
+		<Content Include="*.pwd">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="ehealth-01050399864-int.pwd">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="ehealth-79021802145-acc.p12">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="ehealth-79021802145-acc.pwd">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="test.xml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="testSigned.xml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="appsettings.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
-		<PackageReference Include="Microsoft.IdentityModel.Protocols.WsTrust" Version="6.8.0" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+		<PackageReference Include="Egelke.Eid.Client" Version="1.0.0" />
+
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
 		<PackageReference Include="xunit" Version="2.4.1" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="coverlet.collector" Version="1.3.0">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
@@ -63,13 +39,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.ServiceModel.Federation" Version="4.8.1" />
 	  <ProjectReference Include="..\library-core\library-core.csproj" />
 	  <ProjectReference Include="..\pki-module\pki-module.csproj" />
-		<PackageReference Include="Microsoft.IdentityModel.Protocols.WsTrust" Version="6.8.0" />
-		<!--
-	  <ProjectReference Include="..\pki-module\pki-module.csproj" />
-	  -->
 	</ItemGroup>
 
 
