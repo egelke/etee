@@ -32,6 +32,7 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
         private static Oid RSA = new Oid("1.2.840.113549.1.1.1", "RSA");
         private static Oid SHA256WITHRSA = new Oid("1.2.840.113549.1.1.11", "sha256WithRSA");
         private static Oid SHA512WITHRSA = new Oid("1.2.840.113549.1.1.13", "sha512WithRSA");
+        private static Oid SHA256WITHECDSA = new Oid("1.2.840.10045.4.3.2", "sha256WithEcdsa");
 
         private static readonly ReadOnlyCollection<Oid> keyEncryptionAlgorithms;
         private static readonly ReadOnlyCollection<SignatureAlgorithm> signatureAlgorithms;
@@ -56,7 +57,8 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
                 new SignatureAlgorithm(null, SHA256, RSA),
                 new SignatureAlgorithm(null, SHA512, RSA),
                 new SignatureAlgorithm(null, SHA256, SHA256WITHRSA),
-                new SignatureAlgorithm(null, SHA512, SHA512WITHRSA)
+                new SignatureAlgorithm(null, SHA512, SHA512WITHRSA),
+                new SignatureAlgorithm(null, SHA256, SHA256WITHECDSA)
             });
         }
 

@@ -43,7 +43,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 {
     internal static class CertVerifier
     {
-        private static TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
+        //private static TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         public static byte[] GetSubjectKeyIdentifier(this Org.BouncyCastle.X509.X509Certificate cert)
         {
@@ -68,7 +68,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             if (!VerifyKeySize(key, minimumKeySize))
             {
                 result.securityViolations.Add(CertSecurityViolation.NotValidKeySize);
-                trace.TraceEvent(TraceEventType.Warning, 0, "The key was smaller then {0}", minimumKeySize);
+                //trace.TraceEvent(TraceEventType.Warning, 0, "The key was smaller then {0}", minimumKeySize);
             }
 
             //check key usages
@@ -77,7 +77,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                 if (!cert.GetKeyUsage()[i])
                 {
                     result.securityViolations.Add(CertSecurityViolation.NotValidForUsage);
-                    trace.TraceEvent(TraceEventType.Warning, 0, "The key usage did not have the correct usage flag {0} set", i);
+                    //trace.TraceEvent(TraceEventType.Warning, 0, "The key usage did not have the correct usage flag {0} set", i);
                 }
             }
 
@@ -93,14 +93,14 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             Org.BouncyCastle.X509.X509Certificate issuer = cert.ValidateAndGetDerivedIssuer(certs);
             if (issuer != null)
             {
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Detected eHealth variant of proxy certificate");
+                //trace.TraceEvent(TraceEventType.Verbose, 0, "Detected eHealth variant of proxy certificate");
 
                 //check proxy certificate, is it still valid?
                 if (!cert.IsValid(date))
                 {
                     dest.securityViolations.Add(CertSecurityViolation.NotTimeValid);
-                    trace.TraceEvent(TraceEventType.Warning, 0, "The proxy certificate is expired or not yet valid, {0} not between {1}-{2}", 
-                        date, cert.NotBefore, cert.NotAfter);
+                    //trace.TraceEvent(TraceEventType.Warning, 0, "The proxy certificate is expired or not yet valid, {0} not between {1}-{2}", 
+                    //    date, cert.NotBefore, cert.NotAfter);
                 }
 
                 //The issuer signature of the proxy certificate is already checked...
@@ -115,7 +115,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                 if (!VerifyKeySize(key, minimumKeySize))
                 {
                     dest.securityViolations.Add(CertSecurityViolation.NotValidKeySize);
-                    trace.TraceEvent(TraceEventType.Warning, 0, "The key of the issuer was smaller then {0}", minimumKeySize);
+                    //trace.TraceEvent(TraceEventType.Warning, 0, "The key of the issuer was smaller then {0}", minimumKeySize);
                 }
 
                 //check key usage of the issuer
@@ -124,7 +124,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
                     if (!issuer.GetKeyUsage()[i])
                     {
                         dest.securityViolations.Add(CertSecurityViolation.NotValidForUsage);
-                        trace.TraceEvent(TraceEventType.Warning, 0, "The key usage of the issuer did not have the correct usage flag set");
+                        //trace.TraceEvent(TraceEventType.Warning, 0, "The key usage of the issuer did not have the correct usage flag set");
                     }
                 }
             }
@@ -161,7 +161,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             }
             
 
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Verified certificate {0} for date {1}", cert.SubjectDN.ToString(), date);
+            //trace.TraceEvent(TraceEventType.Verbose, 0, "Verified certificate {0} for date {1}", cert.SubjectDN.ToString(), date);
             return result;
         }
 
@@ -227,7 +227,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
         {
             if (key is RsaKeyParameters)
             {
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The key has a size of {0}", ((RsaKeyParameters)key).Modulus.BitLength);
+                //trace.TraceEvent(TraceEventType.Verbose, 0, "The key has a size of {0}", ((RsaKeyParameters)key).Modulus.BitLength);
                 if (((RsaKeyParameters)key).Modulus.BitLength < minKeySize)
                 {
                     return false;
@@ -235,7 +235,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             }
             else if (key is DsaKeyParameters)
             {
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The key has a size of {0}", ((DsaKeyParameters)key).Parameters.P.BitLength);
+                //trace.TraceEvent(TraceEventType.Verbose, 0, "The key has a size of {0}", ((DsaKeyParameters)key).Parameters.P.BitLength);
                 if (((DsaKeyParameters)key).Parameters.P.BitLength < minKeySize)
                 {
                     return false;

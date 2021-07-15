@@ -1,48 +1,45 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
-  <PropertyGroup>
-    <TargetFrameworks>net452;net46;netcoreapp2.0;netstandard2.0</TargetFrameworks>
-    <RootNamespace>Egelke.EHealth.Etee.Crypto</RootNamespace>
-    <AssemblyName>Egelke.EHealth.Etee.Crypto</AssemblyName>
-    <Version>2.2.1</Version>
-    <Authors>Egelke BVBA</Authors>
-    <Product>E2EE</Product>
-    <Description>.Net End-To-End Encryption Library for eHealth</Description>
-    <Copyright>Copyright © Egelke BVBA 2013-2021</Copyright>
-    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/egelke/etee</PackageProjectUrl>
-    <PackageTags>eHealth Encrpytion</PackageTags>
-    <PackageReleaseNotes>Upgrade to latest PKI version (increase clock skewness)
-</PackageReleaseNotes>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <SignAssembly>true</SignAssembly>
-    <RepositoryUrl>https://github.com/egelke/etee.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <IncludeSource>true</IncludeSource>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Egelke.EHealth.Client.Pki" Version="2.2.1" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.6.7" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net5.0;net461;netstandard2.0;netcoreapp2.1</TargetFrameworks>
+		<RootNamespace>Egelke.EHealth.Etee.Crypto</RootNamespace>
+		<AssemblyName>Egelke.EHealth.Etee.Crypto</AssemblyName>
+		<Version>2.3.0-beta1</Version>
+		<Authors>Egelke BVBA</Authors>
+		<Product>E2EE</Product>
+		<Description>.Net End-To-End Encryption Library for eHealth</Description>
+		<Copyright>Copyright © Egelke BVBA 2013-2022</Copyright>
+		<PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/egelke/etee</PackageProjectUrl>
+		<PackageTags>eHealth Encrpytion</PackageTags>
+		<PackageReleaseNotes>Support for ECDSA keys</PackageReleaseNotes>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<SignAssembly>true</SignAssembly>
+		<RepositoryUrl>https://github.com/egelke/etee.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<IncludeSource>true</IncludeSource>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
-    <PackageReference Include="Egelke.Eid.Client" Version="1.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Egelke.EHealth.Client.Pki" Version="[2.3.0,3.0.0)" />
+		<PackageReference Include="Portable.BouncyCastle" Version="1.8.*" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.*" />
+	</ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.5" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.5" />
-  </ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+		<PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="5.*" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+		<PackageReference Include="Egelke.Eid.Client" Version="1.*" />
+	</ItemGroup>
 
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <AssemblyOriginatorKeyFile>..\release.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<AssemblyOriginatorKeyFile>..\release.snk</AssemblyOriginatorKeyFile>
+	</PropertyGroup>
 </Project>

@@ -28,7 +28,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
     [TestClass]
     public class Config
     {
-        private static bool doSetup = false;
+        private static bool doSetup = true;
 
         private static bool doCleanup = false;
 

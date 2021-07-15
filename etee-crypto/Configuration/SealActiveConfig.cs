@@ -32,9 +32,11 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
         private static Oid RSA = new Oid("1.2.840.113549.1.1.1", "RSA");
         private static Oid SHA256WITHRSA = new Oid("1.2.840.113549.1.1.11", "sha256WithRSA");
         private static Oid SHA256WITHRSAANDMGF1 = new Oid("1.2.840.113549.1.1.10", "sha256WithRsaAndMgf1");
+        private static Oid SHA256WITHECDSA = new Oid("1.2.840.10045.4.3.2", "sha256WithEcdsa");
 
         private static SignatureAlgorithm SHA256WITHRSAALG = new SignatureAlgorithm(SHA256WITHRSA, SHA256, RSA);
         private static SignatureAlgorithm SHA256WITHRSAANDMGF1ALG = new SignatureAlgorithm(SHA256WITHRSAANDMGF1, SHA256, RSASSAPSS);
+        private static SignatureAlgorithm SHA256WITHECDSAALG = new SignatureAlgorithm(SHA256WITHECDSA, SHA256, SHA256WITHECDSA);
 
         public SealActiveConfig()
         {
@@ -56,6 +58,14 @@ namespace Egelke.EHealth.Etee.Crypto.Configuration
             get
             {
                 return SHA256WITHRSAALG;
+            }
+        }
+
+        public SignatureAlgorithm ECSignatureAlgorithm
+        {
+            get
+            {
+                return SHA256WITHECDSAALG;
             }
         }
 

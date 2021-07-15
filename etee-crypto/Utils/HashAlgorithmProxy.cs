@@ -25,7 +25,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 
         public override bool CanWrite => true;
 
-        public override long Length => proxy.HashSize;
+        public override long Length => throw new InvalidOperationException();
 
         public override long Position { get => throw new InvalidOperationException(); set => throw new InvalidOperationException(); }
 
@@ -51,7 +51,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            proxy.TransformBlock(buffer, offset, count, null, 0);
+            proxy.TransformBlock(buffer, offset, count, buffer, 0);
         }
 
         public override void Close()

@@ -30,7 +30,6 @@ using Org.BouncyCastle.Security;
 using Egelke.EHealth.Client.Pki;
 using Egelke.EHealth.Client.Pki.DSS;
 using System.ServiceModel.Description;
-using Egelke.EHealth.Client.Sso.WA;
 using Egelke.EHealth.Client.Sso.Sts;
 using System.ServiceModel;
 using System.Security.Cryptography;
@@ -129,8 +128,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             byte[] hash = sha.ComputeHash(Convert.FromBase64String(output.Trim()));
 
             var tsa = new TimeStampAuthorityClient(new StsBinding(), new EndpointAddress("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2"));
-            tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
-            tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
+            //tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
+            //tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
             tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
 
             var tsProvider = new EHealthTimestampProvider(tsa);
@@ -198,8 +197,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             byte[] hash = sha.ComputeHash(Convert.FromBase64String(output.Trim()));
 
             var tsa = new TimeStampAuthorityClient(new StsBinding(), new EndpointAddress("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2"));
-            tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
-            tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
+            //tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
+            //tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
             tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
 
             var tsProvider = new EHealthTimestampProvider(tsa);
@@ -336,8 +335,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
             var tsa = new TimeStampAuthorityClient(new StsBinding(), new EndpointAddress("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2"));
-            tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
-            tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
+            //tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
+            //tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
             tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
 
             IDataSealer sealer = EidDataSealerFactory.Create(Level.LT_Level, new EHealthTimestampProvider(tsa));
@@ -360,8 +359,8 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             String text = "This is a secret message from Alice for Bob written at " + DateTime.Now.ToString();
 
             var tsa = new TimeStampAuthorityClient(new StsBinding(), new EndpointAddress("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2"));
-            tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
-            tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
+            //tsa.Endpoint.Behaviors.Remove<ClientCredentials>();
+            //tsa.Endpoint.Behaviors.Add(new OptClientCredentials());
             tsa.ClientCredentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindByThumbprint, "566fd3fe13e3ab185a7224bcec8ad9cffbf9e9c2");
 
             IDataSealer sealer = EidDataSealerFactory.Create(Level.B_Level);

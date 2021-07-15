@@ -40,11 +40,11 @@ using Egelke.EHealth.Etee.Crypto.Store;
 using Egelke.EHealth.Etee.Crypto.Sender;
 using System.Linq;
 using Org.BouncyCastle.Crypto.Operators;
-
-#if NETFRAMEWORK
-using System.Diagnostics;
-#else
 using Microsoft.Extensions.Logging;
+
+using System.Diagnostics;
+#if NETFRAMEWORK
+using Microsoft.Extensions.Logging.TraceSource;
 #endif
 
 
@@ -52,11 +52,7 @@ namespace Egelke.EHealth.Etee.Crypto
 {
     internal class TripleWrapper : IDataSealer, IDataCompleter, ITmaDataCompleter
     {
-#if NETFRAMEWORK
-        private readonly TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
-#else
         private readonly ILogger logger;
-#endif
 
         private Level level;
 
@@ -79,9 +75,12 @@ namespace Egelke.EHealth.Etee.Crypto
             Level level, WebKey ownWebKey, ITimestampProvider timestampProvider) {
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only levels B, T, LT and LTA are allowed");
 
-#if !NETFRAMEWORK
-            logger = loggerFactory.CreateLogger("Egelke.EHealth.Etee");
+#if NETFRAMEWORK
+            var trace = new TraceSource("Egelke.EHealth.Etee");
+            ILoggerProvider loggerFactory = new TraceSourceLoggerProvider(trace.Switch);
 #endif
+            logger = loggerFactory?.CreateLogger("Egelke.EHealth.Etee");
+
             this.level = level;
             this.ownWebKey = ownWebKey;
             this.timestampProvider = timestampProvider;
@@ -96,9 +95,12 @@ namespace Egelke.EHealth.Etee.Crypto
             //basic checks
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only levels B, T, LT and LTA are allowed");
 
-#if !NETFRAMEWORK
-            logger = loggerFactory.CreateLogger("Egelke.EHealth.Etee");
+#if NETFRAMEWORK
+            var trace = new TraceSource("Egelke.EHealth.Etee");
+            ILoggerProvider loggerFactory = new TraceSourceLoggerProvider(trace.Switch);
 #endif
+            logger = loggerFactory?.CreateLogger("Egelke.EHealth.Etee");
+
             this.level = level;
             this.signature = signature;
             this.authentication = authentication;
@@ -116,11 +118,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
         public Stream Complete(Stream sealedData, out TimemarkKey timemarkKey)
         {
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Information, 0, "Completing the provided sealed message with revocation and time info according to the level {0}", this.level);
-#else
-            logger.LogInformation("Completing the provided sealed message with revocation and time info according to the level {0}", this.level);
-#endif
+            logger?.LogInformation("Completing the provided sealed message with revocation and time info according to the level {0}", this.level);
 
             ITempStreamFactory factory = NewFactory(sealedData);
             Stream completed = factory.CreateNew();
@@ -180,13 +178,8 @@ namespace Egelke.EHealth.Etee.Crypto
 
         private Stream Seal(ITempStreamFactory factory, Stream unsealedStream, SecretKey skey, X509Certificate2[] certs, WebKey[] webKeys)
         {
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Information, 0, "Sealing message of {0} bytes for {1}/{2} known recipients and {3} unknown recipients to level {3}",
+            logger?.LogInformation("Sealing message of {0} bytes for {1}/{2} known recipients and {3} unknown recipients to level {3}",
                 unsealedStream.Length, certs?.Length, webKeys?.Length, skey == null ? 0 : 1, this.level);
-#else
-            logger.LogInformation("Sealing message of {0} bytes for {1}/{2} known recipients and {3} unknown recipients to level {3}",
-                unsealedStream.Length, certs?.Length, webKeys?.Length, skey == null ? 0 : 1, this.level);
-#endif
 
             using (
                 Stream innerDetached = new MemoryStream(),
@@ -240,11 +233,7 @@ namespace Egelke.EHealth.Etee.Crypto
                     {
                         if (retry++ < 4)
                         {
-#if NETFRAMEWORK
-                            trace.TraceEvent(TraceEventType.Warning, 0, "Failed to put outer signature, staring loop: {0}", ce);
-#else
-                            logger.LogWarning("Failed to put outer signature, staring loop: {0}", ce);
-#endif
+                            logger?.LogWarning("Failed to put outer signature, staring loop: {0}", ce);
                             System.Threading.Thread.Sleep((int)Math.Pow(10, retry));
                         }
                         else
@@ -273,23 +262,29 @@ namespace Egelke.EHealth.Etee.Crypto
         protected void SignDetached(Stream signed, Stream unsigned, X509Certificate2 selectedCert)
         {
             BC::X509.X509Certificate bcSelectedCert = DotNetUtilities.FromX509Certificate(selectedCert);
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", selectedCert.Subject);
-#else
-            logger.LogInformation("Signing the message in name of {0}", selectedCert.Subject);
-#endif
+            logger?.LogInformation("Signing the message in name of {0}", selectedCert.Subject);
 
-            BC.Crypto.ISignatureFactory sigFactory;
-            try
+            SignatureAlgorithm signAlgo;
+            BC.Crypto.ISignatureFactory sigFactory = null;
+            AsymmetricAlgorithm key = (AsymmetricAlgorithm) selectedCert.GetECDsaPrivateKey() ?? selectedCert.GetRSAPrivateKey();
+            if (key is RSA rsaKey)
             {
-                SignatureAlgorithm signAlgo = EteeActiveConfig.Seal.NativeSignatureAlgorithm;
-                BC::Crypto.AsymmetricCipherKeyPair keyPair = DotNetUtilities.GetKeyPair(selectedCert.PrivateKey);
-                sigFactory = new Asn1SignatureFactory(signAlgo.Algorithm.FriendlyName, keyPair.Private);
+                try
+                {
+                    signAlgo = EteeActiveConfig.Seal.NativeSignatureAlgorithm;
+                    BC::Crypto.AsymmetricCipherKeyPair keyPair = DotNetUtilities.GetRsaKeyPair(rsaKey);
+                    sigFactory = new Asn1SignatureFactory(signAlgo.Algorithm.FriendlyName, keyPair.Private);
+                } 
+                catch (CryptographicException e)
+                {
+                    logger?.LogDebug(0, e, "Failed to export key");
+                    signAlgo = EteeActiveConfig.Seal.WindowsSignatureAlgorithm;
+                    sigFactory = new WinSignatureFactory(signAlgo.Algorithm, signAlgo.DigestAlgorithm, key);
+                }
             }
-            catch (CryptographicException)
-            { 
-                SignatureAlgorithm signAlgo = EteeActiveConfig.Seal.WindowsSignatureAlgorithm;
-                sigFactory = new WinSignatureFactory(signAlgo.Algorithm, signAlgo.DigestAlgorithm, selectedCert.PrivateKey);
+            if (key is ECDsa ecdsaKey) {
+                signAlgo = EteeActiveConfig.Seal.ECSignatureAlgorithm;
+                sigFactory = new WinSignatureFactory(signAlgo.Algorithm, signAlgo.DigestAlgorithm, ecdsaKey);
             }
 
             SignerInfoGenerator sigInfoGen = new SignerInfoGeneratorBuilder()
@@ -306,11 +301,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
         protected void SignDetached(Stream signed, Stream unsigned, BC::Crypto.AsymmetricCipherKeyPair bcKeyPair, byte[] keyId)
         {
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Information, 0, "Signing the message in name of {0}", Convert.ToBase64String(keyId));
-#else
-            logger.LogInformation("Signing the message in name of {0}", Convert.ToBase64String(keyId));
-#endif
+            logger?.LogInformation("Signing the message in name of {0}", Convert.ToBase64String(keyId));
 
             SignatureAlgorithm signAlgo = EteeActiveConfig.Seal.NativeSignatureAlgorithm;
             var sigFactory = new Asn1SignatureFactory(signAlgo.Algorithm.FriendlyName, bcKeyPair.Private);
@@ -329,13 +320,8 @@ namespace Egelke.EHealth.Etee.Crypto
 
         protected void Encrypt(Stream cipher, Stream clear, ICollection<X509Certificate2> certs, SecretKey key, WebKey[] webKeys)
         {
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Information, 0, "Encrypting message for {0} known and {1} unknown recipient",
+            logger?.LogInformation("Encrypting message for {0} known and {1} unknown recipient",
                 certs == null ? 0 : certs.Count, key == null ? 0 : 1);
-#else
-            logger.LogInformation("Encrypting message for {0} known and {1} unknown recipient",
-                certs == null ? 0 : certs.Count, key == null ? 0 : 1);
-#endif
             CmsEnvelopedDataStreamGenerator encryptGenerator = new CmsEnvelopedDataStreamGenerator();
             if (certs != null)
             {
@@ -343,70 +329,41 @@ namespace Egelke.EHealth.Etee.Crypto
                 {
                     BC::X509.X509Certificate bcCert = DotNetUtilities.FromX509Certificate(cert);
                     encryptGenerator.AddKeyTransRecipient(bcCert);
-#if NETFRAMEWORK
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "Added known recipient: {0} ({1})", bcCert.SubjectDN.ToString(), bcCert.IssuerDN.ToString());
-#else
-                    logger.LogDebug("Added known recipient: {0} ({1})", bcCert.SubjectDN.ToString(), bcCert.IssuerDN.ToString());
-#endif
+                    logger?.LogDebug("Added known recipient: {0} ({1})", bcCert.SubjectDN.ToString(), bcCert.IssuerDN.ToString());
                 }
             }
             if (key != null)
             {
                 encryptGenerator.AddKekRecipient("AES", key.BCKey, key.Id);
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Added unknown recipient [Algorithm={0}, keyId={1}]", "AES", key.IdString);
-#else
-                logger.LogDebug("Added unknown recipient [Algorithm={0}, keyId={1}]", "AES", key.IdString);
-#endif
+                logger?.LogDebug("Added unknown recipient [Algorithm={0}, keyId={1}]", "AES", key.IdString);
             }
             if (webKeys != null)
             {
                 foreach(WebKey webKey in webKeys)
                 {
                     encryptGenerator.AddKeyTransRecipient(webKey.BCPublicKey, webKey.Id);
-#if NETFRAMEWORK
-                    trace.TraceEvent(TraceEventType.Verbose, 0, "Added web recipient [Algorithm={0}, keyId={1}]", "RSA", webKey.IdString);
-#else
-                    logger.LogDebug("Added web recipient [Algorithm={0}, keyId={1}]", "RSA", webKey.IdString);
-#endif
+                    logger?.LogDebug("Added web recipient [Algorithm={0}, keyId={1}]", "RSA", webKey.IdString);
                 }
             }
 
             Stream encryptingStream = encryptGenerator.Open(cipher, EteeActiveConfig.Seal.EncryptionAlgorithm.Value);
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Create encrypted message (still empty) [EncAlgo={0} ({1})]",
+            logger?.LogDebug("Create encrypted message (still empty) [EncAlgo={0} ({1})]",
                 EteeActiveConfig.Seal.EncryptionAlgorithm.FriendlyName, EteeActiveConfig.Seal.EncryptionAlgorithm.Value);
-#else
-            logger.LogDebug("Create encrypted message (still empty) [EncAlgo={0} ({1})]",
-                EteeActiveConfig.Seal.EncryptionAlgorithm.FriendlyName, EteeActiveConfig.Seal.EncryptionAlgorithm.Value);
-#endif
             try
             {
                 clear.CopyTo(encryptingStream);
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Message encrypted");
-#else
-                logger.LogDebug("Message encrypted");
-#endif
+                logger?.LogDebug("Message encrypted");
             }
             finally
             {
                 encryptingStream.Close();
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Recipient infos added");
-#else
-                logger.LogDebug("Recipient infos added");
-#endif
+                logger?.LogDebug("Recipient infos added");
             }
         }
 
         protected void Complete(Level? level, Stream embedded, Stream signed, Stream content, X509Certificate2 providedSigner, out TimemarkKey timemarkKey)
         {
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Information, 0, "Completing the message with of {0} bytes to level {1}", signed.Length, level);
-#else
-            logger.LogInformation("Completing the message with of {0} bytes to level {1}", signed.Length, level);
-#endif
+            logger?.LogInformation("Completing the message with of {0} bytes to level {1}", signed.Length, level);
 
             //Create the objects we need
             var gen = new CmsSignedDataStreamGenerator();
@@ -444,21 +401,13 @@ namespace Egelke.EHealth.Etee.Crypto
             //quick check for an expected error and extrapolate some info
             if (timemarkKey.SignerId == null)
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Error, 0, "We could not find any signer information");
-#else
-                logger.LogError("We could not find any signer information");
-#endif
+                logger?.LogError("We could not find any signer information");
                 throw new InvalidMessageException("The message does not contain any valid signer info");
             }
 
             if (timemarkKey.SigningTime == default && tst != null)
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Information, 0, "Implicit signing time is replaced with time-stamp time {1}", tst.TimeStampInfo.GenTime);
-#else
-                logger.LogInformation("Implicit signing time is replaced with time-stamp time {1}", tst.TimeStampInfo.GenTime);
-#endif
+                logger?.LogInformation("Implicit signing time is replaced with time-stamp time {1}", tst.TimeStampInfo.GenTime);
                 timemarkKey.SigningTime = tst.TimeStampInfo.GenTime;
             }
 
@@ -512,11 +461,7 @@ namespace Egelke.EHealth.Etee.Crypto
             SignerInformationStore signerInfoStore = parser.GetSignerInfos();
             if (signerInfoStore.Count != 1)
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Error, 0, "The message to complete does not contain a single signature");
-#else
-                logger.LogError("The message to complete does not contain a single signature");
-#endif
+                logger?.LogError("The message to complete does not contain a single signature");
                 throw new InvalidMessageException("The message does not contain a single signature");
             }
 
@@ -540,11 +485,7 @@ namespace Egelke.EHealth.Etee.Crypto
             }
             else
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Warning, 0, "The message to complete does not contain a signing time");
-#else
-                logger.LogWarning("The message to complete does not contain a signing time");
-#endif
+                logger?.LogWarning("The message to complete does not contain a signing time");
                 return default;
             }
         }
@@ -557,29 +498,17 @@ namespace Egelke.EHealth.Etee.Crypto
                 IEnumerator signerCerts = embeddedCerts.GetMatches(signerInfo.SignerID).GetEnumerator();
                 if (!signerCerts.MoveNext())
                 {
-#if NETFRAMEWORK
-                    trace.TraceEvent(TraceEventType.Error, 0, "The message does contains certificates, but the signing certificate is missing");
-#else
-                    logger.LogError("The message does contains certificates, but the signing certificate is missing");
-#endif
+                    logger?.LogError("The message does contains certificates, but the signing certificate is missing");
                     throw new InvalidMessageException("The message does not contain the signer certificate");
                 }
                 var signer = new X509Certificate2(((BC::X509.X509Certificate)signerCerts.Current).GetEncoded());
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The message contains certificates, of which {0} is the signer", signer.Subject);
-#else
-                logger.LogDebug("The message contains certificates, of which {0} is the signer", signer.Subject);
-#endif
+                logger?.LogDebug("The message contains certificates, of which {0} is the signer", signer.Subject);
                 //maybe (one day) check if the found signer corresponds to the provided signer)
                 return signer;
             }
             else
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Verbose, 0, "The message does not contains certificates, adding the provided {0}", provided?.Subject);
-#else
-                logger.LogDebug("The message does not contains certificates, adding the provided {0}", provided?.Subject);
-#endif
+                logger?.LogDebug("The message does not contains certificates, adding the provided {0}", provided?.Subject);
                 return provided;
             }
         }
@@ -595,11 +524,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 DerSet rawTsts = (DerSet)timestampAttr.AttrValues;
                 if (rawTsts.Count > 1)
                 {
-#if NETFRAMEWORK
-                    trace.TraceEvent(TraceEventType.Error, 0, "There are {0} signature timestamps present", rawTsts.Count);
-#else
-                    logger.LogError("There are {0} signature timestamps present", rawTsts.Count);
-#endif
+                    logger?.LogError("There are {0} signature timestamps present", rawTsts.Count);
                     throw new NotSupportedException("The library does not support more then one time-stamp");
                 }
 
@@ -628,22 +553,14 @@ namespace Egelke.EHealth.Etee.Crypto
             Chain chain = timemarkKey.Signer.BuildChain(timemarkKey.SigningTime == default ? DateTime.UtcNow : timemarkKey.SigningTime, extraStore);
             if (chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Error, 0, "The certification chain of {0} failed with errors", chain.ChainElements[0].Certificate.Subject);
-#else
-                logger.LogError("The certification chain of {0} failed with errors", chain.ChainElements[0].Certificate.Subject);
-#endif
+                logger?.LogError("The certification chain of {0} failed with errors", chain.ChainElements[0].Certificate.Subject);
                 throw new InvalidMessageException(string.Format("The certificate chain of the signer {0} fails basic validation", timemarkKey.Signer.Subject));
             }
 
             List<BC::X509.X509Certificate> senderChainCollection = new List<BC::X509.X509Certificate>();
             foreach (ChainElement ce in chain.ChainElements)
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Verbose, 0, "Adding the certificate {0} to the message", ce.Certificate.Subject);
-#else
-                logger.LogDebug("Adding the certificate {0} to the message", ce.Certificate.Subject);
-#endif
+                logger?.LogDebug("Adding the certificate {0} to the message", ce.Certificate.Subject);
                 senderChainCollection.Add(DotNetUtilities.FromX509Certificate(ce.Certificate));
             }
             return X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(senderChainCollection));
@@ -658,11 +575,7 @@ namespace Egelke.EHealth.Etee.Crypto
         {
             SHA256 sha = SHA256.Create();
             byte[] signatureHash = sha.ComputeHash(timemarkKey.SignatureValue);
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Verbose, 0, "SHA-256 hashed the signature value from {0} to {1}", Convert.ToBase64String(timemarkKey.SignatureValue), Convert.ToBase64String(signatureHash));
-#else
-            logger.LogDebug("SHA-256 hashed the signature value from {0} to {1}", Convert.ToBase64String(timemarkKey.SignatureValue), Convert.ToBase64String(signatureHash));
-#endif
+            logger?.LogDebug("SHA-256 hashed the signature value from {0} to {1}", Convert.ToBase64String(timemarkKey.SignatureValue), Convert.ToBase64String(signatureHash));
 
             byte[] rawTst = timestampProvider.GetTimestampFromDocumentHash(signatureHash, "http://www.w3.org/2001/04/xmlenc#sha256");
             TimeStampToken tst = rawTst.ToTimeStampToken();
@@ -670,11 +583,7 @@ namespace Egelke.EHealth.Etee.Crypto
             //basic check
             if (!tst.IsMatch(new MemoryStream(timemarkKey.SignatureValue)))
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Error, 0, "The time-stamp does not correspond to the signature value {0}", Convert.ToBase64String(timemarkKey.SignatureValue));
-#else
-                logger.LogError("The time-stamp does not correspond to the signature value {0}", Convert.ToBase64String(timemarkKey.SignatureValue));
-#endif
+                logger?.LogError("The time-stamp does not correspond to the signature value {0}", Convert.ToBase64String(timemarkKey.SignatureValue));
                 throw new InvalidOperationException("The time-stamp authority did not return a matching time-stamp");
             }
 
@@ -687,22 +596,14 @@ namespace Egelke.EHealth.Etee.Crypto
             byte[] rawTst = tst.GetEncoded();
             BC.Asn1.Cms.Attribute signatureTstAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAASignatureTimeStampToken, new DerSet(Asn1Object.FromByteArray(rawTst)));
             unsignedAttributes[signatureTstAttr.AttrType] = signatureTstAttr;
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Added the time-stamp {0} [Token={1}]", tst.TimeStampInfo.GenTime, Convert.ToBase64String(rawTst));
-#else
-            logger.LogDebug("Added the time-stamp {0} [Token={1}]", tst.TimeStampInfo.GenTime, Convert.ToBase64String(rawTst));
-#endif
+            logger?.LogDebug("Added the time-stamp {0} [Token={1}]", tst.TimeStampInfo.GenTime, Convert.ToBase64String(rawTst));
         }
 
         private RevocationValues GetRevocationValues(TimemarkKey timemarkKey, IX509Store embeddedCerts, RevocationValues revocationInfo)
         {
             IList<CertificateList> crls = new List<CertificateList>(revocationInfo.GetCrlVals());
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>(revocationInfo.GetOcspVals());
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Start getting revocation values for Cert, having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
-#else
-            logger.LogDebug("Start getting revocation values for Cert, having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
-#endif
+            logger?.LogDebug("Start getting revocation values for Cert, having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
 
             var chainExtraStore = new X509Certificate2Collection();
             foreach (Org.BouncyCastle.X509.X509Certificate cert in embeddedCerts.GetMatches(null))
@@ -712,20 +613,11 @@ namespace Egelke.EHealth.Etee.Crypto
             Chain chain = timemarkKey.Signer.BuildChain(timemarkKey.SigningTime, chainExtraStore, crls, ocsps);
             if (chain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Error, 0, "The certificate chain of the signer {0} failed with {1} issues: {2}, {3}", timemarkKey.Signer.Subject,
+                logger?.LogError("The certificate chain of the signer {0} failed with {1} issues: {2}, {3}", timemarkKey.Signer.Subject,
                     chain.ChainStatus.Count, chain.ChainStatus[0].Status, chain.ChainStatus[0].StatusInformation);
-#else
-                logger.LogError("The certificate chain of the signer {0} failed with {1} issues: {2}, {3}", timemarkKey.Signer.Subject,
-                    chain.ChainStatus.Count, chain.ChainStatus[0].Status, chain.ChainStatus[0].StatusInformation);
-#endif
                 throw new InvalidMessageException(string.Format("The certificate chain of the signer {0} fails revocation validation", timemarkKey.Signer.Subject));
             }
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Finished getting revocation values for Cert, now having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
-#else
-            logger.LogDebug("Finished getting revocation values for Cert, now having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
-#endif
+            logger?.LogDebug("Finished getting revocation values for Cert, now having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
             return new RevocationValues(crls, ocsps, null);
         }
 
@@ -733,29 +625,16 @@ namespace Egelke.EHealth.Etee.Crypto
         {
             IList<CertificateList> crls = new List<CertificateList>(revocationInfo.GetCrlVals());
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>(revocationInfo.GetOcspVals());
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Start getting revocation values for TST, having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
-#else
-            logger.LogDebug("Start getting revocation values for TST, having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
-#endif
+            logger?.LogDebug("Start getting revocation values for TST, having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
 
             Timestamp ts = tst.Validate(crls, ocsps);
             if (ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError) > 0)
             {
-#if NETFRAMEWORK
-                trace.TraceEvent(TraceEventType.Error, 0, "The certificate chain of the time-stamp signer {0} failed with {1} issues: {2}, {3}", ts.CertificateChain.ChainElements[0].Certificate.Subject,
+                logger?.LogError("The certificate chain of the time-stamp signer {0} failed with {1} issues: {2}, {3}", ts.CertificateChain.ChainElements[0].Certificate.Subject,
                 ts.TimestampStatus.Count, ts.TimestampStatus[0].Status, ts.TimestampStatus[0].StatusInformation);
-#else
-                logger.LogError("The certificate chain of the time-stamp signer {0} failed with {1} issues: {2}, {3}", ts.CertificateChain.ChainElements[0].Certificate.Subject,
-                ts.TimestampStatus.Count, ts.TimestampStatus[0].Status, ts.TimestampStatus[0].StatusInformation);
-#endif
                 throw new InvalidMessageException("The embedded time-stamp fails validation");
             }
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Finished getting revocation values for TST, now having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
-#else
-            logger.LogDebug("Finished getting revocation values for TST, now having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
-#endif
+            logger?.LogDebug("Finished getting revocation values for TST, now having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
             return new RevocationValues(crls, ocsps, null);
         }
 
@@ -763,11 +642,7 @@ namespace Egelke.EHealth.Etee.Crypto
         {
             BC::Asn1.Cms.Attribute revocationAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAAEtsRevocationValues, new DerSet(revocationInfo.ToAsn1Object()));
             unsignedAttributes[revocationAttr.AttrType] = revocationAttr;
-#if NETFRAMEWORK
-            trace.TraceEvent(TraceEventType.Verbose, 0, "Added OCSP's and CRL's to the message");
-#else
-            logger.LogDebug("Added OCSP's and CRL's to the message");
-#endif
+            logger?.LogDebug("Added OCSP's and CRL's to the message");
         }
     }
 }

@@ -30,7 +30,6 @@ using Org.BouncyCastle.Security;
 using Egelke.EHealth.Client.Pki;
 using Egelke.EHealth.Client.Pki.DSS;
 using System.ServiceModel.Description;
-using Egelke.EHealth.Client.Sso.WA;
 using Egelke.EHealth.Client.Sso.Sts;
 using System.ServiceModel;
 using System.Security.Cryptography;

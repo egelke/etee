@@ -52,7 +52,7 @@ namespace Egelke.EHealth.Etee.Crypto
     /// </remarks>
     public class EncryptionToken
     {
-        private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
+        //private TraceSource trace = new TraceSource("Egelke.EHealth.Etee");
 
         private byte[] content;
         private CmsSignedData raw;
@@ -153,7 +153,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
             //Get encryption cert
             BC::X509Certificate encCert = DotNetUtilities.FromX509Certificate(ToCertificate());
-            trace.TraceEvent(TraceEventType.Information, 0, "Verifying ETK: {0}", encCert.SubjectDN.ToString());
+            //trace.TraceEvent(TraceEventType.Information, 0, "Verifying ETK: {0}", encCert.SubjectDN.ToString());
 
             //Check the certificate
             IX509Store certs = raw.GetCertificates("COLLECTION");
@@ -171,7 +171,7 @@ namespace Egelke.EHealth.Etee.Crypto
             if (!(encCert.GetPublicKey() is RsaKeyParameters))
             {
                 certInfo.securityViolations.Add(CertSecurityViolation.NotValidKeyType);
-                trace.TraceEvent(TraceEventType.Warning, 0, "Only RSA keys can be used for sealing");
+                //trace.TraceEvent(TraceEventType.Warning, 0, "Only RSA keys can be used for sealing");
             }
             return certInfo;
         }

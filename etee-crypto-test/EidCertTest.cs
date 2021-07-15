@@ -52,11 +52,12 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
         const String clearMessage = "This is a secret message from Alice for Bob";
 
-        static EHealthP12 ehCert;
 
-        static String subject = "SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Authentication), C=BE";
+        //static String authSubject =  "SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Authentication), C=BE";
+        static String authSubject = "SERIALNUMBER=01050399864, G=Nora Angèle, SN=Specimen, CN=Nora Specimen (Authentication), C=BE";
 
-        static String subject2 = "SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Signature), C=BE";
+        //static String signSubject = "SERIALNUMBER=79021802145, G=Bryan Eduard, SN=Brouckaert, CN=Bryan Brouckaert (Signature), C=BE";
+        static String signSubject = "SERIALNUMBER=01050399864, G=Nora Angèle, SN=Specimen, CN=Nora Specimen (Signature), C=BE";
 
         static EHealthP12 alice;
 
@@ -639,7 +640,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             
             Assert.AreEqual(validationStatus, result.ValidationStatus);
             Assert.AreEqual(trustStatus, result.TrustStatus);
-            Assert.AreEqual(subject, result.Signer.Subject);
+            Assert.AreEqual(authSubject, result.Signer.Subject);
             Assert.AreEqual((level & Level.T_Level) == Level.T_Level, result.TimestampRenewalTime > DateTime.UtcNow);
             Assert.IsNotNull(result.SignatureValue);
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
@@ -664,7 +665,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             Assert.AreEqual(validationStatus, result.ValidationStatus);
             Assert.AreEqual(trustStatus, result.TrustStatus);
-            Assert.AreEqual(subject, result.Signer.Subject);
+            Assert.AreEqual(authSubject, result.Signer.Subject);
             Assert.IsNull(result.TimestampRenewalTime);
             Assert.IsNotNull(result.SignatureValue);
             Assert.IsTrue((DateTime.UtcNow - result.SigningTime) < new TimeSpan(0, 1, 0));
@@ -686,7 +687,7 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
 
             Assert.AreEqual(validationStatus, result.ValidationStatus);
             Assert.AreEqual(trustStatus, result.TrustStatus);
-            Assert.AreEqual(subject, result.Signer.Subject);
+            Assert.AreEqual(authSubject, result.Signer.Subject);
             Assert.IsFalse(result.IsNonRepudiatable); //outer is never repudiatable
         }
 
@@ -713,11 +714,11 @@ namespace Egelke.eHealth.ETEE.Crypto.Test
             Assert.IsNotNull(result.SignatureValue);
             Assert.AreEqual(validationStatus, result.SecurityInformation.ValidationStatus);
             Assert.AreEqual(trustStatus, result.SecurityInformation.TrustStatus);
-            Assert.AreEqual(subject, result.AuthenticationCertificate.Subject);
+            Assert.AreEqual(authSubject, result.AuthenticationCertificate.Subject);
             if (nonRepudiatable)
-                Assert.AreEqual(subject2, result.SigningCertificate.Subject);
+                Assert.AreEqual(signSubject, result.SigningCertificate.Subject);
             else
-                Assert.AreEqual(subject, result.SigningCertificate.Subject);
+                Assert.AreEqual(authSubject, result.SigningCertificate.Subject);
             Assert.AreEqual(bob["825373489"].Thumbprint, result.SecurityInformation.Encryption.Subject.Certificate.Thumbprint);
             Assert.AreEqual(clearMessage, Encoding.UTF8.GetString(stream.ToArray()));
             Assert.IsNotNull(result.SecurityInformation.ToString());
