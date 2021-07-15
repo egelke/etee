@@ -5,12 +5,12 @@
 		<RootNamespace>Egelke.EHealth.Client</RootNamespace>
 		<AssemblyName>Egelke.EHealth.Client</AssemblyName>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>3.0.0</Version>
+		<Version>3.0.0-beta1</Version>
 		<Authors>Egelke BV</Authors>
 		<Company>Egelke BV</Company>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>eHealth Web Service Interoperability library</description>
-		<copyright>2013-2021 (c) Egelke BV</copyright>
+		<copyright>2013-2022 (c) Egelke BV</copyright>
 		<RepositoryUrl>https://github.com/egelke/eHI</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>eHealth STS SSO SAML</PackageTags>
@@ -18,7 +18,8 @@
 		<FileVersion>3.0.0.0</FileVersion>
 		<PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
 		<PackageReleaseNotes>Refector to .Net standard
-Add ECDSA support for eID v1.8</PackageReleaseNotes>
+Add ECDSA support for eID v1.8
+Currently missing SsoBinding</PackageReleaseNotes>
 		<Product>eHealth-Interoperability</Product>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageId>Egelke.EHealth.Client</PackageId>
