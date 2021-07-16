@@ -8,20 +8,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="*.p12">
+		<Content Include="files/*.p12">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="*.pwd">
+		<Content Include="files/*.pwd">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="*.cer">
+		<Content Include="files/*.cer">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Egelke.Eid.Client" Version="1.0.0" />
-
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
 		<PackageReference Include="xunit" Version="2.4.1" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
