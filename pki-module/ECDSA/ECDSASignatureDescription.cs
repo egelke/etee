@@ -22,7 +22,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Egelke.Wcf.Client.Helper
+namespace Egelke.EHealth.Client.Pki.ECDSA
 {
     /// <summary>
     /// Description for ECDSA signature with any kind of hash function.

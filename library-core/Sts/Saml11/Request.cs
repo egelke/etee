@@ -27,7 +27,7 @@ using System.ServiceModel.Channels;
 using System.Security.Cryptography.Xml;
 using Egelke.EHealth.Client.Helper;
 
-namespace Egelke.Wcf.Client.Sts.Saml11
+namespace Egelke.EHealth.Client.Sts.Saml11
 {
     internal class Request : BodyWriter
     {

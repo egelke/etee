@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Egelke.Wcf.Client.Security
+namespace Egelke.EHealth.Client.Security
 {
     public sealed class CustomSecurity
     {

@@ -7,6 +7,7 @@ import org.apache.cxf.jaxws.EndpointImpl;
 import org.apache.cxf.ws.addressing.WSAddressingFeature;
 import org.apache.cxf.ws.security.wss4j.DefaultCryptoCoverageChecker;
 import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
+import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.wss4j.common.ConfigurationConstants;
 import org.apache.wss4j.common.crypto.CryptoBase;
 import org.apache.wss4j.common.crypto.CryptoType;
@@ -36,9 +37,11 @@ public class WebServiceConfig {
 
     @Bean(name=Bus.DEFAULT_BUS_ID)
     public SpringBus springbus() {
+        LoggingFeature lf = new LoggingFeature();
+        lf.setPrettyLogging(true);
 
         SpringBus cxfbus = new  SpringBus();
-        cxfbus.getFeatures().add(new LoggingFeature());
+        cxfbus.getFeatures().add(lf);
         return cxfbus;
     }
 
@@ -48,6 +51,15 @@ public class WebServiceConfig {
         EndpointImpl endpoint = new EndpointImpl(bus, service);
         endpoint.setBindingUri(SOAPBinding.SOAP11HTTP_BINDING);
         endpoint.publish("/echo/soap11");
+        return endpoint;
+    }
+
+    @Bean
+    public Endpoint soap12Plain(Bus bus, EchoPort service) {
+        EndpointImpl endpoint = new EndpointImpl(bus, service);
+        endpoint.setBindingUri(SOAPBinding.SOAP12HTTP_BINDING);
+        endpoint.getFeatures().add(new WSAddressingFeature());
+        endpoint.publish("/echo/soap12");
         return endpoint;
     }
 
@@ -101,13 +113,16 @@ public class WebServiceConfig {
 
         Map<String, Object> inProps = new HashMap<>();
         inProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.TIMESTAMP + " " + WSHandlerConstants.SIGNATURE );
-
         inProps.put(WSHandlerConstants.SIG_PROP_REF_ID, "signatureProperties");
         Properties sigProps = new Properties();
         sigProps.put("org.apache.wss4j.crypto.provider", "be.egelke.ehealth.server.mock.AllowAllCrypto");
-
         inProps.put("signatureProperties", sigProps);
+
+        Map<String, Object> outProps = new HashMap<>();
+        outProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.TIMESTAMP);
+
         endpoint.getInInterceptors().add(new WSS4JInInterceptor(inProps));
+        endpoint.getOutInterceptors().add(new WSS4JOutInterceptor(outProps));
         endpoint.getFeatures().add(new WSAddressingFeature());
         endpoint.publish("/echo/soap12wss10");
         return endpoint;

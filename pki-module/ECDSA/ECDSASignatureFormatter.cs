@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Egelke.Wcf.Client.Helper
+namespace Egelke.EHealth.Client.Pki.ECDSA
 {
     /// <summary>
     /// ECDSA signature formatter, used to sign with ECDA key.

@@ -10,7 +10,7 @@ using System.ServiceModel.Description;
 using System.ServiceModel.Security;
 using System.Text;
 
-namespace Egelke.Wcf.Client.Security
+namespace Egelke.EHealth.Client.Security
 {
     /// <summary>
     /// 

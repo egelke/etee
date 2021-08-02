@@ -16,7 +16,7 @@ namespace Egelke.EHealth.Client.Helper
         public static ILogger CreateTraceLogger<T>()
         {
 #if NETFRAMEWORK
-            var trace = new TraceSource("Egelke.Wcf.Client");
+            var trace = new TraceSource("Egelke.EHealth.Client");
             var traceLogProv = new TraceSourceLoggerProvider(trace.Switch);
             return traceLogProv.CreateLogger(typeof(T).FullName);
 #else

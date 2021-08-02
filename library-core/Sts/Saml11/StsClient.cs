@@ -26,8 +26,9 @@ using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.Extensions.Logging;
 using Egelke.EHealth.Client.Helper;
+using Egelke.EHealth.Client.Sts;
 
-namespace Egelke.Wcf.Client.Sts.Saml11
+namespace Egelke.EHealth.Client.Sts.Saml11
 {
     [ServiceContract(Namespace = "urn:be:fgov:ehealth:sts:protocol:v1", ConfigurationName = "StsSaml11", Name = "Saml11TokenServicePortType")]
     public interface StsPortType
@@ -36,7 +37,7 @@ namespace Egelke.Wcf.Client.Sts.Saml11
         Message RequestSecureToken(Message request);
     }
 
-    public class StsClient : ClientBase<StsPortType>
+    public class StsClient : ClientBase<StsPortType> //, IStsClient
     {
         private readonly ILogger _logger;
 

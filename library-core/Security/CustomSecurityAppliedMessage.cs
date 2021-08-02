@@ -3,16 +3,20 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IdentityModel.Selectors;
+using System.IdentityModel.Tokens;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
+using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Security;
+using System.ServiceModel.Security.Tokens;
 using System.Text;
 using System.Xml;
 
-namespace Egelke.Wcf.Client.Security
+namespace Egelke.EHealth.Client.Security
 {
     /// <summary>
     /// Add the actual security headers to the message after the other channels created the message.
@@ -139,6 +143,17 @@ namespace Egelke.Wcf.Client.Security
                 }
 
                 //Apply the security
+                //see github\dotnet\wcf\src\System.Private.ServiceModel\src\System\IdentityModel\Tokens\SecurityTokenTypes.cs
+                
+                SecurityTokenRequirement requirement = new SecurityTokenRequirement()
+                {
+                    TokenType = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/X509Certificate"
+                };
+
+                //SecurityTokenResolver resolver;
+                //var tokenManager = ClientCredentials.CreateSecurityTokenManager();
+                //var authenticator = tokenManager.CreateSecurityTokenAuthenticator(requirement, out resolver);
+                //var provider = tokenManager.CreateSecurityTokenProvider(requirement);
                 wss.ApplyOnRequest(ref header, bodyIdValue, ClientCredentials.ClientCertificate.Certificate, SignParts);
 
                 //Write the modified version with security header to the original streams.

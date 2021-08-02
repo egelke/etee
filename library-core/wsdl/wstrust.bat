@@ -1,0 +1,1 @@
+dotnet-svcutil ehealth-iam-sts-ws-trust-1.3-proxy-v1.wsdl -n "*,Egelke.EHealth.Client.Sts.WsTrust200512" -d ../Sts/WsTrust200512/ -syn

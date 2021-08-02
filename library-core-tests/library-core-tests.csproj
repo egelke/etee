@@ -20,6 +20,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="files\rsacert.p12" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Egelke.Eid.Client" Version="1.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
 		<PackageReference Include="xunit" Version="2.4.1" />
@@ -32,12 +36,14 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
 		<Reference Include="System.Security" />
 		<Reference Include="System.ServiceModel" />
+		<Reference Include="System.IdentityModel" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' != 'net461'">
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="5.0.0" />
 		<PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
 		<PackageReference Include="System.ServiceModel.Security" Version="4.8.1" />
+		<PackageReference Include="System.ServiceModel.Federation" Version="4.8.1" />
 	</ItemGroup>
 
 	<ItemGroup>

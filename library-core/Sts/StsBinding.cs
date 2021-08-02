@@ -1,12 +1,12 @@
-using Egelke.Wcf.Client;
-using Egelke.Wcf.Client.Security;
+using Egelke.EHealth.Client;
+using Egelke.EHealth.Client.Security;
 using System;
 using System.Collections.Generic;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
 using System.Text;
 
-namespace Egelke.EHealth.Client.Sso.Sts
+namespace Egelke.EHealth.Client.Sts
 {
     public class StsBinding : Binding
     {

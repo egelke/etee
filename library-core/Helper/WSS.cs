@@ -1,4 +1,4 @@
-using Egelke.Wcf.Client.Security;
+using Egelke.EHealth.Client.Security;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

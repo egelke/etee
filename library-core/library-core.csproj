@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
@@ -43,6 +43,7 @@ Currently missing SsoBinding</PackageReleaseNotes>
 		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.*" />
 		<PackageReference Include="System.ServiceModel.Http" Version="4.*" />
 	    <PackageReference Include="System.ServiceModel.Security" Version="4.*" />
+		<!--PackageReference Include="System.ServiceModel.Federation" Version="4.*" /-->
 	</ItemGroup>
 
 	<ItemGroup>

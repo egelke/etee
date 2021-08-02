@@ -9,7 +9,7 @@ using System.ServiceModel.Security;
 using System.Text;
 using System.Xml;
 
-namespace Egelke.Wcf.Client.Security
+namespace Egelke.EHealth.Client.Security
 {
     public class CustomSecurityRequestChannel : IRequestChannel
     {

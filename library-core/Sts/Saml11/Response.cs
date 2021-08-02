@@ -21,7 +21,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace Egelke.Wcf.Client.Sts.Saml11
+namespace Egelke.EHealth.Client.Sts.Saml11
 {
     public class Response
     {

@@ -1,5 +1,5 @@
+using Egelke.EHealth.Client.Pki.ECDSA;
 using Egelke.Eid.Client;
-using Egelke.Wcf.Client.Helper;
 using System;
 using System.Collections;
 using System.Collections.Generic;

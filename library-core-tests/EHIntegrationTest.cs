@@ -1,16 +1,18 @@
 using Egelke.EHealth.Client.Pki;
-using Egelke.EHealth.Client.Sso.Sts;
+using Egelke.EHealth.Client.Pki.ECDSA;
+using Egelke.EHealth.Client.Sts;
+using Egelke.EHealth.Client.Sts.Saml11;
+using Egelke.EHealth.Client.Sts.WsTrust200512;
 using Egelke.Eid.Client;
-using Egelke.Wcf.Client.Helper;
-using Egelke.Wcf.Client.Security;
-using Egelke.Wcf.Client.Sts.Saml11;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
 using System.ServiceModel.Security;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -51,6 +53,44 @@ namespace library_core_tests
 
         [Theory]
         [MemberData(nameof(GetCerts))]
+        public void WsTrust(X509Certificate2 cert)
+        {
+            Match match = Regex.Match(cert.Subject, @"SERIALNUMBER=(\d{11}),");
+            Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
+            string ssin = match.Groups[1].Value;
+
+            var claims = new List<Claim>();
+            claims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin));
+
+            var designators = new List<Claim>();
+            designators.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
+
+            //var session = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
+            var session = new EHealthP12("files/ehealth-79021802145-acc.p12", File.ReadAllText("files/ehealth-79021802145-acc.p12.pwd"));
+            var binding = new StsBinding()
+            {
+                BypassProxyOnLocal = false,
+                UseDefaultWebProxy = false,
+                ProxyAddress = new Uri("http://localhost:8080")
+            };
+
+            //var ep = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/SecurityTokenService/v1");
+            var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1");
+            WsTrustClient target = new WsTrustClient(binding, ep);
+            target.ClientCredentials.ClientCertificate.Certificate = cert;
+            XmlElement assertion = target.RequestTicket(session["authentication"], TimeSpan.FromHours(1), claims, designators);
+
+            XmlNamespaceManager nsMngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
+            nsMngr.AddNamespace("s11", "urn:oasis:names:tc:SAML:1.0:assertion");
+            Assert.Equal("urn:be:fgov:ehealth:sts:1_0", assertion.SelectSingleNode("@Issuer").Value);
+            Assert.Equal(ssin, assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin']/s11:AttributeValue/text()", nsMngr).Value);
+            Assert.True(bool.Parse(assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin:doctor:boolean']/s11:AttributeValue/text()", nsMngr).Value));
+        }
+
+
+
+        [Theory]
+        [MemberData(nameof(GetCerts))]
         public void StsSaml11(X509Certificate2 cert)
         {
             var doc = new XmlDocument();
@@ -79,8 +119,8 @@ namespace library_core_tests
             attrValText.Data = ssin;
             claims.Add(attr);
 
-            var session = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
-            //var session = new EHealthP12("files/ehealth-79021802145-acc.p12", File.ReadAllText("files/ehealth-79021802145-acc.p12.pwd"));
+            //var session = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
+            var session = new EHealthP12("files/ehealth-79021802145-acc.p12", File.ReadAllText("files/ehealth-79021802145-acc.p12.pwd"));
             var binding = new StsBinding()
             {
                 //BypassProxyOnLocal = false,
@@ -88,8 +128,8 @@ namespace library_core_tests
                 //ProxyAddress = new Uri("http://localhost:8866")
             };
 
-            var ep = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/Saml11TokenService/v1");
-            //var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
+            //var ep = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/Saml11TokenService/v1");
+            var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
             StsClient target = new StsClient(binding, ep);
             target.ClientCredentials.ClientCertificate.Certificate = cert;
             XmlElement assertion = target.RequestTicket("Anonymous", session["authentication"], TimeSpan.FromHours(1), claims, claims);

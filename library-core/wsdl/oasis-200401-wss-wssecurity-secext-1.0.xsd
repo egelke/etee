@@ -97,9 +97,12 @@
 		<xsd:annotation>
 			<xsd:documentation>This type is used reference a security token.</xsd:documentation>
 		</xsd:annotation>
-		<xsd:choice maxOccurs="unbounded" minOccurs="0">
+		<xsd:sequence>
+			<xsd:element ref="ds:X509Data" minOccurs="0" />
+		</xsd:sequence>
+		<!--xsd:choice maxOccurs="unbounded" minOccurs="0">
 			<xsd:any processContents="lax"/>
-		</xsd:choice>
+		</xsd:choice-->
 		<xsd:attribute ref="wsu:Id"/>
 		<xsd:attribute ref="wsse:Usage"/>
 		<xsd:anyAttribute namespace="##other" processContents="lax"/>

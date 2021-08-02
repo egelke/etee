@@ -5,7 +5,7 @@
     <RootNamespace>Egelke.EHealth.Client.Pki</RootNamespace>
     <AssemblyName>Egelke.EHealth.Client.Pki</AssemblyName>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.3.0</Version>
+    <Version>2.3.1</Version>
     <Authors>Egelke BVBA</Authors>
     <Product>https://github.com/egelke/eHI</Product>
     <Description>PKI tools useful for eHealth</Description>
@@ -16,8 +16,7 @@
     <AssemblyVersion>2.3.0.0</AssemblyVersion>
     <FileVersion>2.3.0.0</FileVersion>
     <PackageTags>eHealth eSigning TimeStamp PKI PKCS#12 X509</PackageTags>
-    <PackageReleaseNotes>Updated dependency versions
-Added ECDSA support</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed ECDSA namespaces</PackageReleaseNotes>
     <SignAssembly>true</SignAssembly>
     <IncludeSource>true</IncludeSource>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

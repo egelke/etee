@@ -1,9 +1,8 @@
 using Egelke.EHealth.Client.Pki;
-using Egelke.EHealth.Client.Sso.Sts;
 using Egelke.Eid.Client;
-using Egelke.Wcf.Client.Helper;
-using Egelke.Wcf.Client.Security;
-using Egelke.Wcf.Client.Sts.Saml11;
+using Egelke.EHealth.Client.Helper;
+using Egelke.EHealth.Client.Security;
+using Egelke.EHealth.Client.Sts.Saml11;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +15,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Xunit;
+using Egelke.EHealth.Client.Pki.ECDSA;
 
 namespace library_core_tests
 {
