@@ -11,7 +11,7 @@ namespace Egelke.EHealth.Client.Sts
 {
     public interface IStsClient
     {
-        XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> requestedClaims);
+        XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> additinalClaims);
 
         //Task<XmlElement> RequestTicketAsync(X509Certificate2 sessionCert, TimeSpan duration, IList<XmlElement> assertingClaims, IList<XmlElement> requestedClaims);
     }

@@ -72,21 +72,50 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             _logger = logger ?? TraceLogger.CreateTraceLogger<WsTrustClient>();
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> requestedClaims)
-        {
-            DateTime notBefore = DateTime.UtcNow;
-            return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), assertingClaims, requestedClaims);
-        }
-
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> assertingClaims, IList<Claim> requestedClaims)
+        public XmlElement RenewTicket(X509Certificate2 sessionCert, XmlElement previousTicket)
         {
             //make the request
             var request = new RequestSecurityTokenRequest()
             {
                 RequestSecurityToken = new RequestSecurityTokenType()
                 {
+                    Context = "urn:uuid:" + Guid.NewGuid().ToString(),
                     TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1",
-                    RequestType = "http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue",
+                    RequestType = RequestTypeEnum.httpdocsoasisopenorgwssxwstrust200512Renew,
+                    RenewTarget = new RenewTargetType()
+                    {
+                        SecurityTokenReference = new SecurityTokenReferenceType()
+                        {
+                            Embedded = new EmbeddedType()
+                            {
+                                Any = previousTicket
+                            }
+                        }
+                    }
+                }
+            };
+
+            RequestSecurityTokenResponse step1 = base.Channel.RequestSecurityToken(request);
+
+            return Complete(sessionCert, step1);
+        }
+
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> additinalClaims)
+        {
+            DateTime notBefore = DateTime.UtcNow;
+            return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), assertingClaims, additinalClaims);
+        }
+
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> assertingClaims, IList<Claim> additinalClaims)
+        {
+            //make the request
+            var request = new RequestSecurityTokenRequest()
+            {
+                RequestSecurityToken = new RequestSecurityTokenType()
+                {
+                    Context = "urn:uuid:" + Guid.NewGuid().ToString(),
+                    TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1",
+                    RequestType = RequestTypeEnum.httpdocsoasisopenorgwssxwstrust200512Issue,
                     Claims = new ClaimsType()
                     {
                         Dialect = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims",
@@ -96,7 +125,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
                                 Uri = ClaimTypeExp.Match(c.Type).Groups["name"].Value,
                                 Item = c.Value
                             }),
-                            requestedClaims.Select(c => new ClaimType()
+                            additinalClaims.Select(c => new ClaimType()
                             {
                                 Uri = ClaimTypeExp.Match(c.Type).Groups["name"].Value
                             })
@@ -129,8 +158,13 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             };
 
             //send it
-            RequestSecurityTokenResponse response = base.Channel.RequestSecurityToken(request);
+            RequestSecurityTokenResponse step1 = base.Channel.RequestSecurityToken(request);
 
+            return Complete(sessionCert, step1);
+        }
+
+        private XmlElement Complete(X509Certificate2 sessionCert, RequestSecurityTokenResponse response)
+        {
             //we expect SignChallenge, which we need to return as SignChallengeResponse using the body cert/key.
             if (response.RequestSecurityTokenResponse1.SignChallenge == null) throw new InvalidOperationException("eHealth WS-Trust service didn't return sign challenge response");
             response.RequestSecurityTokenResponse1.SignChallengeResponse = response.RequestSecurityTokenResponse1.SignChallenge;
@@ -140,7 +174,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             ChannelFactory<IWsTrustPortFixed> channelFactory = new ChannelFactory<IWsTrustPortFixed>(base.Endpoint.Binding, base.Endpoint.Address);
             channelFactory.Credentials.ClientCertificate.Certificate = sessionCert;
             IWsTrustPortFixed secondary = channelFactory.CreateChannel();
- 
+
             //send the (signed) Challenge, get the reponse as message to not break the internal signature
             Message responseMsg = secondary.Challenge(response);
 
@@ -154,7 +188,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
 
             //better to check if correcty wrapped, but for now we do not care.
 
-            return (XmlElement) responseBody.GetElementsByTagName("Assertion", "urn:oasis:names:tc:SAML:1.0:assertion")[0];
+            return (XmlElement)responseBody.GetElementsByTagName("Assertion", "urn:oasis:names:tc:SAML:1.0:assertion")[0];
         }
     }
 }

@@ -47,6 +47,7 @@
     <xs:sequence>
 		<xs:element ref='wst:TokenType' minOccurs='0' />
 		<xs:element ref='wst:RequestType' />
+		<xs:element ref='wst:RenewTarget' />
 		<xs:element ref='wst:Claims' minOccurs='0' />
 		<xs:element ref='wst:Lifetime' minOccurs='0' />
 		<xs:element ref='wst:KeyType' minOccurs='0' />
@@ -59,7 +60,7 @@
 
   <xs:element name="TokenType" type="xs:anyURI"/>
 
-  <xs:element name="RequestType" type="wst:RequestTypeOpenEnum"/>
+  <xs:element name="RequestType" type="wst:RequestTypeEnum"/>
 
   <xs:simpleType name="RequestTypeOpenEnum">
     <xs:union memberTypes="wst:RequestTypeEnum xs:anyURI"/>
@@ -261,7 +262,8 @@
   <xs:element name="RenewTarget" type="wst:RenewTargetType"/>
   <xs:complexType name="RenewTargetType">
     <xs:sequence>
-      <xs:any maxOccurs="1" minOccurs="1" namespace="##other"/>
+		<xs:element ref="wsse:SecurityTokenReference"  minOccurs="0"  />
+		<!--xs:any maxOccurs="1" minOccurs="1" namespace="##other"/-->
     </xs:sequence>
   </xs:complexType>
 

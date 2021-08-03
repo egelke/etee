@@ -69,7 +69,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
 
         public IList<Claim> AssertingClaims { get; set; }
 
-        public IList<Claim> RequestedClaims { get; set; }
+        public IList<Claim> AdditionalClaims { get; set; }
 
         public X509Certificate2 AuthCert { get; set; }
 
@@ -142,7 +142,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
                 GroupCollection attr = ClaimTypeExp.Match(claim.Type).Groups;
                 AddAttributeDesignator(query, attr["ns"].Value, attr["name"].Value);
             }
-            foreach (Claim claim in RequestedClaims)
+            foreach (Claim claim in AdditionalClaims)
             {
                 GroupCollection attr = ClaimTypeExp.Match(claim.Type).Groups;
                 AddAttributeDesignator(query, attr["ns"].Value, attr["name"].Value);

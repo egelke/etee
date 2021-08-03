@@ -70,13 +70,13 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> requestedClaims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> additinalClaims)
         {
             DateTime notBefore = DateTime.UtcNow;
-            return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), assertingClaims, requestedClaims);
+            return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), assertingClaims, additinalClaims);
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> assertingClaims, IList<Claim> requestedClaims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> assertingClaims, IList<Claim> additinalClaims)
         {
             X509Certificate2 authCert = base.ClientCredentials.ClientCertificate.Certificate;
 
@@ -91,7 +91,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             if (notOnOrAfter == DateTime.MinValue || notOnOrAfter == DateTime.MaxValue) throw new ArgumentException("notOnOrAfter", "notOnOrAfter should be specified");
             if (notOnOrAfter.Kind != DateTimeKind.Utc) throw new ArgumentException("notOnOrAfter", "notOnOrAfter should be in UTC");
             if (assertingClaims == null) throw new ArgumentNullException("assertingClaims");
-            if (requestedClaims == null) throw new ArgumentNullException("requestedClaims");
+            if (additinalClaims == null) throw new ArgumentNullException("additinalClaims");
             
             var request = new Request()
             {
@@ -101,7 +101,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
                 NotBefore = notBefore,
                 NotOnOrAfter = notOnOrAfter,
                 AssertingClaims = assertingClaims,
-                RequestedClaims = requestedClaims
+                AdditionalClaims = additinalClaims
             };
             Message requestMsg = Message.CreateMessage(MessageVersion.Soap11, "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecurityToken", request);
             Message responseMsg = base.Channel.Send(requestMsg);

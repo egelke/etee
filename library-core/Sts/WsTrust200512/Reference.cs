@@ -44,7 +44,9 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         
         private string tokenTypeField;
         
-        private string requestTypeField;
+        private RequestTypeEnum requestTypeField;
+        
+        private RenewTargetType renewTargetField;
         
         private ClaimsType claimsField;
         
@@ -72,7 +74,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Order=1)]
-        public string RequestType
+        public RequestTypeEnum RequestType
         {
             get
             {
@@ -86,6 +88,20 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Order=2)]
+        public RenewTargetType RenewTarget
+        {
+            get
+            {
+                return this.renewTargetField;
+            }
+            set
+            {
+                this.renewTargetField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=3)]
         public ClaimsType Claims
         {
             get
@@ -99,7 +115,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=3)]
+        [System.Xml.Serialization.XmlElementAttribute(Order=4)]
         public LifetimeType Lifetime
         {
             get
@@ -113,7 +129,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=4)]
+        [System.Xml.Serialization.XmlElementAttribute(Order=5)]
         public string KeyType
         {
             get
@@ -127,7 +143,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=5)]
+        [System.Xml.Serialization.XmlElementAttribute(Order=6)]
         public UseKeyType UseKey
         {
             get
@@ -157,300 +173,52 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
     
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512")]
-    public partial class ClaimsType
+    public enum RequestTypeEnum
     {
         
-        private ClaimType[] claimTypeField;
-        
-        private string dialectField;
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue")]
+        httpdocsoasisopenorgwssxwstrust200512Issue,
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("ClaimType", Namespace="http://docs.oasis-open.org/wsfed/authorization/200706", Order=0)]
-        public ClaimType[] ClaimType
-        {
-            get
-            {
-                return this.claimTypeField;
-            }
-            set
-            {
-                this.claimTypeField = value;
-            }
-        }
+        [System.Xml.Serialization.XmlEnumAttribute("http://docs.oasis-open.org/ws-sx/ws-trust/200512/Renew")]
+        httpdocsoasisopenorgwssxwstrust200512Renew,
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Dialect
-        {
-            get
-            {
-                return this.dialectField;
-            }
-            set
-            {
-                this.dialectField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/wsfed/authorization/200706")]
-    public partial class ClaimType
-    {
-        
-        private DisplayNameType displayNameField;
-        
-        private DescriptionType descriptionField;
-        
-        private DisplayValueType displayValueField;
-        
-        private object itemField;
-        
-        private string uriField;
-        
-        private bool optionalField;
-        
-        private bool optionalFieldSpecified;
+        [System.Xml.Serialization.XmlEnumAttribute("http://docs.oasis-open.org/ws-sx/ws-trust/200512/Cancel")]
+        httpdocsoasisopenorgwssxwstrust200512Cancel,
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public DisplayNameType DisplayName
-        {
-            get
-            {
-                return this.displayNameField;
-            }
-            set
-            {
-                this.displayNameField = value;
-            }
-        }
+        [System.Xml.Serialization.XmlEnumAttribute("http://docs.oasis-open.org/ws-sx/ws-trust/200512/STSCancel")]
+        httpdocsoasisopenorgwssxwstrust200512STSCancel,
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
-        public DescriptionType Description
-        {
-            get
-            {
-                return this.descriptionField;
-            }
-            set
-            {
-                this.descriptionField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
-        public DisplayValueType DisplayValue
-        {
-            get
-            {
-                return this.displayValueField;
-            }
-            set
-            {
-                this.displayValueField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=3)]
-        [System.Xml.Serialization.XmlElementAttribute("ConstrainedValue", typeof(ConstrainedValueType), Order=3)]
-        [System.Xml.Serialization.XmlElementAttribute("EncryptedValue", typeof(EncryptedValueType), Order=3)]
-        [System.Xml.Serialization.XmlElementAttribute("StructuredValue", typeof(StructuredValueType), Order=3)]
-        [System.Xml.Serialization.XmlElementAttribute("Value", typeof(string), Order=3)]
-        public object Item
-        {
-            get
-            {
-                return this.itemField;
-            }
-            set
-            {
-                this.itemField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Uri
-        {
-            get
-            {
-                return this.uriField;
-            }
-            set
-            {
-                this.uriField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public bool Optional
-        {
-            get
-            {
-                return this.optionalField;
-            }
-            set
-            {
-                this.optionalField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool OptionalSpecified
-        {
-            get
-            {
-                return this.optionalFieldSpecified;
-            }
-            set
-            {
-                this.optionalFieldSpecified = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/wsfed/authorization/200706")]
-    public partial class DisplayNameType
-    {
-        
-        private string valueField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        public string Value
-        {
-            get
-            {
-                return this.valueField;
-            }
-            set
-            {
-                this.valueField = value;
-            }
-        }
+        [System.Xml.Serialization.XmlEnumAttribute("http://docs.oasis-open.org/ws-sx/ws-trust/200512/Validate")]
+        httpdocsoasisopenorgwssxwstrust200512Validate,
     }
     
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512")]
-    public partial class SignChallengeType
+    public partial class RenewTargetType
     {
         
-        private string challengeField;
-        
-        private System.Xml.XmlElement[] anyField;
+        private SecurityTokenReferenceType securityTokenReferenceField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public string Challenge
+        [System.Xml.Serialization.XmlElementAttribute(Namespace="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" +
+            "", Order=0)]
+        public SecurityTokenReferenceType SecurityTokenReference
         {
             get
             {
-                return this.challengeField;
+                return this.securityTokenReferenceField;
             }
             set
             {
-                this.challengeField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=1)]
-        public System.Xml.XmlElement[] Any
-        {
-            get
-            {
-                return this.anyField;
-            }
-            set
-            {
-                this.anyField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512")]
-    public partial class RequestSecurityTokenResponseType
-    {
-        
-        private SignChallengeType signChallengeField;
-        
-        private SignChallengeType signChallengeResponseField;
-        
-        private System.Xml.XmlElement requestedSecurityTokenField;
-        
-        private string contextField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public SignChallengeType SignChallenge
-        {
-            get
-            {
-                return this.signChallengeField;
-            }
-            set
-            {
-                this.signChallengeField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
-        public SignChallengeType SignChallengeResponse
-        {
-            get
-            {
-                return this.signChallengeResponseField;
-            }
-            set
-            {
-                this.signChallengeResponseField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
-        public System.Xml.XmlElement RequestedSecurityToken
-        {
-            get
-            {
-                return this.requestedSecurityTokenField;
-            }
-            set
-            {
-                this.requestedSecurityTokenField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Context
-        {
-            get
-            {
-                return this.contextField;
-            }
-            set
-            {
-                this.contextField = value;
+                this.securityTokenReferenceField = value;
             }
         }
     }
@@ -464,6 +232,8 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
     {
         
         private X509DataType x509DataField;
+        
+        private EmbeddedType embeddedField;
         
         private string idField;
         
@@ -480,6 +250,20 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             set
             {
                 this.x509DataField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
+        public EmbeddedType Embedded
+        {
+            get
+            {
+                return this.embeddedField;
+            }
+            set
+            {
+                this.embeddedField = value;
             }
         }
         
@@ -602,28 +386,114 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
     
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", IncludeInSchema=false)]
-    public enum ItemsChoiceType
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512")]
+    public partial class SignChallengeType
     {
         
-        /// <remarks/>
-        [System.Xml.Serialization.XmlEnumAttribute("##any:")]
-        Item,
+        private string challengeField;
+        
+        private System.Xml.XmlElement[] anyField;
         
         /// <remarks/>
-        X509CRL,
+        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
+        public string Challenge
+        {
+            get
+            {
+                return this.challengeField;
+            }
+            set
+            {
+                this.challengeField = value;
+            }
+        }
         
         /// <remarks/>
-        X509Certificate,
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=1)]
+        public System.Xml.XmlElement[] Any
+        {
+            get
+            {
+                return this.anyField;
+            }
+            set
+            {
+                this.anyField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512")]
+    public partial class RequestSecurityTokenResponseType
+    {
+        
+        private SignChallengeType signChallengeField;
+        
+        private SignChallengeType signChallengeResponseField;
+        
+        private System.Xml.XmlElement requestedSecurityTokenField;
+        
+        private string contextField;
         
         /// <remarks/>
-        X509IssuerSerial,
+        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
+        public SignChallengeType SignChallenge
+        {
+            get
+            {
+                return this.signChallengeField;
+            }
+            set
+            {
+                this.signChallengeField = value;
+            }
+        }
         
         /// <remarks/>
-        X509SKI,
+        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
+        public SignChallengeType SignChallengeResponse
+        {
+            get
+            {
+                return this.signChallengeResponseField;
+            }
+            set
+            {
+                this.signChallengeResponseField = value;
+            }
+        }
         
         /// <remarks/>
-        X509SubjectName,
+        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
+        public System.Xml.XmlElement RequestedSecurityToken
+        {
+            get
+            {
+                return this.requestedSecurityTokenField;
+            }
+            set
+            {
+                this.requestedSecurityTokenField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Context
+        {
+            get
+            {
+                return this.contextField;
+            }
+            set
+            {
+                this.contextField = value;
+            }
+        }
     }
     
     /// <remarks/>
@@ -2157,6 +2027,261 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
                 this.valueField = value;
             }
         }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/wsfed/authorization/200706")]
+    public partial class DisplayNameType
+    {
+        
+        private string valueField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        public string Value
+        {
+            get
+            {
+                return this.valueField;
+            }
+            set
+            {
+                this.valueField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/wsfed/authorization/200706")]
+    public partial class ClaimType
+    {
+        
+        private DisplayNameType displayNameField;
+        
+        private DescriptionType descriptionField;
+        
+        private DisplayValueType displayValueField;
+        
+        private object itemField;
+        
+        private string uriField;
+        
+        private bool optionalField;
+        
+        private bool optionalFieldSpecified;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
+        public DisplayNameType DisplayName
+        {
+            get
+            {
+                return this.displayNameField;
+            }
+            set
+            {
+                this.displayNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
+        public DescriptionType Description
+        {
+            get
+            {
+                return this.descriptionField;
+            }
+            set
+            {
+                this.descriptionField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
+        public DisplayValueType DisplayValue
+        {
+            get
+            {
+                return this.displayValueField;
+            }
+            set
+            {
+                this.displayValueField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=3)]
+        [System.Xml.Serialization.XmlElementAttribute("ConstrainedValue", typeof(ConstrainedValueType), Order=3)]
+        [System.Xml.Serialization.XmlElementAttribute("EncryptedValue", typeof(EncryptedValueType), Order=3)]
+        [System.Xml.Serialization.XmlElementAttribute("StructuredValue", typeof(StructuredValueType), Order=3)]
+        [System.Xml.Serialization.XmlElementAttribute("Value", typeof(string), Order=3)]
+        public object Item
+        {
+            get
+            {
+                return this.itemField;
+            }
+            set
+            {
+                this.itemField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Uri
+        {
+            get
+            {
+                return this.uriField;
+            }
+            set
+            {
+                this.uriField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public bool Optional
+        {
+            get
+            {
+                return this.optionalField;
+            }
+            set
+            {
+                this.optionalField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool OptionalSpecified
+        {
+            get
+            {
+                return this.optionalFieldSpecified;
+            }
+            set
+            {
+                this.optionalFieldSpecified = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512")]
+    public partial class ClaimsType
+    {
+        
+        private ClaimType[] claimTypeField;
+        
+        private string dialectField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("ClaimType", Namespace="http://docs.oasis-open.org/wsfed/authorization/200706", Order=0)]
+        public ClaimType[] ClaimType
+        {
+            get
+            {
+                return this.claimTypeField;
+            }
+            set
+            {
+                this.claimTypeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Dialect
+        {
+            get
+            {
+                return this.dialectField;
+            }
+            set
+            {
+                this.dialectField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" +
+        "")]
+    public partial class EmbeddedType
+    {
+        
+        private System.Xml.XmlElement anyField;
+        
+        private string valueTypeField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlElement Any
+        {
+            get
+            {
+                return this.anyField;
+            }
+            set
+            {
+                this.anyField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string ValueType
+        {
+            get
+            {
+                return this.valueTypeField;
+            }
+            set
+            {
+                this.valueTypeField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", IncludeInSchema=false)]
+    public enum ItemsChoiceType
+    {
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("##any:")]
+        Item,
+        
+        /// <remarks/>
+        X509CRL,
+        
+        /// <remarks/>
+        X509Certificate,
+        
+        /// <remarks/>
+        X509IssuerSerial,
+        
+        /// <remarks/>
+        X509SKI,
+        
+        /// <remarks/>
+        X509SubjectName,
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]

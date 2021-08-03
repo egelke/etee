@@ -48,42 +48,70 @@ namespace library_core_tests
             return certs;
         }
 
+        private X509Certificate2 issuer;
+
+        private X509Certificate2 session;
+
+        private StsBinding binding;
+
+        private EndpointAddress samlpEp;
+        private EndpointAddress wstEp;
+
+        private String ssin;
+
+        private IList<Claim> assertingClaims;
+
+        private IList<Claim> additionalClaims;
+
+        private IStsClient target;
+
+        private XmlElement assertion;
+
         public EHIntegrationTest()
         {
             ECDSAConfig.Init(); //needed to enable ECDSA globally.
-        }
 
-        [Theory]
-        [MemberData(nameof(GetCerts))]
-        public void WsTrust(X509Certificate2 cert)
-        {
-            Match match = Regex.Match(cert.Subject, @"SERIALNUMBER=(\d{11}),");
-            Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
-            string ssin = match.Groups[1].Value;
+            wstEp = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/SecurityTokenService/v1");
+            //wstEp = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1");
 
-            var claims = new List<Claim>();
-            claims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin));
-            claims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin));
+            samlpEp = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/Saml11TokenService/v1");
+            //samlpEp = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
 
-            var designators = new List<Claim>();
-            designators.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
+            var p12 = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
+            //var p12 = new EHealthP12("files/ehealth-79021802145-acc.p12", File.ReadAllText("files/ehealth-79021802145-acc.p12.pwd"));
+            session = p12["authentication"];
 
-            var session = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
-            //var session = new EHealthP12("files/ehealth-79021802145-acc.p12", File.ReadAllText("files/ehealth-79021802145-acc.p12.pwd"));
-            var binding = new StsBinding()
+            issuer = new X509Certificate2("files/IAMINT.cer");
+            //issuer = new X509Certificate2("files/IAMACC.cer");
+
+            binding = new StsBinding()
             {
                 BypassProxyOnLocal = false,
                 UseDefaultWebProxy = false,
                 ProxyAddress = new Uri("http://localhost:8080")
             };
+        }
 
-            var ep = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/SecurityTokenService/v1");
-            //var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1");
-            var target = new WsTrustClient(binding, ep);
-            target.ClientCredentials.ClientCertificate.Certificate = cert;
-            var stsClient = (IStsClient)target;
-            XmlElement assertion = stsClient.RequestTicket(session["authentication"], TimeSpan.FromHours(1), claims, designators);
+        private void Prep(X509Certificate2 user)
+        {
+            Match match = Regex.Match(user.Subject, @"SERIALNUMBER=(\d{11}),");
+            Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
+            ssin = match.Groups[1].Value;
 
+            assertingClaims = new List<Claim>();
+            assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin));
+            assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin));
+
+            additionalClaims = new List<Claim>();
+            additionalClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
+        }
+
+        private void Request()
+        {
+            assertion = target.RequestTicket(session, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
+        }
+
+        private void Verify() { 
             XmlNamespaceManager nsMngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
             nsMngr.AddNamespace("s11", "urn:oasis:names:tc:SAML:1.0:assertion");
             Assert.Equal("urn:be:fgov:ehealth:sts:1_0", assertion.SelectSingleNode("@Issuer").Value);
@@ -95,8 +123,24 @@ namespace library_core_tests
             XmlNodeList nodeList = assertion.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
             signed.LoadXml((XmlElement)nodeList[0]);
 
-            //Assert.True(signed.CheckSignature(new X509Certificate2("files/IAMACC.cer"), true));
-            Assert.True(signed.CheckSignature(new X509Certificate2("files/IAMINT.cer"), true));
+            Assert.True(signed.CheckSignature(issuer, true));
+        }
+
+        [Theory]
+        [MemberData(nameof(GetCerts))]
+        public void WsTrust(X509Certificate2 cert)
+        {
+            Prep(cert);
+
+            var client = new WsTrustClient(binding, wstEp);
+            client.ClientCredentials.ClientCertificate.Certificate = cert;
+            target = client;
+
+            Request();
+            Verify();
+
+            assertion = client.RenewTicket(session, assertion);
+            Verify();
         }
 
 
@@ -105,48 +149,14 @@ namespace library_core_tests
         [MemberData(nameof(GetCerts))]
         public void StsSaml11(X509Certificate2 cert)
         {
-            var doc = new XmlDocument();
-            Match match = Regex.Match(cert.Subject, @"SERIALNUMBER=(\d{11}),");
-            Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
-            string ssin = match.Groups[1].Value;
+            Prep(cert);
 
-            var claims = new List<Claim>();
-            claims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin));
-            claims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin));
+            var client = new SamlClient("Anonymous", binding, samlpEp);
+            client.ClientCredentials.ClientCertificate.Certificate = cert;
+            target = client;
 
-            var designators = new List<Claim>();
-            designators.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
-
-            var session = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
-            //var session = new EHealthP12("files/ehealth-79021802145-acc.p12", File.ReadAllText("files/ehealth-79021802145-acc.p12.pwd"));
-            var binding = new StsBinding()
-            {
-                BypassProxyOnLocal = false,
-                UseDefaultWebProxy = false,
-                ProxyAddress = new Uri("http://localhost:8080")
-            };
-
-            var ep = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/Saml11TokenService/v1");
-            //var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
-            var target = new SamlClient("Anonymous", binding, ep);
-            target.ClientCredentials.ClientCertificate.Certificate = cert;
-            var stsClient = (IStsClient)target;
-            XmlElement assertion = stsClient.RequestTicket(session["authentication"], TimeSpan.FromHours(1), claims, designators);
-
-            XmlNamespaceManager nsMngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
-            nsMngr.AddNamespace("s11", "urn:oasis:names:tc:SAML:1.0:assertion");
-            Assert.Equal("urn:be:fgov:ehealth:sts:1_0", assertion.SelectSingleNode("@Issuer").Value);
-            Assert.Equal(ssin, assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin']/s11:AttributeValue/text()", nsMngr).Value);
-            Assert.Equal(ssin, assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:ehealth:1.0:certificateholder:person:ssin']/s11:AttributeValue/text()", nsMngr).Value);
-            bool doctor;
-            Assert.True(bool.TryParse(assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin:doctor:boolean']/s11:AttributeValue/text()", nsMngr).Value, out doctor));
-
-            SignedXml signed = new SignedSaml11(assertion);
-            XmlNodeList nodeList = assertion.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
-            signed.LoadXml((XmlElement)nodeList[0]);
-
-            //Assert.True(signed.CheckSignature(new X509Certificate2("files/IAMACC.cer"), true));
-            Assert.True(signed.CheckSignature(new X509Certificate2("files/IAMINT.cer"), true));
+            Request();
+            Verify();
         }
     }
 

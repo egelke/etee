@@ -87,9 +87,12 @@
 		<xsd:annotation>
 			<xsd:documentation>This type represents a reference to an embedded security token.</xsd:documentation>
 		</xsd:annotation>
-		<xsd:choice maxOccurs="unbounded" minOccurs="0">
+		<xsd:sequence>
+			<xsd:any processContents="skip" />
+		</xsd:sequence>
+		<!--xsd:choice maxOccurs="unbounded" minOccurs="0">
 			<xsd:any processContents="lax"/>
-		</xsd:choice>
+		</xsd:choice-->
 		<xsd:attribute name="ValueType" type="xsd:anyURI"/>
 		<xsd:anyAttribute namespace="##other" processContents="lax"/>
 	</xsd:complexType>
@@ -99,6 +102,7 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element ref="ds:X509Data" minOccurs="0" />
+			<xsd:element ref="wsse:Embedded" minOccurs="0" />
 		</xsd:sequence>
 		<!--xsd:choice maxOccurs="unbounded" minOccurs="0">
 			<xsd:any processContents="lax"/>
