@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Egelke.EHealth.Client.Sts
 {
     [ServiceContract]
-    interface IGenericPortType
+    public interface IGenericPortType
     {
         [OperationContract(Action = "*", ReplyAction = "*")]
         Message Send(Message request);

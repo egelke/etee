@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace Egelke.EHealth.Client.Sts
 {
-    interface IStsClient
+    public interface IStsClient
     {
         XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> requestedClaims);
 

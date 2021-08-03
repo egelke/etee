@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 namespace Egelke.EHealth.Client.Sts.WsTrust200512
 {
     [ServiceContract(Namespace = "urn:be:fgov:ehealth:sts:protocol:v1")]
-    internal interface IStsPortFixed
+    internal interface IWsTrustPortFixed
     {
 
         [OperationContract(Action = "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecurityToken", ReplyAction = "*")]
@@ -137,9 +137,9 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             response.RequestSecurityTokenResponse1.SignChallenge = null;
 
             //create a secondary channel to send the challenge
-            ChannelFactory<IStsPortFixed> channelFactory = new ChannelFactory<IStsPortFixed>(base.Endpoint.Binding, base.Endpoint.Address);
+            ChannelFactory<IWsTrustPortFixed> channelFactory = new ChannelFactory<IWsTrustPortFixed>(base.Endpoint.Binding, base.Endpoint.Address);
             channelFactory.Credentials.ClientCertificate.Certificate = sessionCert;
-            IStsPortFixed secondary = channelFactory.CreateChannel();
+            IWsTrustPortFixed secondary = channelFactory.CreateChannel();
  
             //send the (signed) Challenge, get the reponse as message to not break the internal signature
             Message responseMsg = secondary.Challenge(response);

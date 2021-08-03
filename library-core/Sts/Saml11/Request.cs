@@ -26,6 +26,8 @@ using Org.BouncyCastle.Asn1;
 using System.ServiceModel.Channels;
 using System.Security.Cryptography.Xml;
 using Egelke.EHealth.Client.Helper;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace Egelke.EHealth.Client.Sts.Saml11
 {
@@ -40,6 +42,8 @@ namespace Egelke.EHealth.Client.Sts.Saml11
         private const String xsi = "http://www.w3.org/2001/XMLSchema-instance";
 
         private const String xsd = "http://www.w3.org/2001/XMLSchema";
+
+        private static readonly Regex ClaimTypeExp = new Regex("({(?<ns>.+)})?(?<name>.+)", RegexOptions.Compiled);
 
         public Request() : base(false)
         {
@@ -63,9 +67,9 @@ namespace Egelke.EHealth.Client.Sts.Saml11
 
         public DateTime NotOnOrAfter { get; set; }
 
-        public IList<XmlElement> AssertingClaims { get; set; }
+        public IList<Claim> AssertingClaims { get; set; }
 
-        public IList<XmlElement> RequestedClaims { get; set; }
+        public IList<Claim> RequestedClaims { get; set; }
 
         public X509Certificate2 AuthCert { get; set; }
 
@@ -133,9 +137,15 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             parent.AppendChild(query);
 
             AddSubject(query);
-            foreach (XmlElement claim in RequestedClaims)
+            foreach (Claim claim in AssertingClaims)
             {
-                AddAttributeDesignator(query, claim.GetAttribute("AttributeNamespace"), claim.GetAttribute("AttributeName"));
+                GroupCollection attr = ClaimTypeExp.Match(claim.Type).Groups;
+                AddAttributeDesignator(query, attr["ns"].Value, attr["name"].Value);
+            }
+            foreach (Claim claim in RequestedClaims)
+            {
+                GroupCollection attr = ClaimTypeExp.Match(claim.Type).Groups;
+                AddAttributeDesignator(query, attr["ns"].Value, attr["name"].Value);
             }
         }
 
@@ -229,9 +239,11 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             parent.AppendChild(attrStatement);
 
             AddInternalSubject(attrStatement);
-            foreach (XmlElement claim in AssertingClaims)
+            foreach (Claim claim in AssertingClaims)
             {
-                ImportAttribute(attrStatement, claim);
+                GroupCollection attr = ClaimTypeExp.Match(claim.Type).Groups;
+                String[] values = claim.Value.Split(';');
+                AddAttribute(attrStatement, attr["ns"].Value, attr["name"].Value, values);
             }
         }
 
@@ -267,51 +279,6 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             x509Cert.AppendChild(body.CreateTextNode(Convert.ToBase64String(SessionCert.Export(X509ContentType.Cert))));
         }
 
-        private void ImportAttribute(XmlElement parent, XmlElement org)
-        {
-            XmlElement attribute = body.CreateElement("saml:Attribute", saml);
-            parent.AppendChild(attribute);
-
-            XmlAttribute attributeNs = body.CreateAttribute("AttributeNamespace");
-            attributeNs.Value = org.GetAttribute("AttributeNamespace");
-            attribute.Attributes.Append(attributeNs);
-
-            XmlAttribute attributeName = body.CreateAttribute("AttributeName");
-            attributeName.Value = org.GetAttribute("AttributeName");
-            attribute.Attributes.Append(attributeName);
-
-            foreach(XmlElement orgValue in org.GetElementsByTagName("AttributeValue", saml))
-            {
-                XmlElement attributeValue = body.CreateElement("saml:AttributeValue", saml);
-                attributeValue.InnerText = orgValue.InnerText;
-
-                XmlAttribute attributeValueType = body.CreateAttribute("xsi:type", xsi);
-                String attributeValueTypeValue = orgValue.GetAttribute("type", xsi);
-                String[] valueParts = attributeValueTypeValue.Split(':');
-                if (valueParts.Length > 1) {
-                    String orgPrefix = valueParts[0];
-                    String ns = orgValue.GetNamespaceOfPrefix(orgPrefix);
-                    String newPrefix = attributeValue.GetPrefixOfNamespace(ns);
-                    if (String.IsNullOrEmpty(newPrefix))
-                    {
-                        attributeValue.SetAttribute("xmlns:" + orgPrefix, ns);
-                        attributeValueType.Value = attributeValueTypeValue;
-                    }
-                    else 
-                    {
-                        attributeValueType.Value = newPrefix + ":" + valueParts[1];
-                    }
-                } 
-                else
-                {
-                    attributeValueType.Value = attributeValueTypeValue;
-                }
-                attributeValue.Attributes.Append(attributeValueType);
-
-                attribute.AppendChild(attributeValue);
-            }
-        }
-
         private void AddAttributeDesignator(XmlElement parent, String ns, String name)
         {
             XmlElement reqAttibute = body.CreateElement("saml:AttributeDesignator", saml);
@@ -324,6 +291,35 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             XmlAttribute reqAttributeName = body.CreateAttribute("AttributeName");
             reqAttributeName.Value = name;
             reqAttibute.Attributes.Append(reqAttributeName);
+        }
+
+        private void AddAttribute(XmlElement parent, String ns, String name, params String[] values)
+        {
+            XmlElement reqAttibute = body.CreateElement("saml:Attribute", saml);
+            parent.AppendChild(reqAttibute);
+
+            XmlAttribute reqAttributeNs = body.CreateAttribute("AttributeNamespace");
+            reqAttributeNs.Value = ns;
+            reqAttibute.Attributes.Append(reqAttributeNs);
+
+            XmlAttribute reqAttributeName = body.CreateAttribute("AttributeName");
+            reqAttributeName.Value = name;
+            reqAttibute.Attributes.Append(reqAttributeName);
+
+            foreach (String value in values)
+            {
+                var attrVal = body.CreateElement("saml:AttributeValue", saml);
+                reqAttibute.AppendChild(attrVal);
+
+                XmlAttribute attrValType = body.CreateAttribute("xsi:type", "http://www.w3.org/2001/XMLSchema-instance");
+                attrValType.Value = "xs:string";
+                attrVal.Attributes.Append(attrValType);
+
+                attrVal.SetAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema");
+
+                var attrValText = body.CreateTextNode(value);
+                attrVal.AppendChild(attrValText);
+            }
         }
 
         private static String FormatX509Name(X500DistinguishedName name)

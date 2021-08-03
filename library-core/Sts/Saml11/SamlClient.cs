@@ -27,73 +27,72 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Logging;
 using Egelke.EHealth.Client.Helper;
 using Egelke.EHealth.Client.Sts;
+using System.Security.Claims;
 
 namespace Egelke.EHealth.Client.Sts.Saml11
 {
-    [ServiceContract(Namespace = "urn:be:fgov:ehealth:sts:protocol:v1", ConfigurationName = "StsSaml11", Name = "Saml11TokenServicePortType")]
-    public interface StsPortType
-    {
-        [OperationContractAttribute(Action = "*", ReplyAction = "*")]
-        Message RequestSecureToken(Message request);
-    }
-
-    public class StsClient : ClientBase<StsPortType> //, IStsClient
+    public class SamlClient : ClientBase<IGenericPortType>, IStsClient
     {
         private readonly ILogger _logger;
+        private readonly string package;
 
-        public StsClient(ILogger<StsClient> logger = null)
+        public SamlClient(string package, ILogger<SamlClient> logger = null)
         {
-            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
+            this.package = package;
+            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
         }
 
-        public StsClient(string endpointConfigurationName, ILogger<StsClient> logger = null) :
+        public SamlClient(string package, string endpointConfigurationName, ILogger<SamlClient> logger = null) :
             base(endpointConfigurationName)
         {
-            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
+            this.package = package;
+            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
         }
 
-        public StsClient(string endpointConfigurationName, string remoteAddress, ILogger<StsClient> logger = null) :
+        public SamlClient(string package, string endpointConfigurationName, string remoteAddress, ILogger<SamlClient> logger = null) :
             base(endpointConfigurationName, remoteAddress)
         {
-            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
+            this.package = package;
+            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
         }
 
-        public StsClient(string endpointConfigurationName, EndpointAddress remoteAddress, ILogger<StsClient> logger = null) :
+        public SamlClient(string package, string endpointConfigurationName, EndpointAddress remoteAddress, ILogger<SamlClient> logger = null) :
             base(endpointConfigurationName, remoteAddress)
         {
-            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
+            this.package = package;
+            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
         }
 
-        public StsClient(Binding binding, EndpointAddress remoteAddress, ILogger<StsClient> logger = null) :
+        public SamlClient(string package, Binding binding, EndpointAddress remoteAddress, ILogger<SamlClient> logger = null) :
             base(binding, remoteAddress)
         {
-            _logger = logger ?? TraceLogger.CreateTraceLogger<StsClient>();
+            this.package = package;
+            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
         }
 
-        public XmlElement RequestTicket(String package, X509Certificate2 sessionCert, TimeSpan duration, IList<XmlElement> assertingClaims, IList<XmlElement> requestedClaims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> requestedClaims)
         {
             DateTime notBefore = DateTime.UtcNow;
-            return RequestTicket(package, sessionCert, notBefore, notBefore.Add(duration), assertingClaims, requestedClaims);
+            return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), assertingClaims, requestedClaims);
         }
 
-        public XmlElement RequestTicket(String package, X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<XmlElement> assertingClaims, IList<XmlElement> requestedClaims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> assertingClaims, IList<Claim> requestedClaims)
         {
             X509Certificate2 authCert = base.ClientCredentials.ClientCertificate.Certificate;
 
-            if (package == null) throw new ArgumentNullException("package");
+            if (package == null) throw new InvalidOperationException("package");
+            if (authCert == null) throw new InvalidOperationException("Client certifciate not configured");
+            if (authCert.NotBefore.ToUniversalTime() > DateTime.UtcNow || authCert.NotAfter.ToUniversalTime() <= DateTime.UtcNow) throw new ArgumentException("Expired Authentication certificate is used");
+
             if (sessionCert == null) throw new ArgumentNullException("sessionCert");
+            if (sessionCert.NotBefore.ToUniversalTime() > notBefore || sessionCert.NotAfter.ToUniversalTime() < notOnOrAfter) throw new ArgumentException("Session certificate isn't valid during the (entire) period that is requested");
             if (notBefore == DateTime.MinValue || notBefore == DateTime.MaxValue) throw new ArgumentException("notBefore", "notBefore should be specified");
             if (notBefore.Kind != DateTimeKind.Utc) throw new ArgumentException("notBefore", "notBefore should be in UTC");
             if (notOnOrAfter == DateTime.MinValue || notOnOrAfter == DateTime.MaxValue) throw new ArgumentException("notOnOrAfter", "notOnOrAfter should be specified");
             if (notOnOrAfter.Kind != DateTimeKind.Utc) throw new ArgumentException("notOnOrAfter", "notOnOrAfter should be in UTC");
             if (assertingClaims == null) throw new ArgumentNullException("assertingClaims");
-            if (assertingClaims.Count == 0) throw new ArgumentOutOfRangeException("assertingClaims", "assertingClaims should at least contain one claim");
             if (requestedClaims == null) throw new ArgumentNullException("requestedClaims");
-            if (requestedClaims.Count == 0) throw new ArgumentOutOfRangeException("requestedClaims", "requestedClaims should at least contain one claim");
-            if (authCert == null) throw new InvalidOperationException("Client certifciate not configured");
-            if (authCert.NotBefore.ToUniversalTime() > DateTime.UtcNow || authCert.NotAfter.ToUniversalTime() <= DateTime.UtcNow) throw new ArgumentException("Expired Authentication certificate is used");
-            if (sessionCert.NotBefore.ToUniversalTime() > notBefore || sessionCert.NotAfter.ToUniversalTime() < notOnOrAfter) throw new ArgumentException("Session certificate isn't valid during the (entire) period that is requested");
-
+            
             var request = new Request()
             {
                 Package = package,
@@ -105,7 +104,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
                 RequestedClaims = requestedClaims
             };
             Message requestMsg = Message.CreateMessage(MessageVersion.Soap11, "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecurityToken", request);
-            Message responseMsg = base.Channel.RequestSecureToken(requestMsg);
+            Message responseMsg = base.Channel.Send(requestMsg);
 
             Response response = new Response();
             if (responseMsg.IsFault)

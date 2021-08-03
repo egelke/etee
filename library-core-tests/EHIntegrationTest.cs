@@ -63,6 +63,7 @@ namespace library_core_tests
 
             var claims = new List<Claim>();
             claims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin));
+            claims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin));
 
             var designators = new List<Claim>();
             designators.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
@@ -78,9 +79,10 @@ namespace library_core_tests
 
             var ep = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/SecurityTokenService/v1");
             //var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1");
-            WsTrustClient target = new WsTrustClient(binding, ep);
+            var target = new WsTrustClient(binding, ep);
             target.ClientCredentials.ClientCertificate.Certificate = cert;
-            XmlElement assertion = target.RequestTicket(session["authentication"], TimeSpan.FromHours(1), claims, designators);
+            var stsClient = (IStsClient)target;
+            XmlElement assertion = stsClient.RequestTicket(session["authentication"], TimeSpan.FromHours(1), claims, designators);
 
             XmlNamespaceManager nsMngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
             nsMngr.AddNamespace("s11", "urn:oasis:names:tc:SAML:1.0:assertion");
@@ -108,26 +110,12 @@ namespace library_core_tests
             Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
             string ssin = match.Groups[1].Value;
 
-            var claims = new List<XmlElement>();
-            var attr = doc.CreateElement("Attribute", "urn:oasis:names:tc:SAML:1.0:assertion");
-            attr.SetAttribute("AttributeNamespace", "urn:be:fgov:identification-namespace");
-            attr.SetAttribute("AttributeName", "urn:be:fgov:person:ssin");
-            var attrVal = doc.CreateElement("AttributeValue", "urn:oasis:names:tc:SAML:1.0:assertion");
-            attrVal.SetAttribute("type", "http://www.w3.org/2001/XMLSchema-instance", "xs:string");
-            attrVal.SetAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema");
-            var attrValText = doc.CreateTextNode(ssin);
-            attrVal.AppendChild(attrValText);
-            attr.AppendChild(attrVal);
-            claims.Add(attr);
+            var claims = new List<Claim>();
+            claims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin));
+            claims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin));
 
-            attr = (XmlElement)attr.CloneNode(true);
-            attr.SetAttribute("AttributeNamespace", "urn:be:fgov:identification-namespace");
-            attr.SetAttribute("AttributeName", "urn:be:fgov:ehealth:1.0:certificateholder:person:ssin");
-            attrVal = (XmlElement)attr.FirstChild;
-            attrVal.SetAttribute("type", "http://www.w3.org/2001/XMLSchema-instance", "xs:string");
-            attrValText = (XmlText)attrVal.FirstChild;
-            attrValText.Data = ssin;
-            claims.Add(attr);
+            var designators = new List<Claim>();
+            designators.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
 
             var session = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
             //var session = new EHealthP12("files/ehealth-79021802145-acc.p12", File.ReadAllText("files/ehealth-79021802145-acc.p12.pwd"));
@@ -140,14 +128,18 @@ namespace library_core_tests
 
             var ep = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/Saml11TokenService/v1");
             //var ep = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
-            StsClient target = new StsClient(binding, ep);
+            var target = new SamlClient("Anonymous", binding, ep);
             target.ClientCredentials.ClientCertificate.Certificate = cert;
-            XmlElement assertion = target.RequestTicket("Anonymous", session["authentication"], TimeSpan.FromHours(1), claims, claims);
+            var stsClient = (IStsClient)target;
+            XmlElement assertion = stsClient.RequestTicket(session["authentication"], TimeSpan.FromHours(1), claims, designators);
 
             XmlNamespaceManager nsMngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
             nsMngr.AddNamespace("s11", "urn:oasis:names:tc:SAML:1.0:assertion");
             Assert.Equal("urn:be:fgov:ehealth:sts:1_0", assertion.SelectSingleNode("@Issuer").Value);
             Assert.Equal(ssin, assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin']/s11:AttributeValue/text()", nsMngr).Value);
+            Assert.Equal(ssin, assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:ehealth:1.0:certificateholder:person:ssin']/s11:AttributeValue/text()", nsMngr).Value);
+            bool doctor;
+            Assert.True(bool.TryParse(assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin:doctor:boolean']/s11:AttributeValue/text()", nsMngr).Value, out doctor));
 
             SignedXml signed = new SignedSaml11(assertion);
             XmlNodeList nodeList = assertion.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
