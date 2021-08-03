@@ -13,6 +13,30 @@ using System.Text.RegularExpressions;
 
 namespace Egelke.EHealth.Client.Sts.WsTrust200512
 {
+    [ServiceContract(Namespace = "urn:be:fgov:ehealth:sts:protocol:v1")]
+    internal interface IStsPortFixed
+    {
+
+        [OperationContract(Action = "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecurityToken", ReplyAction = "*")]
+        [XmlSerializerFormat(SupportFaults = true)]
+        [ServiceKnownType(typeof(EncryptedType))]
+        RequestSecurityTokenResponse RequestSecurityToken(RequestSecurityTokenRequest request);
+
+        /*
+        [OperationContract(Action = "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecurityToken", ReplyAction = "*")]
+        System.Threading.Tasks.Task<Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse> RequestSecurityTokenAsync(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenRequest request);
+        */
+
+        [OperationContract(Action = "urn:be:fgov:ehealth:sts:protocol:v1:Challenge", ReplyAction = "*")]
+        [XmlSerializerFormat(SupportFaults = true)]
+        [ServiceKnownType(typeof(EncryptedType))]
+        Message Challenge(RequestSecurityTokenResponse request);
+
+        /*
+        [System.ServiceModel.OperationContractAttribute(Action = "urn:be:fgov:ehealth:sts:protocol:v1:Challenge", ReplyAction = "*")]
+        System.Threading.Tasks.Task<Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse> ChallengeAsync(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse request);
+        */
+    }
     public class WsTrustClient : ClientBase<SecurityTokenServicePort>, IStsClient
     {
         private static readonly Regex ClaimTypeExp = new Regex("({(?<ns>.+)})?(?<name>.+)", RegexOptions.Compiled);
@@ -113,14 +137,24 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             response.RequestSecurityTokenResponse1.SignChallenge = null;
 
             //create a secondary channel to send the challenge
-            ChannelFactory<SecurityTokenServicePort> channelFactory = new ChannelFactory<SecurityTokenServicePort>(base.Endpoint.Binding, base.Endpoint.Address);
+            ChannelFactory<IStsPortFixed> channelFactory = new ChannelFactory<IStsPortFixed>(base.Endpoint.Binding, base.Endpoint.Address);
             channelFactory.Credentials.ClientCertificate.Certificate = sessionCert;
-            SecurityTokenServicePort secondary = channelFactory.CreateChannel();
+            IStsPortFixed secondary = channelFactory.CreateChannel();
  
-            //send the (signed) Challenge.
-            response = secondary.Challenge(response);
+            //send the (signed) Challenge, get the reponse as message to not break the internal signature
+            Message responseMsg = secondary.Challenge(response);
 
-            return response.RequestSecurityTokenResponse1.RequestedSecurityToken;
+            if (responseMsg.IsFault)
+            {
+                throw new FaultException(MessageFault.CreateFault(responseMsg, 10240), responseMsg.Headers.Action);
+            }
+            var responseBody = new XmlDocument();
+            responseBody.PreserveWhitespace = true;
+            responseBody.Load(responseMsg.GetReaderAtBodyContents());
+
+            //better to check if correcty wrapped, but for now we do not care.
+
+            return (XmlElement) responseBody.GetElementsByTagName("Assertion", "urn:oasis:names:tc:SAML:1.0:assertion")[0];
         }
     }
 }

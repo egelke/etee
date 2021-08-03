@@ -33,7 +33,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             nsmngr.AddNamespace("samlp", samlp);
 
             XmlAttribute statusCodeValue = statusCode.Attributes["Value"];
-            if (statusCodeValue == null) throw new SamlException("sampl:StatusCode does not contain a Value attribute");
+            if (statusCodeValue == null) throw new StsException("sampl:StatusCode does not contain a Value attribute");
             String[] parts = statusCodeValue.Value.Split(':');
             String codeValueNs;
             String codeValueLocal;
@@ -48,7 +48,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
                     codeValueLocal = parts[1];
                     break;
                 default:
-                    throw new SamlException(String.Format("Illegal sampl:StatusCode/@Value content: {0}", statusCodeValue.Value));
+                    throw new StsException(String.Format("Illegal sampl:StatusCode/@Value content: {0}", statusCodeValue.Value));
             }
 
             StatusCode subStatus = null;

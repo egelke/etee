@@ -9,10 +9,10 @@
 
 	<ItemGroup>
 		<Content Include="files/*.p12">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 		<Content Include="files/*.pwd">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 		<Content Include="files/*.cer">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -20,8 +20,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="files\rsacert.p12" />
+	  <None Remove="files\IAMINT.cer" />
 	</ItemGroup>
+
 
 	<ItemGroup>
 		<PackageReference Include="Egelke.Eid.Client" Version="1.0.0" />
@@ -50,6 +51,5 @@
 	  <ProjectReference Include="..\library-core\library-core.csproj" />
 	  <ProjectReference Include="..\pki-module\pki-module.csproj" />
 	</ItemGroup>
-
 
 </Project>

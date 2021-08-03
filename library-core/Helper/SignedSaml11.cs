@@ -24,10 +24,16 @@ using System.Security.Cryptography.Xml;
 
 namespace Egelke.EHealth.Client.Helper
 {
-    internal class SignedSaml11 : SignedXml
+    public class SignedSaml11 : SignedXml
     {
         public SignedSaml11(XmlDocument doc)
             : base(doc)
+        {
+
+        }
+
+        public SignedSaml11(XmlElement el)
+            : base(el)
         {
 
         }
@@ -37,7 +43,13 @@ namespace Egelke.EHealth.Client.Helper
             XmlElement elementById = base.GetIdElement(document, idValue);
             if (elementById != null) return elementById;
 
-            return document.SelectSingleNode("//*[@RequestID=\"" + idValue + "\"]") as XmlElement;
+            elementById = document.SelectSingleNode("//*[@RequestID=\"" + idValue + "\"]") as XmlElement;
+            if (elementById != null) return elementById;
+
+            elementById = document.SelectSingleNode("//*[@AssertionID=\"" + idValue + "\"]") as XmlElement;
+            if (elementById != null) return elementById;
+
+            return null;
         }
 
     }

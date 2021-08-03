@@ -49,23 +49,23 @@ namespace Egelke.EHealth.Client.Sts.Saml11
         {
             body.Load(xml);
             response = body.DocumentElement;
-            if (response.NamespaceURI != samlp || response.LocalName != "Response") throw new SamlException(String.Format("Expected samlp:Reponse but received {{{0}}}{1}", response.NamespaceURI, response.LocalName));
+            if (response.NamespaceURI != samlp || response.LocalName != "Response") throw new StsException(String.Format("Expected samlp:Reponse but received {{{0}}}{1}", response.NamespaceURI, response.LocalName));
         }
 
         public void Validate(String package, String requestId)
         {
-            if (response.Attributes["Recipient"] != null && package != response.Attributes["Recipient"].Value) throw new SamlException(String.Format("The recipient and the package do not correspond. Expected {0}, Actual {1}", package, response.Attributes["Recipient"].Value));
-            if (requestId != response.Attributes["InResponseTo"].Value) throw new SamlException(String.Format("The reponse isn't for this request. Expected {0}, Actual {1}",requestId, response.Attributes["InResponseTo"].Value));
+            if (response.Attributes["Recipient"] != null && package != response.Attributes["Recipient"].Value) throw new StsException(String.Format("The recipient and the package do not correspond. Expected {0}, Actual {1}", package, response.Attributes["Recipient"].Value));
+            if (requestId != response.Attributes["InResponseTo"].Value) throw new StsException(String.Format("The reponse isn't for this request. Expected {0}, Actual {1}",requestId, response.Attributes["InResponseTo"].Value));
         }
 
         public XmlElement ExtractAssertion()
         {
             
             XmlElement statusElement = (XmlElement) response.SelectSingleNode("samlp:Status", nsmngr);
-            if (statusElement == null) throw new SamlException("Received samlp:Response does not contain a Status element");
+            if (statusElement == null) throw new StsException("Received samlp:Response does not contain a Status element");
 
             XmlElement statusCode = (XmlElement)statusElement.SelectSingleNode("samlp:StatusCode", nsmngr);
-            if (statusCode == null) throw new SamlException("Received samlp:Response/samlp:Status does not contain a StatusCode element");
+            if (statusCode == null) throw new StsException("Received samlp:Response/samlp:Status does not contain a StatusCode element");
 
             StatusCode status = StatusCode.Parse(statusCode);
             if (!status.IsSuccess)
