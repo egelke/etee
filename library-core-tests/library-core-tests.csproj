@@ -20,6 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="files\ehealth-79021802145-acc.pwd" />
 	  <None Remove="files\IAMINT.cer" />
 	</ItemGroup>
 
@@ -41,10 +42,10 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' != 'net461'">
-		<PackageReference Include="System.Security.Cryptography.Xml" Version="5.0.0" />
-		<PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
-		<PackageReference Include="System.ServiceModel.Security" Version="4.8.1" />
-		<PackageReference Include="System.ServiceModel.Federation" Version="4.8.1" />
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="7.0.1" />
+		<PackageReference Include="System.ServiceModel.Http" Version="4.10.2.0" />
+		<PackageReference Include="System.ServiceModel.Security" Version="4.10.2.0" />
+		<PackageReference Include="System.ServiceModel.Federation" Version="4.10.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>

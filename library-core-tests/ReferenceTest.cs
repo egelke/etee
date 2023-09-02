@@ -15,8 +15,8 @@ namespace library_core_tests
 {
     public class ReferenceTest
     {
-        public MyX509Certificate2 ec = new MyX509Certificate2("files/eccert.p12", "Test_001");
-        public MyX509Certificate2 rsa = new MyX509Certificate2("files/rsacert.p12", "Test_001");
+        public MyX509Certificate2 ec = new MyX509Certificate2("files/eccert.p12", "");
+        public MyX509Certificate2 rsa = new MyX509Certificate2("files/rsacert.p12", "");
 
         [Fact]
         public void soap11Plain()
@@ -73,6 +73,9 @@ namespace library_core_tests
             stsBinding.Security.Message.ClientCredentialType = MessageCredentialType.Certificate;
             stsBinding.Security.Message.NegotiateServiceCredential = false;
             stsBinding.Security.Message.EstablishSecurityContext = false;
+            stsBinding.ProxyAddress = new Uri("http://localhost:8888");
+            stsBinding.BypassProxyOnLocal = false;
+            stsBinding.UseDefaultWebProxy = false;  
 
             WSFederationHttpBinding binding;
 #if NETFRAMEWORK
@@ -91,6 +94,9 @@ namespace library_core_tests
             parameters.KeyType = SecurityKeyType.AsymmetricKey;
             parameters.TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1";
             binding = new WSFederationHttpBinding(parameters);
+            binding.ProxyAddress = new Uri("http://localhost:8888");
+            binding.BypassProxyOnLocal = false;
+            binding.UseDefaultWebProxy = false;
 #endif
             var ep = new EndpointAddress("https://localhost:8080/services/echo/soap12");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);

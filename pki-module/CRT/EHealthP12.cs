@@ -26,6 +26,8 @@ using System.Security.Cryptography.X509Certificates;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Security;
 using System.Text.RegularExpressions;
+using Microsoft.Win32.SafeHandles;
+using System.Security.Cryptography;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -34,7 +36,8 @@ namespace Egelke.EHealth.Client.Pki
     /// </summary>
     public class EHealthP12 : IDictionary<String, X509Certificate2>
     {
-        private const String SnRegExPattern = @"SERIALNUMBER=(?<sn>\d+)";
+//        private const String SnRegExPattern = @"SERIALNUMBER=(?<sn>\d+)";
+        private const String SnRegExPattern = @"SSIN=(?<sn>\d+)";
 
         /// <summary>
         /// Find the last version of the eHealth p12 file based on the inss of the provided eid cert.
@@ -52,7 +55,8 @@ namespace Egelke.EHealth.Client.Pki
             if (!snMatch.Success || !snMatch.Groups["sn"].Success) throw new ArgumentException("The inserted eID has an invalid subject: " + eidCert.Subject, "eidCert");
             String sn = snMatch.Groups["sn"].Value;
 
-            String[] files = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\ehealth\keystore", "SSIN=" + sn + " *p12");
+
+            String[] files = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\ehealth\keystore", "SSIN=" + sn + "*p12");
             Array.Sort(files);
 
             return files[files.Length - 1];

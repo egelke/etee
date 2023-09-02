@@ -1,4 +1,5 @@
 using Egelke.EHealth.Client.Security;
+using Org.BouncyCastle.Crmf;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,6 +9,7 @@ using System.Security.Cryptography.Xml;
 using System.ServiceModel.Security;
 using System.Text;
 using System.Xml;
+using Egelke.EHealth.Client.Pki;
 
 namespace Egelke.EHealth.Client.Helper
 {
@@ -151,6 +153,7 @@ namespace Egelke.EHealth.Client.Helper
 
             bool sha2 = false;
             var signedDoc = new SignedWSS(this, doc);
+
             if (clientCert.GetRSAPrivateKey() != null)
             {
                 signedDoc.SigningKey = clientCert.GetRSAPrivateKey();

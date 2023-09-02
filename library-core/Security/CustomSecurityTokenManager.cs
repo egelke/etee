@@ -10,6 +10,7 @@ namespace Egelke.EHealth.Client.Security
         public override SecurityTokenAuthenticator CreateSecurityTokenAuthenticator(SecurityTokenRequirement tokenRequirement, out SecurityTokenResolver outOfBandTokenResolver)
         {
             throw new NotImplementedException();
+            
         }
 
         public override SecurityTokenProvider CreateSecurityTokenProvider(SecurityTokenRequirement tokenRequirement)

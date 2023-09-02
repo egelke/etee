@@ -28,23 +28,27 @@ namespace library_core_tests
     {
         public static IEnumerable<object[]> GetCerts()
         {
-            List<object[]> certs;
-            using (var readers = new Readers(ReaderScope.User))
-            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
-            {
-                store.Open(OpenFlags.ReadOnly);
-                certs = readers.ListCards()
-                    .OfType<EidCard>()
-                    .Select(c =>
-                    {
-                        c.Open();
-                        String thumbprint = c.AuthCert.Thumbprint;
-                        c.Close();
-                        return store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
-                    })
-                    .Select(c => new object[] { new MyX509Certificate2(c) })
-                    .ToList();
-            }
+            List<object[]> certs = new List<object[]>();
+            //using (var readers = new Readers(ReaderScope.User))
+            //using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            //{
+            //    store.Open(OpenFlags.ReadOnly);
+            //    certs = readers.ListCards()
+            //        .OfType<EidCard>()
+            //        .Select(c =>
+            //        {
+            //            c.Open();
+            //            String thumbprint = c.AuthCert.Thumbprint;
+            //            c.Close();
+            //            return store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
+            //        })
+            //        .Select(c => new object[] { new MyX509Certificate2(c) })
+            //        .ToList();
+            //}
+            //            certs.Add(new object[] { new MyX509Certificate2("files/SSIN=79021802145 20230823-085751.acc.p12", "Test_001") });
+            var certp12 = new EHealthP12("files/SSIN=79021802145-20230823-085751.acc.p12", "Test_001");
+            certs.Add(new object[] { certp12["authentication"] });
+            
             return certs;
         }
 
@@ -71,14 +75,15 @@ namespace library_core_tests
         {
             ECDSAConfig.Init(); //needed to enable ECDSA globally.
 
-            wstEp = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/SecurityTokenService/v1");
-            //wstEp = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1");
+            //wstEp = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/SecurityTokenService/v1");
+            wstEp = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1");
 
-            samlpEp = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/Saml11TokenService/v1");
-            //samlpEp = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
+            //samlpEp = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/Saml11TokenService/v1");
+            samlpEp = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/Saml11TokenService/v1");
 
-            var p12 = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
+            //var p12 = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
             //var p12 = new EHealthP12("files/ehealth-79021802145-acc.p12", File.ReadAllText("files/ehealth-79021802145-acc.p12.pwd"));
+            var p12 = new EHealthP12("files/SSIN=79021802145-20230823-085751.acc.p12", File.ReadAllText("files/SSIN=79021802145-20230823-085751.acc.p12.pwd"));
             session = p12["authentication"];
 
             issuer = new X509Certificate2("files/IAMINT.cer");
@@ -88,22 +93,22 @@ namespace library_core_tests
             {
                 BypassProxyOnLocal = false,
                 UseDefaultWebProxy = false,
-                ProxyAddress = new Uri("http://localhost:8080")
+                ProxyAddress = new Uri("http://localhost:8888")
             };
         }
 
         private void Prep(X509Certificate2 user)
         {
-            Match match = Regex.Match(user.Subject, @"SERIALNUMBER=(\d{11}),");
+            Match match = Regex.Match(user.Subject, @"SSIN=(\d{11})");
             Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
             ssin = match.Groups[1].Value;
 
             assertingClaims = new List<Claim>();
             assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin));
-            assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin));
+            //assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin));
 
             additionalClaims = new List<Claim>();
-            additionalClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
+            //additionalClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
         }
 
         private void Request()

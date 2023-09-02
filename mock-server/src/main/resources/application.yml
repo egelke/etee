@@ -2,5 +2,5 @@ server:
   ssl:
     enabled: true
     key-store: classpath:localhost.p12
-    key-store-password: secret
+    key-store-password: 
     key-store-type: PKCS12
