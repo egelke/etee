@@ -41,6 +41,11 @@
             <version>${org.apache.cxf.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.cxf.services.sts</groupId>
+            <artifactId>cxf-services-sts-core</artifactId>
+            <version>${org.apache.cxf.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-features-logging</artifactId>
             <version>${org.apache.cxf.version}</version>

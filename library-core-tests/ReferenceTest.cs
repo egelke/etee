@@ -67,7 +67,7 @@ namespace library_core_tests
         public void federation()
         {
             //var stsEp = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/SingleSignOnService/v1");
-            var stsEp = new EndpointAddress("https://localhost:8080/services/echo/soap12wss10");
+            var stsEp = new EndpointAddress("https://localhost:8080/sts/soap11");
 
             var stsBinding = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
             stsBinding.Security.Message.ClientCredentialType = MessageCredentialType.Certificate;

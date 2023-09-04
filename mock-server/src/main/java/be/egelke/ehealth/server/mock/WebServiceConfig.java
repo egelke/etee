@@ -1,10 +1,13 @@
 package be.egelke.ehealth.server.mock;
 
+import lombok.SneakyThrows;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBus;
 import org.apache.cxf.ext.logging.LoggingFeature;
 import org.apache.cxf.jaxws.EndpointImpl;
+import org.apache.cxf.sts.provider.DefaultSecurityTokenServiceProvider;
 import org.apache.cxf.ws.addressing.WSAddressingFeature;
+import org.apache.cxf.ws.security.sts.provider.SecurityTokenServiceProvider;
 import org.apache.cxf.ws.security.wss4j.DefaultCryptoCoverageChecker;
 import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
@@ -144,6 +147,22 @@ public class WebServiceConfig {
         endpoint.getInInterceptors().add(new WSS4JInInterceptor(inProps));
         endpoint.getFeatures().add(new WSAddressingFeature());
         endpoint.publish("/echo/soap12wss11");
+        return endpoint;
+    }
+
+    @Bean
+    @SneakyThrows
+    public SecurityTokenServiceProvider stsProvider() {
+        var stsProvider = new DefaultSecurityTokenServiceProvider();
+
+        return stsProvider;
+    }
+
+    @Bean
+    public Endpoint sts(Bus bus, SecurityTokenServiceProvider stsProvider) {
+        EndpointImpl endpoint = new EndpointImpl(bus, stsProvider);
+        endpoint.setBindingUri(SOAPBinding.SOAP11HTTP_BINDING);
+        endpoint.publish("/sts/soap11");
         return endpoint;
     }
 }
