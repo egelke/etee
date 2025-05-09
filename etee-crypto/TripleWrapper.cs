@@ -43,6 +43,9 @@ using Org.BouncyCastle.Crypto.Operators;
 using Microsoft.Extensions.Logging;
 
 using System.Diagnostics;
+using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Crypto;
+
 #if NETFRAMEWORK
 using Microsoft.Extensions.Logging.TraceSource;
 #endif
@@ -382,7 +385,7 @@ namespace Egelke.EHealth.Etee.Crypto
 
             //Extract the various data from outer layer
             SignerInformation signerInfo = ExtractSignerInfo(parser);
-            IX509Store embeddedCerts = parser.GetCertificates("Collection");
+            IStore<BC::X509.X509Certificate> embeddedCerts = parser.GetCertificates();
 
             //Extract the various data from signer info
             timemarkKey.SignatureValue = signerInfo.GetSignature();
@@ -394,7 +397,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 timemarkKey.SignerId = signerInfo.SignerID.ExtractSignerId();
 
             //Extract the various data from unsiged attributes of signer info
-            IDictionary unsignedAttributes = signerInfo.UnsignedAttributes != null ? signerInfo.UnsignedAttributes.ToDictionary() : new Hashtable();
+            IDictionary<DerObjectIdentifier, object>  unsignedAttributes = signerInfo.UnsignedAttributes != null ? signerInfo.UnsignedAttributes.ToDictionary() : new Dictionary<DerObjectIdentifier, object>();
             TimeStampToken tst = ExtractTimestamp(unsignedAttributes);
             RevocationValues revocationInfo = ExtractRevocationInfo(unsignedAttributes);
 
@@ -412,7 +415,7 @@ namespace Egelke.EHealth.Etee.Crypto
             }
 
             //Are we missing embedded certs and should we add them?
-            if ((embeddedCerts == null || embeddedCerts.GetMatches(null).Count <= 1)
+            if ((embeddedCerts == null || embeddedCerts.EnumerateMatches(null).Count() <= 1)
                 && timemarkKey.Signer != null
                 && level != null)
             {
@@ -432,7 +435,7 @@ namespace Egelke.EHealth.Etee.Crypto
             //should be make sure we have the proper revocation info (it is hard to tell if we have everything, just go for it)
             if ((level & Level.L_Level) == Level.L_Level)
             {
-                if (embeddedCerts != null && embeddedCerts.GetMatches(null).Count > 0)
+                if (embeddedCerts != null && embeddedCerts.EnumerateMatches(null).Any())
                 {
                     //extend the revocation info with info about the embedded certs
                     revocationInfo = GetRevocationValues(timemarkKey, embeddedCerts, revocationInfo);
@@ -473,7 +476,7 @@ namespace Egelke.EHealth.Etee.Crypto
             BC::Asn1.Cms.Attribute singingTimeAttr = signerInfo.SignedAttributes?[CmsAttributes.SigningTime];
             if (singingTimeAttr != null)
             {
-                DateTime date = new BC::Asn1.Cms.Time(((DerSet)singingTimeAttr.AttrValues)[0].ToAsn1Object()).Date;
+                DateTime date = Org.BouncyCastle.Asn1.Cms.Time.GetInstance(singingTimeAttr.AttrValues[0]).ToDateTime();
                 if (date.Kind == DateTimeKind.Unspecified)
                 {
                     return new DateTime(date.Ticks, DateTimeKind.Utc);
@@ -490,18 +493,18 @@ namespace Egelke.EHealth.Etee.Crypto
             }
         }
 
-        private X509Certificate2 ExtractSignerCert(IX509Store embeddedCerts, SignerInformation signerInfo, X509Certificate2 provided)
+        private X509Certificate2 ExtractSignerCert(IStore<BC::X509.X509Certificate> embeddedCerts, SignerInformation signerInfo, X509Certificate2 provided)
         {
             //Extract the signer, if available
-            if (embeddedCerts != null && embeddedCerts.GetMatches(null).Count > 0)
+            if (embeddedCerts != null && embeddedCerts.EnumerateMatches(null).Any())
             {
-                IEnumerator signerCerts = embeddedCerts.GetMatches(signerInfo.SignerID).GetEnumerator();
+                IEnumerator<BC::X509.X509Certificate> signerCerts = embeddedCerts.EnumerateMatches(signerInfo.SignerID).GetEnumerator();
                 if (!signerCerts.MoveNext())
                 {
                     logger?.LogError("The message does contains certificates, but the signing certificate is missing");
                     throw new InvalidMessageException("The message does not contain the signer certificate");
                 }
-                var signer = new X509Certificate2(((BC::X509.X509Certificate)signerCerts.Current).GetEncoded());
+                var signer = new X509Certificate2((signerCerts.Current).GetEncoded());
                 logger?.LogDebug("The message contains certificates, of which {0} is the signer", signer.Subject);
                 //maybe (one day) check if the found signer corresponds to the provided signer)
                 return signer;
@@ -515,29 +518,33 @@ namespace Egelke.EHealth.Etee.Crypto
 
         
 
-        private TimeStampToken ExtractTimestamp(IDictionary unsignedAttributes)
+        private TimeStampToken ExtractTimestamp(IDictionary<DerObjectIdentifier, object> unsignedAttributes)
         {
             TimeStampToken tst = null;
-            BC::Asn1.Cms.Attribute timestampAttr = (BC::Asn1.Cms.Attribute)unsignedAttributes[PkcsObjectIdentifiers.IdAASignatureTimeStampToken];
-            if (timestampAttr != null && ((DerSet)timestampAttr.AttrValues).Count > 0)
-            {
-                DerSet rawTsts = (DerSet)timestampAttr.AttrValues;
-                if (rawTsts.Count > 1)
-                {
-                    logger?.LogError("There are {0} signature timestamps present", rawTsts.Count);
-                    throw new NotSupportedException("The library does not support more then one time-stamp");
-                }
 
-                tst = rawTsts[0].GetEncoded().ToTimeStampToken();
+            if (unsignedAttributes.ContainsKey(PkcsObjectIdentifiers.IdAASignatureTimeStampToken))
+            {
+                BC::Asn1.Cms.Attribute timestampAttr = (BC::Asn1.Cms.Attribute)unsignedAttributes[PkcsObjectIdentifiers.IdAASignatureTimeStampToken];
+                if (((DerSet)timestampAttr.AttrValues).Count > 0)
+                {
+                    DerSet rawTsts = (DerSet)timestampAttr.AttrValues;
+                    if (rawTsts.Count > 1)
+                    {
+                        logger?.LogError("There are {0} signature timestamps present", rawTsts.Count);
+                        throw new NotSupportedException("The library does not support more then one time-stamp");
+                    }
+
+                    tst = rawTsts[0].GetEncoded().ToTimeStampToken();
+                }
             }
             return tst;
         }
 
-        private RevocationValues ExtractRevocationInfo(IDictionary unsignedAttributes)
+        private RevocationValues ExtractRevocationInfo(IDictionary<DerObjectIdentifier, object> unsignedAttributes)
         {
-            BC::Asn1.Cms.Attribute revocationAttr = (BC::Asn1.Cms.Attribute)unsignedAttributes[PkcsObjectIdentifiers.IdAAEtsRevocationValues];
-            if (revocationAttr != null)
+            if (unsignedAttributes.ContainsKey(PkcsObjectIdentifiers.IdAAEtsRevocationValues))
             {
+                BC::Asn1.Cms.Attribute revocationAttr = (BC::Asn1.Cms.Attribute)unsignedAttributes[PkcsObjectIdentifiers.IdAAEtsRevocationValues];
                 DerSet revocationInfoSet = (DerSet)revocationAttr.AttrValues;
                 if (revocationInfoSet == null || revocationInfoSet.Count == 0)
                 {
@@ -547,7 +554,7 @@ namespace Egelke.EHealth.Etee.Crypto
             return new RevocationValues(new CertificateList[0], new BasicOcspResponse[0], null);
         }
 
-        private IX509Store GetEmbeddedCerts(TimemarkKey timemarkKey)
+        private IStore<BC::X509.X509Certificate> GetEmbeddedCerts(TimemarkKey timemarkKey)
         {
             //Construct the chain of certificates
             Chain chain = timemarkKey.Signer.BuildChain(timemarkKey.SigningTime == default ? DateTime.UtcNow : timemarkKey.SigningTime, extraStore);
@@ -563,10 +570,10 @@ namespace Egelke.EHealth.Etee.Crypto
                 logger?.LogDebug("Adding the certificate {0} to the message", ce.Certificate.Subject);
                 senderChainCollection.Add(DotNetUtilities.FromX509Certificate(ce.Certificate));
             }
-            return X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(senderChainCollection));
+            return CollectionUtilities.CreateStore(senderChainCollection);
         }
 
-        private void AddEmbeddedCerts(CmsSignedDataStreamGenerator gen, IX509Store embeddedCerts)
+        private void AddEmbeddedCerts(CmsSignedDataStreamGenerator gen, IStore<BC::X509.X509Certificate> embeddedCerts)
         {
             if (embeddedCerts != null) gen.AddCertificates(embeddedCerts);
         }
@@ -591,7 +598,7 @@ namespace Egelke.EHealth.Etee.Crypto
             return tst;
         }
 
-        private void AddTimestamp(IDictionary unsignedAttributes, TimeStampToken tst)
+        private void AddTimestamp(IDictionary<DerObjectIdentifier, object> unsignedAttributes, TimeStampToken tst)
         {
             byte[] rawTst = tst.GetEncoded();
             BC.Asn1.Cms.Attribute signatureTstAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAASignatureTimeStampToken, new DerSet(Asn1Object.FromByteArray(rawTst)));
@@ -599,14 +606,14 @@ namespace Egelke.EHealth.Etee.Crypto
             logger?.LogDebug("Added the time-stamp {0} [Token={1}]", tst.TimeStampInfo.GenTime, Convert.ToBase64String(rawTst));
         }
 
-        private RevocationValues GetRevocationValues(TimemarkKey timemarkKey, IX509Store embeddedCerts, RevocationValues revocationInfo)
+        private RevocationValues GetRevocationValues(TimemarkKey timemarkKey, IStore<BC::X509.X509Certificate> embeddedCerts, RevocationValues revocationInfo)
         {
             IList<CertificateList> crls = new List<CertificateList>(revocationInfo.GetCrlVals());
             IList<BasicOcspResponse> ocsps = new List<BasicOcspResponse>(revocationInfo.GetOcspVals());
             logger?.LogDebug("Start getting revocation values for Cert, having {0} OCSP's and {1} CRL's", ocsps.Count, crls.Count);
 
             var chainExtraStore = new X509Certificate2Collection();
-            foreach (Org.BouncyCastle.X509.X509Certificate cert in embeddedCerts.GetMatches(null))
+            foreach (Org.BouncyCastle.X509.X509Certificate cert in embeddedCerts.EnumerateMatches(null))
             {
                 chainExtraStore.Add(new X509Certificate2(cert.GetEncoded()));
             }
@@ -638,7 +645,7 @@ namespace Egelke.EHealth.Etee.Crypto
             return new RevocationValues(crls, ocsps, null);
         }
 
-        private void AddRevocationValues(IDictionary unsignedAttributes, RevocationValues revocationInfo)
+        private void AddRevocationValues(IDictionary<DerObjectIdentifier, object> unsignedAttributes, RevocationValues revocationInfo)
         {
             BC::Asn1.Cms.Attribute revocationAttr = new BC::Asn1.Cms.Attribute(PkcsObjectIdentifiers.IdAAEtsRevocationValues, new DerSet(revocationInfo.ToAsn1Object()));
             unsignedAttributes[revocationAttr.AttrType] = revocationAttr;

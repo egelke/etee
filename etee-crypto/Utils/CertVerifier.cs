@@ -16,6 +16,7 @@
  * along with .Net ETEE for eHealth.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using BC = Org.BouncyCastle.X509;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
@@ -38,6 +39,7 @@ using System.Text;
 using Egelke.EHealth.Client.Pki;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.X509.Extension;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Egelke.EHealth.Etee.Crypto.Utils
 {
@@ -58,7 +60,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             }
         }
 
-        public static CertificateSecurityInformation Verify(this Org.BouncyCastle.X509.X509Certificate cert, DateTime date, int[] keyUsageIndexes, int minimumKeySize, IX509Store certs, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
+        public static CertificateSecurityInformation Verify(this Org.BouncyCastle.X509.X509Certificate cert, DateTime date, int[] keyUsageIndexes, int minimumKeySize, IStore<BC::X509Certificate> certs, ref IList<CertificateList> crls, ref IList<BasicOcspResponse> ocsps)
         {
             CertificateSecurityInformation result = new CertificateSecurityInformation();
             result.Certificate = new X509Certificate2(cert.GetEncoded());
@@ -83,7 +85,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 
             //build extra store
             X509Certificate2Collection extraStore = new X509Certificate2Collection();
-            foreach (Org.BouncyCastle.X509.X509Certificate obj in certs.GetMatches(null))
+            foreach (BC::X509Certificate obj in certs.EnumerateMatches(null))
             {
                 extraStore.Add(new X509Certificate2(obj.GetEncoded()));
             }
@@ -165,7 +167,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             return result;
         }
 
-        public static Org.BouncyCastle.X509.X509Certificate ValidateAndGetDerivedIssuer(this Org.BouncyCastle.X509.X509Certificate cert, IX509Store issuerChains)
+        public static Org.BouncyCastle.X509.X509Certificate ValidateAndGetDerivedIssuer(this Org.BouncyCastle.X509.X509Certificate cert, IStore<BC::X509Certificate> issuerChains)
         {
             Org.BouncyCastle.X509.X509Certificate issuer = null;
 
@@ -187,7 +189,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             //It isn't self signed, lets see if we can find a valid issuer.
             var issuerSelector = new SignerID();
             issuerSelector.Subject = cert.IssuerDN;
-            foreach (Org.BouncyCastle.X509.X509Certificate potentialIssuer in issuerChains.GetMatches(issuerSelector))
+            foreach (Org.BouncyCastle.X509.X509Certificate potentialIssuer in issuerChains.EnumerateMatches(issuerSelector))
             {
                 try
                 {

@@ -37,6 +37,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Egelke.EHealth.Etee.Crypto.Configuration;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Egelke.EHealth.Etee.Crypto
 {
@@ -156,7 +157,7 @@ namespace Egelke.EHealth.Etee.Crypto
             //trace.TraceEvent(TraceEventType.Information, 0, "Verifying ETK: {0}", encCert.SubjectDN.ToString());
 
             //Check the certificate
-            IX509Store certs = raw.GetCertificates("COLLECTION");
+            IStore<BC::X509Certificate> certs = raw.GetCertificates();
             if (checkRevocation)
             {
                 crls = new List<CertificateList>();

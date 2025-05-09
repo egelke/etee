@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Egelke.EHealth.Etee.Crypto.Utils
 {
-    internal class WinStreamCalculator : IStreamCalculator
+    internal class WinStreamCalculator : IStreamCalculator<IBlockResult>
     {
         private readonly Oid hashOid;
 
@@ -26,7 +26,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 
         public Stream Stream => new HashAlgorithmProxy(hashAlgorithm);
 
-        public object GetResult()
+        public IBlockResult GetResult()
         {
             return new WinSignatureResult(hashOid, hashAlgorithm, privateKey);
         }

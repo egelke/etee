@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 	<PropertyGroup>
-		<TargetFrameworks>net5.0;net462;netstandard2.0;netcoreapp2.1</TargetFrameworks>
+		<TargetFrameworks>net5.0;net462;netstandard2.0</TargetFrameworks>
 		<RootNamespace>Egelke.EHealth.Etee.Crypto</RootNamespace>
 		<AssemblyName>Egelke.EHealth.Etee.Crypto</AssemblyName>
 		<Version>2.3.0</Version>
@@ -21,8 +21,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Egelke.EHealth.Client.Pki" Version="[2.4.0,3.0.0)" />
-		<PackageReference Include="Portable.BouncyCastle" Version="1.8.*" />
+		<PackageReference Include="Egelke.EHealth.Client.Pki" Version="[2.5.0,3.0.0)" />
+		<PackageReference Include="BouncyCastle.Cryptography" Version="2.5.*" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.*" />
 	</ItemGroup>
 

@@ -32,7 +32,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
 
         public object AlgorithmDetails => algID;
 
-        public IStreamCalculator CreateCalculator()
+        public IStreamCalculator<IBlockResult> CreateCalculator()
         {
             return new WinStreamCalculator(hashOid, hashAlgorithm, privateKey);
         }

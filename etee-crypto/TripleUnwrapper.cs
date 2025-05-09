@@ -45,6 +45,8 @@ using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
 
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using Org.BouncyCastle.Utilities.Collections;
+
 #if NETFRAMEWORK
 using Microsoft.Extensions.Logging.TraceSource;
 #endif
@@ -56,8 +58,8 @@ namespace Egelke.EHealth.Etee.Crypto
         private readonly ILogger logger;
 
         private Level? level;
-        private IX509Store encCertStore;
-        private IX509Store authCertStore;
+        private WinX509CollectionStore encCertStore;
+        private IStore<X509Certificate> authCertStore;
         private IDictionary<byte[], AsymmetricCipherKeyPair> ownKeyPairs;
         private ITimemarkProvider timemarkauthority;
 
@@ -65,7 +67,7 @@ namespace Egelke.EHealth.Etee.Crypto
 #if !NETFRAMEWORK
             ILoggerFactory loggerFactory,
 #endif
-            Level? level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, IX509Store authCertStore, WebKey[] ownWebKeys)
+            Level? level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, IStore<X509Certificate> authCertStore, WebKey[] ownWebKeys)
         {
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only null or levels B, T, LT and LTA are allowed");
 
@@ -256,7 +258,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 signedData.GetSignedContent().ContentStream.CopyTo(verifiedContent);
                 logger?.LogDebug("Copied the signed data & calculated the message digest");
 
-                IX509Store certs = signedData.GetCertificates("COLLECTION");
+                IStore<X509Certificate> certs = signedData.GetCertificates();
                 SignerInformationStore signerInfos = signedData.GetSignerInfos();
 
                 return Verify(signerInfos, certs, sender, outer);
@@ -295,7 +297,7 @@ namespace Egelke.EHealth.Etee.Crypto
                     logger?.LogDebug("Copied the signed data");
                 }
 
-                IX509Store certs = signedData.GetCertificates("COLLECTION");
+                IStore<X509Certificate> certs = signedData.GetCertificates();
                 SignerInformationStore signerInfos = signedData.GetSignerInfos();
                 return Verify(signerInfos, certs, sender, outer);
             }
@@ -306,7 +308,7 @@ namespace Egelke.EHealth.Etee.Crypto
         }
 
         //todo test is up
-        private SignatureSecurityInformation Verify(SignerInformationStore signerInfos, IX509Store certs, WebKey sender, SignatureSecurityInformation outer)
+        private SignatureSecurityInformation Verify(SignerInformationStore signerInfos, IStore<X509Certificate> certs, WebKey sender, SignatureSecurityInformation outer)
         {
             logger?.LogInformation("Verifying the {0} signature information", outer == null ? "outer" : "inner");
             SignatureSecurityInformation result = new SignatureSecurityInformation();
@@ -352,11 +354,11 @@ namespace Egelke.EHealth.Etee.Crypto
 
             //Find the singing certificate and relevant info
             byte[] ski = null;
-            Org.BouncyCastle.X509.X509Certificate signerCert = null;
-            if (certs.GetMatches(null).Count > 0)
+            X509Certificate signerCert = null;
+            if (certs.EnumerateMatches(null).Any())
             {
                 //We got certificates, so lets find the signer
-                IEnumerator signerCerts = certs.GetMatches(signerInfo.SignerID).GetEnumerator();
+                IEnumerator<X509Certificate> signerCerts = certs.EnumerateMatches(signerInfo.SignerID).GetEnumerator();
 
                 if (!signerCerts.MoveNext())
                 {
@@ -367,7 +369,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 }
 
                 //Getting the first certificate
-                signerCert = (Org.BouncyCastle.X509.X509Certificate)signerCerts.Current;
+                signerCert = signerCerts.Current;
                 logger?.LogDebug("Found the signer certificate: {0}", signerCert.SubjectDN.ToString());
 
                 //Check if the outer certificate matches the inner certificate
@@ -461,7 +463,7 @@ namespace Egelke.EHealth.Etee.Crypto
                 if (time != null && time.AttrValues.Count > 0)
                 {
                     hasSigningTime = true;
-                    result.SigningTime = Org.BouncyCastle.Asn1.Cms.Time.GetInstance(time.AttrValues[0]).Date;
+                    result.SigningTime = Org.BouncyCastle.Asn1.Cms.Time.GetInstance(time.AttrValues[0]).ToDateTime();
                     signingTime = result.SigningTime.Value;
                     if (signingTime.Kind == DateTimeKind.Unspecified)
                     {
@@ -673,7 +675,7 @@ namespace Egelke.EHealth.Etee.Crypto
                             logger?.LogDebug("The message is addressed to {0} ({1})", recipient.RecipientID.SerialNumber, recipient.RecipientID.Issuer);
 
                             //try to find the certificate.
-                            IList matches = (IList)encCertStore.GetMatches(recipient.RecipientID);
+                            IList matches = encCertStore.GetMatches(recipient.RecipientID);
                             foreach (X509Certificate2 match in matches)
                             {
                                 logger?.LogDebug("Found potential match {0} ({1})", match.Subject, match.Issuer);

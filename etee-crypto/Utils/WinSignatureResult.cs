@@ -73,6 +73,14 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             return signature.Length;
         }
 
+        public int GetMaxResultLength()
+        {
+            //todo::calculate, for now return 8KBit in bytes (to allow for really big RSA keys)
+            return 8 * 1024 / 8;
+        }
+
+
+
 #if !NET5_0_OR_GREATER
         private static byte[] Ieee1363ToDer(byte[] input)
         {
@@ -84,7 +92,7 @@ namespace Egelke.EHealth.Etee.Crypto.Utils
             DerSequenceGenerator generator = new DerSequenceGenerator(encoded);
             generator.AddObject(Ieee1363KeyParameterIntegerToDer(input, 0, halfLength)); //add r
             generator.AddObject(Ieee1363KeyParameterIntegerToDer(input, halfLength, halfLength)); //add s
-            generator.Close();
+            //generator.Close();
 
             return encoded.ToArray();
         }

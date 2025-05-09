@@ -27,6 +27,8 @@ using Egelke.EHealth.Etee.Crypto.Utils;
 using Org.BouncyCastle.X509.Store;
 using System.Collections;
 using System.Net;
+using Org.BouncyCastle.Utilities.Collections;
+using BC = Org.BouncyCastle.X509;
 
 #if !NETFRAMEWORK
 using Microsoft.Extensions.Logging;
@@ -187,14 +189,14 @@ namespace Egelke.EHealth.Etee.Crypto.Receiver
             return CreateFromTimemarkAuthority(level, timemarkauthority, encCerts, allCerts, ownWebKeys);
         }
 
-        private static IX509Store ToStore(X509Certificate2Collection certs)
+        private static IStore<BC::X509Certificate> ToStore(X509Certificate2Collection certs)
         {
-            ArrayList senderChainCollection = new ArrayList();
+            List<BC::X509Certificate> senderChainCollection = new List<BC.X509Certificate>();
             foreach (X509Certificate2 cert in certs)
             {
                 senderChainCollection.Add(DotNetUtilities.FromX509Certificate(cert));
             }
-            return X509StoreFactory.Create("CERTIFICATE/COLLECTION", new X509CollectionStoreParameters(senderChainCollection));
+            return CollectionUtilities.CreateStore(senderChainCollection);
         }
 
         private static void Extract(EHealthP12[] p12s, out X509Certificate2Collection encCerts, out X509Certificate2Collection allCerts)
