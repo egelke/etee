@@ -36,6 +36,7 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -79,7 +80,7 @@ namespace Egelke.EHealth.Client.Pki
             }
 
             //create the hash according to the specs of the time-stamp
-            var hashAlogOid = new Oid(tst.TimeStampInfo.HashAlgorithm.ObjectID.Id);
+            var hashAlogOid = new Oid(tst.TimeStampInfo.HashAlgorithm.Algorithm.Id);
             var hashAlgo = (HashAlgorithm)CryptoConfig.CreateFromName(hashAlogOid.FriendlyName);
             byte[] signatureValueHashed = hashAlgo.ComputeHash(data);
 
@@ -94,7 +95,7 @@ namespace Egelke.EHealth.Client.Pki
         private static BC::X509Certificate GetSigner(this TimeStampToken tst, X509Certificate2Collection extraStore)
         {
             //Get the info from the token
-            IEnumerator signers = tst.GetCertificates("Collection").GetMatches(tst.SignerID).GetEnumerator();
+            IEnumerator signers = tst.GetCertificates().EnumerateMatches(tst.SignerID).GetEnumerator();
 
             //Get the one and only one signer
             if (signers.MoveNext()) return (BC::X509Certificate)signers.Current;
@@ -103,9 +104,9 @@ namespace Egelke.EHealth.Client.Pki
             List<BC::X509Certificate> bcExtraList = extraStore.Cast<X509Certificate2>()
                 .Select(c => DotNetUtilities.FromX509Certificate(c))
                 .ToList();
-            IX509Store bcExtraStore = X509StoreFactory.Create("Certificate/Collection", new X509CollectionStoreParameters(bcExtraList));
+            IStore<BC::X509Certificate> bcExtraStore = CollectionUtilities.CreateStore(bcExtraList);
 
-            signers = bcExtraStore.GetMatches(tst.SignerID).GetEnumerator();
+            signers = bcExtraStore.EnumerateMatches(tst.SignerID).GetEnumerator();
             if (signers.MoveNext()) return (BC::X509Certificate)signers.Current;
 
             return null;
@@ -326,8 +327,8 @@ namespace Egelke.EHealth.Client.Pki
             }
 
             //check if the certificate may be used for time-stamping
-            IList signerExtKeyUsage = signerBc.GetExtendedKeyUsage();
-            if (!signerExtKeyUsage.Contains("1.3.6.1.5.5.7.3.8"))
+            IList<DerObjectIdentifier> signerExtKeyUsage = signerBc.GetExtendedKeyUsage();
+            if (!signerExtKeyUsage.Contains(X509ObjectIdentifiers.IdPkix.Branch("3.9"))) // 1.3.6.1.5.5.7.3.8:  pkix / Extended Key Purposes (KPs) / timeStamping
             {
                 trace.TraceEvent(TraceEventType.Warning, 0, "The signer {1} of the time-stamp {0} isn't allowed to sign timestamps", tst.TimeStampInfo.SerialNumber, signerBc.SubjectDN);
                 X509CertificateHelper.AddErrorStatus(value.TimestampStatus, null, X509ChainStatusFlags.NotSignatureValid, "The certificate may not be used for timestamps");
@@ -339,7 +340,7 @@ namespace Egelke.EHealth.Client.Pki
         private static X509Certificate2Collection GetExtraStore(this TimeStampToken tst)
         {
             var extraStore = new X509Certificate2Collection();
-            foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates("Collection").GetMatches(null))
+            foreach (Org.BouncyCastle.X509.X509Certificate cert in tst.GetCertificates().EnumerateMatches(null))
             {
                 extraStore.Add(new X509Certificate2(cert.GetEncoded()));
             }

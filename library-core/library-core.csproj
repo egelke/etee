@@ -47,7 +47,7 @@ Currently missing SsoBinding</PackageReleaseNotes>
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Portable.BouncyCastle" Version="1.8.*" />
+		<PackageReference Include="BouncyCastle" Version="1.8.*" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.*" />
 	</ItemGroup>
 

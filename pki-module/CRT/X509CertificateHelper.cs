@@ -35,6 +35,9 @@ using Org.BouncyCastle.Security;
 using System.Threading.Tasks;
 using System.Collections;
 using System.Security.Cryptography;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.X509;
+using X509Extension = System.Security.Cryptography.X509Certificates.X509Extension;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -286,8 +289,8 @@ namespace Egelke.EHealth.Client.Pki
                 var selector = new BCS.X509CertStoreSelector();
                 selector.Subject = responderName;
                 ocspSignerBc = basicOcspResp
-                    .GetCertificates("Collection")
-                    .GetMatches(selector)
+                    .GetCertificates()
+                    .EnumerateMatches(selector)
                     .Cast<BCX.X509Certificate>()
                     .FirstOrDefault();
             } 
@@ -296,8 +299,8 @@ namespace Egelke.EHealth.Client.Pki
                 //Get the signer certificate via key hash
                 var sha1 = SHA1.Create();
                 ocspSignerBc = basicOcspResp
-                    .GetCertificates("Collection")
-                    .GetMatches(null)
+                    .GetCertificates()
+                    .EnumerateMatches(null)
                     .Cast<BCX.X509Certificate>()
                     .Where(c => {
                         byte[] certKey = c.CertificateStructure.SubjectPublicKeyInfo.PublicKeyData.GetBytes();
@@ -337,8 +340,8 @@ namespace Egelke.EHealth.Client.Pki
 
 
             //check if the signer may issue OCSP
-            IList ocspSignerExtKeyUsage = ocspSignerBc.GetExtendedKeyUsage();
-            if (!ocspSignerExtKeyUsage.Contains("1.3.6.1.5.5.7.3.9"))
+            IList<DerObjectIdentifier> ocspSignerExtKeyUsage = ocspSignerBc.GetExtendedKeyUsage();
+            if (!ocspSignerExtKeyUsage.Contains(X509ObjectIdentifiers.IdPkix.Branch("3.9"))) // 1.3.6.1.5.5.7.3.9: pkix / Extended Key Purposes (KPs) / Signing Online Certificate Status Protocol (OCSP) responses
                 throw new RevocationUnknownException("The OCSP is signed by a certificate that isn't allowed to sign OCSP");
 
             //finally, check if the certificate is revoked or not

@@ -49,6 +49,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.6.7" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.5.*" />
   </ItemGroup>
 </Project>

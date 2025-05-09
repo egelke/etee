@@ -28,6 +28,7 @@ using Org.BouncyCastle.Security;
 using System.Text.RegularExpressions;
 using Microsoft.Win32.SafeHandles;
 using System.Security.Cryptography;
+using Org.BouncyCastle.Asn1.Microsoft;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -38,6 +39,8 @@ namespace Egelke.EHealth.Client.Pki
     {
 //        private const String SnRegExPattern = @"SERIALNUMBER=(?<sn>\d+)";
         private const String SnRegExPattern = @"SSIN=(?<sn>\d+)";
+
+        private static readonly DerObjectIdentifier MicrosoftEnhancedRsaAndAes = MicrosoftObjectIdentifiers.Microsoft.Branch("17.1"); //(1.3.6.1.4.1.311.)17.1
 
         /// <summary>
         /// Find the last version of the eHealth p12 file based on the inss of the provided eid cert.
@@ -70,7 +73,8 @@ namespace Egelke.EHealth.Client.Pki
             password = pwd;
             using (FileStream fileStream = new FileStream(file, FileMode.Open))
             {
-                store = new Pkcs12Store(fileStream, pwd.ToCharArray());
+                store = new Pkcs12StoreBuilder().Build();
+                store.Load(fileStream, pwd.ToCharArray());
                 fileStream.Close();
             }
         }
@@ -80,7 +84,8 @@ namespace Egelke.EHealth.Client.Pki
             password = pwd;
             using (MemoryStream memStream = new MemoryStream(data))
             {
-                store = new Pkcs12Store(memStream, pwd.ToCharArray());
+                store = new Pkcs12StoreBuilder().Build();
+                store.Load(memStream, pwd.ToCharArray());
                 memStream.Close();
             }
         }
@@ -310,19 +315,19 @@ namespace Egelke.EHealth.Client.Pki
                 AsymmetricKeyEntry orgKeyEntry = store.GetKey(entryAlias);
 
                 //Copy it into a new key attribute with the windows CSP defined
-                IDictionary newKeyEntryAttributes = new Hashtable();
-                foreach (String attribute in orgKeyEntry.BagAttributeKeys) 
+                Dictionary<DerObjectIdentifier, Asn1Encodable> newKeyEntryAttributes = new Dictionary<DerObjectIdentifier, Asn1Encodable>();
+                foreach (DerObjectIdentifier attribute in orgKeyEntry.BagAttributeKeys) 
                 {
                     newKeyEntryAttributes.Add(attribute, orgKeyEntry[attribute]);
                 }
-                if (!newKeyEntryAttributes.Contains("1.3.6.1.4.1.311.17.1"))
+                if (!newKeyEntryAttributes.ContainsKey(MicrosoftEnhancedRsaAndAes))
                 {
-                    newKeyEntryAttributes.Add("1.3.6.1.4.1.311.17.1", new DerBmpString("Microsoft Enhanced RSA and AES Cryptographic Provider"));
+                    newKeyEntryAttributes.Add(MicrosoftEnhancedRsaAndAes, new DerBmpString("Microsoft Enhanced RSA and AES Cryptographic Provider"));
                 }
                 AsymmetricKeyEntry newKeyEntry = new AsymmetricKeyEntry(orgKeyEntry.Key, newKeyEntryAttributes);
 
                 //Make a new P12 in memory
-                Pkcs12Store newP12 = new Pkcs12Store();
+                Pkcs12Store newP12 = new Pkcs12StoreBuilder().Build();
                 newP12.SetKeyEntry(entryAlias, newKeyEntry, store.GetCertificateChain(entryAlias));
                 MemoryStream buffer = new MemoryStream();
                 newP12.Save(buffer, password.ToCharArray(), new SecureRandom());
