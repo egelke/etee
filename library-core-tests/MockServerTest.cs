@@ -16,6 +16,10 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using Xunit;
 using Egelke.EHealth.Client.Pki.ECDSA;
+using Egelke.EHealth.Client.Sts;
+using Egelke.EHealth.Client.Sts.WsTrust200512;
+using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace library_core_tests
 {
@@ -41,9 +45,13 @@ namespace library_core_tests
             //        .Select(c => new object[] { new MyX509Certificate2(c) })
             //        .ToList();
             //}
-            certs.Add(new object[] { new MyX509Certificate2("files/eccert.p12", "") });
+            //certs.Add(new object[] { new MyX509Certificate2("files/eccert.p12", "") });
+            var certp12 = new EHealthP12("files/SSIN=79021802145 20250514-082150.acc.p12", File.ReadAllText("files/SSIN=79021802145 20250514-082150.acc.p12.pwd"));
+            certs.Add(new object[] { new MyX509Certificate2(certp12["authentication"]) });
             return certs;
         }
+
+        private ILoggerFactory loggerFactory;
 
         public MockServiceTest()
         {
@@ -61,6 +69,11 @@ namespace library_core_tests
                 }
             }
 
+            loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole();
+                builder.SetMinimumLevel(LogLevel.Trace);
+            });
         }
 
         [Theory]
@@ -212,6 +225,27 @@ namespace library_core_tests
 
             String pong = client.Echo("boe");
             Assert.Equal("boe", pong);
+        }
+
+        [Theory(Skip="Mock implementation not ready")]
+        [MemberData(nameof(GetCerts))]
+        public void WsTrust(X509Certificate2 cert)
+        {
+            var msgLogger = loggerFactory.CreateLogger<LoggingMessageInspector>();
+
+            var binding = new StsBinding();
+            var client = new WsTrustClient(binding, new EndpointAddress("https://localhost:8080/services/sts/soap12"));
+            //var client = new WsTrustClient(binding, new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1"));
+            client.ClientCredentials.ClientCertificate.Certificate = cert;
+            client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(msgLogger));
+
+            var assertingClaims = new List<Claim>();
+            assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", "79021802145"));
+            var additionalClaims = new List<Claim>();
+
+
+            var response = client.RequestTicket(cert, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
+            
         }
     }
 

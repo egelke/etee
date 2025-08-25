@@ -151,17 +151,15 @@ namespace Egelke.EHealth.Client.Helper
 
             sec.AppendChild(bst);
 
-            bool sha2 = false;
             var signedDoc = new SignedWSS(this, doc);
 
             if (clientCert.GetRSAPrivateKey() != null)
             {
                 signedDoc.SigningKey = clientCert.GetRSAPrivateKey();
-                signedDoc.SignedInfo.SignatureMethod = SignedXml.XmlDsigRSASHA1Url;
+                signedDoc.SignedInfo.SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
             }
             else if (clientCert.GetECDsaPrivateKey() != null)
             {
-                sha2 = true;
                 signedDoc.SigningKey = clientCert.GetECDsaPrivateKey();
                 signedDoc.SignedInfo.SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256";
             }
@@ -176,7 +174,7 @@ namespace Egelke.EHealth.Client.Helper
                 var reference = new Reference
                 {
                     Uri = "#" + tsId.Value,
-                    DigestMethod = sha2 ? "http://www.w3.org/2001/04/xmlenc#sha256" : SignedXml.XmlDsigSHA1Url
+                    DigestMethod = "http://www.w3.org/2001/04/xmlenc#sha256"
                 };
                 var transform = new XmlDsigExcC14NTransform();
                 reference.AddTransform(transform);
@@ -188,7 +186,7 @@ namespace Egelke.EHealth.Client.Helper
                 var reference = new Reference
                 {
                     Uri = "#" + bodyId,
-                    DigestMethod = sha2 ? "http://www.w3.org/2001/04/xmlenc#sha256" : SignedXml.XmlDsigSHA1Url
+                    DigestMethod = "http://www.w3.org/2001/04/xmlenc#sha256"
                 };
                 var transform = new XmlDsigExcC14NTransform();
                 reference.AddTransform(transform);
@@ -200,7 +198,7 @@ namespace Egelke.EHealth.Client.Helper
                 var reference = new Reference
                 {
                     Uri = "#" + bstId.Value,
-                    DigestMethod = sha2 ? "http://www.w3.org/2001/04/xmlenc#sha256" : SignedXml.XmlDsigSHA1Url
+                    DigestMethod = "http://www.w3.org/2001/04/xmlenc#sha256"
                 };
                 var transform = new XmlDsigExcC14NTransform();
                 reference.AddTransform(transform);

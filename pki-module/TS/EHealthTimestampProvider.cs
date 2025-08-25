@@ -51,24 +51,6 @@ namespace Egelke.EHealth.Client.Pki
         }
 
         /// <summary>
-        /// Constructor using a TSA client with the provided configuration.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// When this constructor is used, the application configuration is searched for a TSA client with the provided name.
-        /// </para>
-        /// <para>
-        /// The eHealth TSA requires the StsBinding as provided by the eH-I codeplex project.
-        /// </para>
-        /// </remarks>
-        /// <param name="config">The configuration name of the TSA client</param>
-        public EHealthTimestampProvider(String config)
-            : base(config)
-        {
-            Profile = "urn:ehealth:profiles:timestamping:2.1-cert";
-        }
-
-        /// <summary>
         /// Constructor using a provided TSA client.
         /// </summary>
         /// <remarks>

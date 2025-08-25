@@ -15,5 +15,6 @@
 *.iml
 /packages/
 eHealth*.*p12
-eHealth*.pwd
+SSIN*.*p12
+*.p12.pwd
 *.pin

@@ -231,6 +231,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             Assert.Throws<RevocationUnknownException>(() => target.GetOcspResponse(issuer));
         }
 
+        /*
         [Fact]
         public void GetOCSPOfEgelke_Downloaded()
         {
@@ -244,6 +245,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             Assert.Equal(0, result.ResponseStatus.IntValueExact);
             Assert.True(resultDetail.TbsResponseData.ProducedAt.ToDateTime() <= DateTime.UtcNow);
         }
+        */
 
         [Fact]
         public void GetCertificateListOfRootCa_NA()

@@ -16,10 +16,12 @@
     <AssemblyVersion>2.5.0.0</AssemblyVersion>
     <FileVersion>2.5.0.0</FileVersion>
     <PackageTags>eHealth eSigning TimeStamp PKI PKCS#12 X509</PackageTags>
-    <PackageReleaseNotes>Latest BouncyCastle</PackageReleaseNotes>
+    <PackageReleaseNotes>Latest Dependencies</PackageReleaseNotes>
     <SignAssembly>true</SignAssembly>
     <IncludeSource>true</IncludeSource>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -30,23 +32,21 @@
     <AssemblyOriginatorKeyFile>..\release.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-	<PropertyGroup>
-		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Egelke.EHealth.Client.Pki.xml</DocumentationFile>
-	</PropertyGroup>
-
-
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.ServiceModel.Http" Version="4.*" />
-	  <PackageReference Include="System.Security.Cryptography.Cng" Version="5.*" />
-	  <PackageReference Include="System.Security.Cryptography.OpenSSL" Version="5.*" />
+    <PackageReference Include="System.ServiceModel.Http" Version="8.*" />
+	<PackageReference Include="System.ServiceModel.Primitives" Version="8.*" />
+	<PackageReference Include="System.Security.Cryptography.Cng" Version="5.*" />
+	<PackageReference Include="System.Security.Cryptography.OpenSSL" Version="5.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.Cryptography" Version="2.5.*" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.*" />
+	<None Include="README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
+
 
 </Project>

@@ -21,7 +21,7 @@ namespace Egelke.EHealth.Client.Pki.Test
         public EHealthP12Tests()
         {
             dummyP12 = new EHealthP12(@"EHealthP12/dummy.p12", "test001");
-            realP12 = new EHealthP12(@"EHealthP12\eHealth.acc-p12", File.ReadAllText(@"EHealthP12\eHealth.acc-p12.pwd"));
+            realP12 = new EHealthP12(@"files\EHealthP12\eHealth.acc-p12", File.ReadAllText(@"files\EHealthP12\eHealth.acc-p12.pwd"));
         }
 
         [Fact]
@@ -233,13 +233,28 @@ namespace Egelke.EHealth.Client.Pki.Test
 
             byte[] data = Encoding.UTF8.GetBytes("My Test");
 
-            RSA rsaPrivateKey = (RSA)cert.PrivateKey;
-            byte[] signature = rsaPrivateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-            Assert.NotNull(signature);
-            Assert.Equal(2048 / 8, signature.Length);
+            
+            RSA rsaPublicKey = cert.GetRSAPublicKey();
+            if (rsaPublicKey != null)
+            {
+                RSA rsaPrivateKey = cert.GetRSAPrivateKey();
+                byte[] signature = rsaPrivateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                Assert.NotNull(signature);
+                Assert.Equal(2048 / 8, signature.Length);
 
-            RSA rsaPublicKey = (RSA)cert.PublicKey.Key;
-            Assert.True(rsaPublicKey.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
+                Assert.True(rsaPublicKey.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
+            }
+
+            
+            ECDsa ecPublicKey = cert.GetECDsaPublicKey();
+            if (ecPublicKey != null)
+            {
+                ECDsa ecPrivateKey = cert.GetECDsaPrivateKey();
+                byte[] signature = ecPrivateKey.SignHash(data); //hashing is more a convention then a requirement, the signature will do it anyway
+                Assert.NotNull(signature);
+
+                Assert.True(ecPublicKey.VerifyHash(data, signature));
+            }
         }
 
 
@@ -256,11 +271,11 @@ namespace Egelke.EHealth.Client.Pki.Test
 
             byte[] data = Encoding.UTF8.GetBytes("My Test");
 
-            RSA publicKey = (RSA)cert.PublicKey.Key;
+            RSA publicKey = cert.GetRSAPublicKey();
             byte[] enc = publicKey.Encrypt(data, RSAEncryptionPadding.Pkcs1);
             Assert.NotNull(enc);
 
-            RSA privateKey = (RSA)cert.PrivateKey;
+            RSA privateKey = cert.GetRSAPrivateKey();
             byte[] data_copy = privateKey.Decrypt(enc, RSAEncryptionPadding.Pkcs1);
             Assert.Equal(data.Length, data_copy.Length);
             for (int i = 0; i < data.Length; i++)

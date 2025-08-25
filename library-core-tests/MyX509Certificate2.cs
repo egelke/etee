@@ -19,7 +19,16 @@ namespace library_core_tests
 
         public override string ToString()
         {
-            return this.GetNameInfo(X509NameType.SimpleName, false);
+            String key = "unknown";
+            if (this.GetRSAPublicKey() != null)
+            {
+                key = "rsa";
+            }
+            else if (this.GetECDsaPublicKey() != null)
+            {
+                key = "ec";
+            }
+            return this.GetNameInfo(X509NameType.SimpleName, false) + " (" + key + ")";
         }
 
     }

@@ -31,28 +31,37 @@ Currently missing SsoBinding</PackageReleaseNotes>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+	  <Optimize>False</Optimize>
+	  <DefineConstants>$(DefineConstants)</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	  <Optimize>True</Optimize>
+		<DefineConstants>$(DefineConstants)</DefineConstants>
+	</PropertyGroup>
+	
 	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
 		<Reference Include="System.Security" />
 		<Reference Include="System.ServiceModel" />
 		<Reference Include="System.IdentityModel" />
-		<PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="5.*" />
+		<PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="9.*" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="System.Security.Cryptography.Xml" Version="7.0.1" />
-		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.*" />
-		<PackageReference Include="System.ServiceModel.Http" Version="4.*" />
-	    <PackageReference Include="System.ServiceModel.Security" Version="4.*" />
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="9.*" />
+		<PackageReference Include="System.ServiceModel.Http" Version="8.*" />
 		<!--PackageReference Include="System.ServiceModel.Federation" Version="4.*" /-->
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BouncyCastle" Version="1.8.*" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.*" />
+		<PackageReference Include="BouncyCastle.Cryptography" Version="2.6.*" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.*" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\pki-module\pki-module.csproj" />
 	</ItemGroup>
+
 
 </Project>

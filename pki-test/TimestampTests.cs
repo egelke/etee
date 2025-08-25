@@ -17,7 +17,7 @@ namespace Egelke.EHealth.Client.Pki.Test
     {
         public TimestampTests(CTPRootCAFicture ctpcaFicture, QuoVadisFicture quoVadisFicture)
         {
-            bool install = false;
+            bool install = true;
 
             Dictionary<String, bool> ctpca = ctpcaFicture.Verify();
             Dictionary<String, bool> quoVadisCa = quoVadisFicture.Verify();

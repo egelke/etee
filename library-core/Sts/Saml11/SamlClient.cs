@@ -18,16 +18,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.ServiceModel.Channels;
-using System.ServiceModel;
-using System.Xml;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
-
-using Microsoft.Extensions.Logging;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
+using System.Text;
+using System.Xml;
 using Egelke.EHealth.Client.Helper;
 using Egelke.EHealth.Client.Sts;
-using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace Egelke.EHealth.Client.Sts.Saml11
 {
@@ -42,22 +42,8 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
         }
 
-        public SamlClient(string package, string endpointConfigurationName, ILogger<SamlClient> logger = null) :
-            base(endpointConfigurationName)
-        {
-            this.package = package;
-            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
-        }
-
-        public SamlClient(string package, string endpointConfigurationName, string remoteAddress, ILogger<SamlClient> logger = null) :
-            base(endpointConfigurationName, remoteAddress)
-        {
-            this.package = package;
-            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
-        }
-
-        public SamlClient(string package, string endpointConfigurationName, EndpointAddress remoteAddress, ILogger<SamlClient> logger = null) :
-            base(endpointConfigurationName, remoteAddress)
+        public SamlClient(string package, ServiceEndpoint endpoint, ILogger<SamlClient> logger = null) :
+            base(endpoint)
         {
             this.package = package;
             _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();

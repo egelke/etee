@@ -86,23 +86,6 @@ namespace Egelke.EHealth.Client.Pki
         }
 
         /// <summary>
-        /// Constructor using a TSA client with the provided configuration.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// When this constructor is used, the application configuration is searched for a TSA client with the provided name.
-        /// </para>
-        /// <para>
-        /// The exact configuration requirements depend on the TSA and should be obtained from them.
-        /// </para>
-        /// </remarks>
-        /// <param name="config">The configuration name of the TSA client</param>
-        public DssTimestampProvider(String config)
-        {
-            client = new DSS.TimeStampAuthorityClient(config);
-        }
-
-        /// <summary>
         /// Constructor using a provided TSA client.
         /// </summary>
         /// <remarks>

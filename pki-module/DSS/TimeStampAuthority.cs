@@ -18,6 +18,7 @@
  */
 
 using System.Net.Security;
+using System.ServiceModel.Description;
 
 namespace Egelke.EHealth.Client.Pki.DSS
 {
@@ -2704,29 +2705,9 @@ namespace Egelke.EHealth.Client.Pki.DSS
         /// <summary>
         /// Uses the configuration with the provided name from the application config.
         /// </summary>
-        /// <param name="endpointConfigurationName">The configuration name of the application config</param>
-        public TimeStampAuthorityClient(string endpointConfigurationName) :
-            base(endpointConfigurationName)
-        {
-        }
-
-        /// <summary>
-        /// Uses the configuration wit the provided name from the application config, but overrides the address.
-        /// </summary>
-        /// <param name="endpointConfigurationName">The configuration name of the application conifg</param>
-        /// <param name="remoteAddress">The address of the TSA (without ?wsdl at the end)</param>
-        public TimeStampAuthorityClient(string endpointConfigurationName, string remoteAddress) :
-            base(endpointConfigurationName, remoteAddress)
-        {
-        }
-
-        /// <summary>
-        /// Uses the configuration wit the provided name from the application config, but overrides the address.
-        /// </summary>
-        /// <param name="endpointConfigurationName">The configuration name of the application config</param>
-        /// <param name="remoteAddress">The address of the TSA</param>
-        public TimeStampAuthorityClient(string endpointConfigurationName, System.ServiceModel.EndpointAddress remoteAddress) :
-            base(endpointConfigurationName, remoteAddress)
+        /// <param name="endpoint">The configuration of the endpoint</param>
+        public TimeStampAuthorityClient(ServiceEndpoint endpoint) :
+            base(endpoint)
         {
         }
 

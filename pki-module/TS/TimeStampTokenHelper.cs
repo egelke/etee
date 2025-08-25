@@ -68,7 +68,7 @@ namespace Egelke.EHealth.Client.Pki
         public static bool IsMatch(this TimeStampToken tst, Stream data)
         {
             //check if we can verify the time-stamp
-            if (tst.TimeStampInfo.HashAlgorithm.Parameters != DerNull.Instance)
+            if (tst.TimeStampInfo.HashAlgorithm.Parameters != DerNull.Instance && tst.TimeStampInfo.HashAlgorithm.Parameters != null)
             {
                 trace.TraceEvent(TraceEventType.Error, 0, "The time-stamp {0} contains hash parameters {1} which isn't supported", tst.TimeStampInfo.SerialNumber, tst.TimeStampInfo.HashAlgorithm.Parameters);
                 throw new NotSupportedException("Only hash algorithms without parameters are currently supported for timestamps");
@@ -328,7 +328,7 @@ namespace Egelke.EHealth.Client.Pki
 
             //check if the certificate may be used for time-stamping
             IList<DerObjectIdentifier> signerExtKeyUsage = signerBc.GetExtendedKeyUsage();
-            if (!signerExtKeyUsage.Contains(X509ObjectIdentifiers.IdPkix.Branch("3.9"))) // 1.3.6.1.5.5.7.3.8:  pkix / Extended Key Purposes (KPs) / timeStamping
+            if (!signerExtKeyUsage.Contains(KeyPurposeID.id_kp_timeStamping)) // 1.3.6.1.5.5.7.3.8:  pkix / Extended Key Purposes (KPs) / timeStamping
             {
                 trace.TraceEvent(TraceEventType.Warning, 0, "The signer {1} of the time-stamp {0} isn't allowed to sign timestamps", tst.TimeStampInfo.SerialNumber, signerBc.SubjectDN);
                 X509CertificateHelper.AddErrorStatus(value.TimestampStatus, null, X509ChainStatusFlags.NotSignatureValid, "The certificate may not be used for timestamps");

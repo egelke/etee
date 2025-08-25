@@ -93,71 +93,75 @@ namespace Egelke.EHealth.Client.Security
         /// <param name="writer">The xml writer to write the message too</param>
         protected override void OnWriteMessage(XmlDictionaryWriter writer)
         {
+            var wss = WSS.Create(MessageSecurityVersion);
+            var env = new XmlDocument
+            {
+                PreserveWhitespace = true
+            };
             using (var memStream = new MemoryStream())
             {
-                var wss = WSS.Create(MessageSecurityVersion);
-
                 //Write the document without security headers in memory
                 using (var memWriter = XmlDictionaryWriter.CreateTextWriter(memStream, Encoding.UTF8, false))
                 {
                     _innerMessage.WriteMessage(memWriter);
                 }
                 memStream.Position = 0;
-                if (_logger != null && _logger.IsEnabled(LogLevel.Trace))
-                {
-                    String org = new StreamReader(memStream).ReadToEnd();
-                    _logger.LogTrace(org);
-                    memStream.Position = 0;
-                }
 
                 //parse the document to add the security headers
-                var env = new XmlDocument
-                {
-                    PreserveWhitespace = true
-                };
                 env.Load(memStream);
+            }
 
-                //Make preperations to do some xpath
-                string soapPrefix = env.DocumentElement.Prefix;
-                string soapNs = env.DocumentElement.NamespaceURI;
-                XmlNamespaceManager nsmgr = new XmlNamespaceManager(env.NameTable);
-                nsmgr.AddNamespace("s", soapNs);
+            //Make preperations to do some xpath
+            string soapPrefix = env.DocumentElement.Prefix;
+            string soapNs = env.DocumentElement.NamespaceURI;
+            XmlNamespaceManager nsmgr = new XmlNamespaceManager(env.NameTable);
+            nsmgr.AddNamespace("s", soapNs);
 
-                //Find the body, add an id if needed.
-                XmlElement body = (XmlElement)env.DocumentElement.SelectSingleNode("./s:Body", nsmgr);
-                string bodyIdValue = body.GetAttribute("Id", wss.UtilityNs);
-                if (bodyIdValue == string.Empty)
-                {
-                    bodyIdValue = "uuid-" + Guid.NewGuid().ToString("D");
-                    var bodyId = env.CreateAttribute(wss.UtilityPrefix, "Id", wss.UtilityNs);
-                    bodyId.Value = bodyIdValue;
-                    body.SetAttributeNode(bodyId);
-                }
+            //Find the body, add an id if needed.
+            XmlElement body = (XmlElement)env.DocumentElement.SelectSingleNode("./s:Body", nsmgr);
+            string bodyIdValue = body.GetAttribute("Id", wss.UtilityNs);
+            if (bodyIdValue == string.Empty)
+            {
+                bodyIdValue = "uuid-" + Guid.NewGuid().ToString("D");
+                var bodyId = env.CreateAttribute(wss.UtilityPrefix, "Id", wss.UtilityNs);
+                bodyId.Value = bodyIdValue;
+                body.SetAttributeNode(bodyId);
+            }
 
-                //Find the soap header, create if needed.
-                XmlElement header = (XmlElement)env.DocumentElement.SelectSingleNode("./s:Header", nsmgr);
-                if (header == null)
-                {
-                    header = env.CreateElement(soapPrefix, "Header", soapNs);
-                    env.DocumentElement.InsertBefore(header, env.DocumentElement.FirstChild);
-                }
+            //Find the soap header, create if needed.
+            XmlElement header = (XmlElement)env.DocumentElement.SelectSingleNode("./s:Header", nsmgr);
+            if (header == null)
+            {
+                header = env.CreateElement(soapPrefix, "Header", soapNs);
+                env.DocumentElement.InsertBefore(header, env.DocumentElement.FirstChild);
+            }
 
-                //Apply the security
-                //see github\dotnet\wcf\src\System.Private.ServiceModel\src\System\IdentityModel\Tokens\SecurityTokenTypes.cs
+            //Apply the security
+            //see github\dotnet\wcf\src\System.Private.ServiceModel\src\System\IdentityModel\Tokens\SecurityTokenTypes.cs
                 
-                SecurityTokenRequirement requirement = new SecurityTokenRequirement()
+            //SecurityTokenRequirement requirement = new SecurityTokenRequirement()
+            //{
+            //    TokenType = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/X509Certificate"
+            //};
+            //SecurityTokenResolver resolver;
+            //var tokenManager = ClientCredentials.CreateSecurityTokenManager();
+            //var authenticator = tokenManager.CreateSecurityTokenAuthenticator(requirement, out resolver);
+            //var provider = tokenManager.CreateSecurityTokenProvider(requirement);
+            wss.ApplyOnRequest(ref header, bodyIdValue, ClientCredentials.ClientCertificate.Certificate, SignParts);
+
+            //Write the modified version with security header to the original streams.
+            env.Save(writer);
+
+            //log the signed message when required
+            if (_logger != null && _logger.IsEnabled(LogLevel.Trace))
+            {
+                using (var memStream = new MemoryStream())
                 {
-                    TokenType = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/X509Certificate"
-                };
-
-                //SecurityTokenResolver resolver;
-                //var tokenManager = ClientCredentials.CreateSecurityTokenManager();
-                //var authenticator = tokenManager.CreateSecurityTokenAuthenticator(requirement, out resolver);
-                //var provider = tokenManager.CreateSecurityTokenProvider(requirement);
-                wss.ApplyOnRequest(ref header, bodyIdValue, ClientCredentials.ClientCertificate.Certificate, SignParts);
-
-                //Write the modified version with security header to the original streams.
-                env.Save(writer);
+                    env.Save(memStream);
+                    memStream.Position = 0;
+                    var str = new StreamReader(memStream).ReadToEnd();
+                    _logger.LogTrace(str);
+                }
             }
         }
 

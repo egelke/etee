@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29519.87
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36327.8 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F5B9C9E3-5BD6-4B62-8A43-CEC96AAE2A34}"
 	ProjectSection(SolutionItems) = preProject
@@ -57,6 +57,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "library-core-tests", "library-core-tests\library-core-tests.csproj", "{06ACC470-5D9F-4E6D-96A2-1679D273D335}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pki-test", "pki-test\pki-test.csproj", "{C91A996C-9E63-44A0-9EE6-EA3DD7341651}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pki-libcore-tests", "pki-libcore-tests\pki-libcore-tests.csproj", "{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -431,6 +433,26 @@ Global
 		{C91A996C-9E63-44A0-9EE6-EA3DD7341651}.Release|x64.Build.0 = Release|Any CPU
 		{C91A996C-9E63-44A0-9EE6-EA3DD7341651}.Release|x86.ActiveCfg = Release|Any CPU
 		{C91A996C-9E63-44A0-9EE6-EA3DD7341651}.Release|x86.Build.0 = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|ARM.Build.0 = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|x64.Build.0 = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Debug|x86.Build.0 = Debug|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|ARM.ActiveCfg = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|ARM.Build.0 = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|x64.ActiveCfg = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|x64.Build.0 = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|x86.ActiveCfg = Release|Any CPU
+		{11941F6F-CEEA-45D4-B029-F7AF0CF013F3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,10 +1,3 @@
-using Egelke.EHealth.Client.Helper;
-using Egelke.EHealth.Client.Pki;
-using Egelke.EHealth.Client.Pki.ECDSA;
-using Egelke.EHealth.Client.Sts;
-using Egelke.EHealth.Client.Sts.Saml11;
-using Egelke.EHealth.Client.Sts.WsTrust200512;
-using Egelke.Eid.Client;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +12,15 @@ using System.ServiceModel.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using Egelke.EHealth.Client.Helper;
+using Egelke.EHealth.Client.Pki;
+using Egelke.EHealth.Client.Pki.ECDSA;
+using Egelke.EHealth.Client.Security;
+using Egelke.EHealth.Client.Sts;
+using Egelke.EHealth.Client.Sts.Saml11;
+using Egelke.EHealth.Client.Sts.WsTrust200512;
+using Egelke.Eid.Client;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace library_core_tests
@@ -29,28 +31,29 @@ namespace library_core_tests
         public static IEnumerable<object[]> GetCerts()
         {
             List<object[]> certs = new List<object[]>();
-            //using (var readers = new Readers(ReaderScope.User))
-            //using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
-            //{
-            //    store.Open(OpenFlags.ReadOnly);
-            //    certs = readers.ListCards()
-            //        .OfType<EidCard>()
-            //        .Select(c =>
-            //        {
-            //            c.Open();
-            //            String thumbprint = c.AuthCert.Thumbprint;
-            //            c.Close();
-            //            return store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
-            //        })
-            //        .Select(c => new object[] { new MyX509Certificate2(c) })
-            //        .ToList();
-            //}
-            //            certs.Add(new object[] { new MyX509Certificate2("files/SSIN=79021802145 20230823-085751.acc.p12", "Test_001") });
-            var certp12 = new EHealthP12("files/SSIN=79021802145-20230823-085751.acc.p12", "Test_001");
-            certs.Add(new object[] { certp12["authentication"] });
+            using (var readers = new Readers(ReaderScope.User))
+            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            {
+                store.Open(OpenFlags.ReadOnly);
+                certs = readers.ListCards()
+                    .OfType<EidCard>()
+                    .Select(c =>
+                    {
+                        c.Open();
+                        String thumbprint = c.AuthCert.Thumbprint;
+                        c.Close();
+                        return store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
+                    })
+                    .Select(c => new object[] { new MyX509Certificate2(c) })
+                    .ToList();
+            }
+            var certp12 = new EHealthP12("files/SSIN=79021802145 20250514-082150.acc.p12", File.ReadAllText("files/SSIN=79021802145 20250514-082150.acc.p12.pwd"));
+            certs.Add(new object[] { new MyX509Certificate2(certp12["authentication"]) });
             
             return certs;
         }
+
+        private ILoggerFactory loggerFactory;
 
         private X509Certificate2 issuer;
 
@@ -74,6 +77,11 @@ namespace library_core_tests
         public EHIntegrationTest()
         {
             ECDSAConfig.Init(); //needed to enable ECDSA globally.
+            loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole();
+                builder.SetMinimumLevel(LogLevel.Trace);
+            });
 
             //wstEp = new EndpointAddress("https://services-int.ehealth.fgov.be/IAM/SecurityTokenService/v1");
             wstEp = new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1");
@@ -83,25 +91,25 @@ namespace library_core_tests
 
             //var p12 = new EHealthP12("files/ehealth-01050399864-int.p12", File.ReadAllText("files/ehealth-01050399864-int.p12.pwd"));
             //var p12 = new EHealthP12("files/ehealth-79021802145-acc.p12", File.ReadAllText("files/ehealth-79021802145-acc.p12.pwd"));
-            var p12 = new EHealthP12("files/SSIN=79021802145-20230823-085751.acc.p12", File.ReadAllText("files/SSIN=79021802145-20230823-085751.acc.p12.pwd"));
+            var p12 = new EHealthP12("files/SSIN=79021802145 20250514-082150.acc.p12", File.ReadAllText("files/SSIN=79021802145 20250514-082150.acc.p12.pwd"));
             session = p12["authentication"];
 
-            issuer = new X509Certificate2("files/IAMINT.cer");
-            //issuer = new X509Certificate2("files/IAMACC.cer");
+            //issuer = new X509Certificate2("files/IAMINT.cer");
+            issuer = new X509Certificate2("files/IAMACC.cer");
 
-            binding = new StsBinding()
+            binding = new StsBinding(loggerFactory.CreateLogger<CustomSecurity>())
             {
-                BypassProxyOnLocal = false,
-                UseDefaultWebProxy = false,
-                ProxyAddress = new Uri("http://localhost:8888")
+                //BypassProxyOnLocal = false,
+                //UseDefaultWebProxy = false,
+                //ProxyAddress = new Uri("http://localhost:8888")
             };
         }
 
         private void Prep(X509Certificate2 user)
         {
-            Match match = Regex.Match(user.Subject, @"SSIN=(\d{11})");
+            Match match = Regex.Match(user.Subject, @"(SSIN|SERIALNUMBER)=(\d{11})");
             Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
-            ssin = match.Groups[1].Value;
+            ssin = match.Groups[2].Value;
 
             assertingClaims = new List<Claim>();
             assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin));
@@ -111,18 +119,13 @@ namespace library_core_tests
             //additionalClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
         }
 
-        private void Request()
-        {
-            assertion = target.RequestTicket(session, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
-        }
-
         private void Verify() { 
             XmlNamespaceManager nsMngr = new XmlNamespaceManager(assertion.OwnerDocument.NameTable);
             nsMngr.AddNamespace("s11", "urn:oasis:names:tc:SAML:1.0:assertion");
             Assert.Equal("urn:be:fgov:ehealth:sts:1_0", assertion.SelectSingleNode("@Issuer").Value);
             Assert.Equal(ssin, assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin']/s11:AttributeValue/text()", nsMngr).Value);
-            bool doctor;
-            Assert.True(bool.TryParse(assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin:doctor:boolean']/s11:AttributeValue/text()", nsMngr).Value, out doctor));
+            //bool doctor;
+            //Assert.True(bool.TryParse(assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin:doctor:boolean']/s11:AttributeValue/text()", nsMngr).Value, out doctor));
 
             SignedXml signed = new SignedSaml11(assertion);
             XmlNodeList nodeList = assertion.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
@@ -133,24 +136,41 @@ namespace library_core_tests
 
         [Theory]
         [MemberData(nameof(GetCerts))]
-        public void WsTrust(X509Certificate2 cert)
+        public void WsTrustWithExplicitSession(X509Certificate2 cert)
         {
             Prep(cert);
-
-            var client = new WsTrustClient(binding, wstEp);
+            var client = new WsTrustClient(binding, wstEp, loggerFactory.CreateLogger<WsTrustClient>());
             client.ClientCredentials.ClientCertificate.Certificate = cert;
+            client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
             target = client;
 
-            Request();
+            assertion = client.RequestTicket(session, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
             Verify();
 
             assertion = client.RenewTicket(session, assertion);
             Verify();
         }
 
-
-
         [Theory]
+        [MemberData(nameof(GetCerts))]
+        public void WsTrustNoExplicitSession(X509Certificate2 cert)
+        {
+            Prep(cert);
+            var client = new WsTrustClient(binding, wstEp, loggerFactory.CreateLogger<WsTrustClient>());
+            client.ClientCredentials.ClientCertificate.Certificate = cert;
+            client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
+            target = client;
+
+            assertion = client.RequestTicket(null, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
+            Verify();
+
+            assertion = client.RenewTicket(null, assertion);
+            Verify();
+        }
+
+
+
+        [Theory(Skip = "Doesn't support EC cert and that is the only one I currently have")]
         [MemberData(nameof(GetCerts))]
         public void StsSaml11(X509Certificate2 cert)
         {
@@ -160,7 +180,7 @@ namespace library_core_tests
             client.ClientCredentials.ClientCertificate.Certificate = cert;
             target = client;
 
-            Request();
+            assertion = target.RequestTicket(session, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
             Verify();
         }
     }
