@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml;
+using Egelke.EHealth.Client.Helper;
 
 namespace Egelke.EHealth.Client.Security
 {
@@ -37,17 +38,28 @@ namespace Egelke.EHealth.Client.Security
             String id = "urn:uuid:" + Guid.NewGuid().ToString();
 
             XmlDocument doc = new XmlDocument();
-            XmlElement bst = doc.CreateElement("BinarySecurityToken", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd");
-            bst.SetAttribute("Id", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd", id);
-            bst.SetAttribute("ValueType", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3");
-            bst.SetAttribute("EncodingType", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary");
-            XmlText raw = doc.CreateTextNode(Convert.ToBase64String(_idCert.RawData, Base64FormattingOptions.None));
-            bst.AppendChild(raw);
 
-            XmlElement str = doc.CreateElement("SecurityTokenReference", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd");
-            XmlElement reference = doc.CreateElement("Reference", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd");
-            reference.SetAttribute("URI", "#" + id);
-            reference.SetAttribute("ValueType", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3");
+            XmlElement bst = doc.CreateElement("wsse", "BinarySecurityToken", WSS.SECEXT_NS);
+            XmlAttribute bstId = doc.CreateAttribute("wsu", "Id", WSS.UTILITY_NS);
+            bstId.Value = id;
+            bst.Attributes.Append(bstId);
+            XmlAttribute bstValueType = doc.CreateAttribute("ValueType");
+            bstValueType.Value = WSS.TOKEN_PROFILE_X509_NS + "#X509v3";
+            bst.Attributes.Append(bstValueType);
+            XmlAttribute bstEncodingType = doc.CreateAttribute("EncodingType");
+            bstEncodingType.Value = WSS.NS + "#Base64Binary";
+            bst.Attributes.Append(bstEncodingType);
+            XmlText bstValue = doc.CreateTextNode(Convert.ToBase64String(_idCert.RawData));
+            bst.AppendChild(bstValue);
+
+            XmlElement str = doc.CreateElement("wsse", "SecurityTokenReference", WSS.SECEXT_NS);
+            XmlElement reference = doc.CreateElement("wsse", "Reference", WSS.SECEXT_NS);
+            XmlAttribute uri = doc.CreateAttribute("URI");
+            uri.Value = "#" + id;
+            reference.Attributes.Append(uri);
+            XmlAttribute valueType = doc.CreateAttribute("ValueType");
+            valueType.Value = WSS.TOKEN_PROFILE_X509_NS + "#X509v3";
+            reference.Attributes.Append(valueType);
             str.AppendChild(reference);
 
             return new GenericXmlSecurityToken(

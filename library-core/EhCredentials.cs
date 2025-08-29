@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.IdentityModel.Selectors;
 using System.ServiceModel.Description;
 using System.Text;
+using Egelke.EHealth.Client.Security;
 
-namespace Egelke.EHealth.Client.Security
+
+namespace Egelke.EHealth.Client
 {
-    public class CustomCredentials : ClientCredentials
+    public class EhCredentials : ClientCredentials
     {
-        public CustomCredentials() : base() { }
+        public EhCredentials() : base() { }
 
-        public CustomCredentials(CustomCredentials other) : base(other)
+        public EhCredentials(EhCredentials other) : base(other)
         {
             //this.Session = other.Session;
         }
@@ -23,7 +25,7 @@ namespace Egelke.EHealth.Client.Security
 
         protected override ClientCredentials CloneCore()
         {
-            return new CustomCredentials(this);
+            return new EhCredentials(this);
         }
     }
 }

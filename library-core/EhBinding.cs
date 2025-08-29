@@ -66,5 +66,11 @@ namespace Egelke.EHealth.Client
 
         public override string Scheme => "https";
 
+        public void ApplyClientCredentials(ChannelFactory channelFactory)
+        {
+            channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
+            channelFactory.Endpoint.EndpointBehaviors.Add(new EhCredentials());
+        }
+
     }
 }

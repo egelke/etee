@@ -144,15 +144,11 @@ namespace Egelke.EHealth.Client.Security
             {
                 TokenType = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/X509Certificate"
             };
-            //SecurityTokenResolver resolver;
             var tokenManager = ClientCredentials.CreateSecurityTokenManager();
-            //var authenticator = tokenManager.CreateSecurityTokenAuthenticator(requirement, out resolver);
             var provider = tokenManager.CreateSecurityTokenProvider(requirement);
-            var token = provider.GetToken(TimeSpan.FromSeconds(5));
-            var key = token.SecurityKeys[0];
-            //var keyIdClause = token.CreateKeyIdentifierClause<GenericXmlSecurityKeyIdentifierClause>();
+            var token = provider.GetToken(TimeSpan.FromSeconds(5)) as GenericXmlSecurityToken;
 
-            wss.ApplyOnRequest(ref header, bodyIdValue, ClientCredentials.ClientCertificate.Certificate, SignParts);
+            wss.ApplyOnRequest(ref header, bodyIdValue, token, SignParts);
 
             //Write the modified version with security header to the original streams.
             env.Save(writer);

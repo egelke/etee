@@ -1,27 +1,24 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Xml;
 
 namespace Egelke.EHealth.Client.Helper
 {
-    internal class KeyInfoSecurityTokenReference : KeyInfoClause
+    internal class CustomKeyInfoClause : KeyInfoClause
     {
-        public WSS Wss { get; }
+        private GenericXmlSecurityKeyIdentifierClause _other;
 
-        public string ReferedID { get; set; }
-
-
-        public KeyInfoSecurityTokenReference(WSS wss, string referedID)
+        public CustomKeyInfoClause(GenericXmlSecurityKeyIdentifierClause other)
         {
-            this.Wss = wss;
-            this.ReferedID = referedID;
+            _other = other;
         }
 
         public override XmlElement GetXml()
         {
-            return Wss.CreateSecurityTokenReference(ReferedID);
+            return _other.ReferenceXml;
         }
 
         public override void LoadXml(XmlElement element)

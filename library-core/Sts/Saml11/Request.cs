@@ -115,7 +115,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
         {
             body.Normalize();
 
-            SignedXml signed = new SignedSaml11(body);
+            SignedXml signed = new CustomSignedXml(body);
             signed.SigningKey = SessionCert.PrivateKey;
             signed.SignedInfo.SignatureMethod = SignedXml.XmlDsigRSASHA1Url;
             signed.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;

@@ -128,7 +128,7 @@ namespace library_core_tests
             //bool doctor;
             //Assert.True(bool.TryParse(assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin:doctor:boolean']/s11:AttributeValue/text()", nsMngr).Value, out doctor));
 
-            SignedXml signed = new SignedSaml11(assertion);
+            SignedXml signed = new CustomSignedXml(assertion);
             XmlNodeList nodeList = assertion.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
             signed.LoadXml((XmlElement)nodeList[0]);
 

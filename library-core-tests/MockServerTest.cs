@@ -101,6 +101,8 @@ namespace library_core_tests
 
             var ep = new EndpointAddress("https://localhost:8080/services/echo/soap11");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
+            channelFactory.Endpoint.EndpointBehaviors.Add(new EhCredentials());
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
             IEchoService client = channelFactory.CreateChannel();
@@ -130,6 +132,8 @@ namespace library_core_tests
 
             var ep = new EndpointAddress("https://localhost:8080/services/echo/soap11wss10");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
+            channelFactory.Endpoint.EndpointBehaviors.Add(new EhCredentials());
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
             IEchoService client = channelFactory.CreateChannel();
@@ -160,6 +164,8 @@ namespace library_core_tests
 
             var ep = new EndpointAddress("https://localhost:8080/services/echo/soap12wss10");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
+            channelFactory.Endpoint.EndpointBehaviors.Add(new EhCredentials());
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
             IEchoService client = channelFactory.CreateChannel();
@@ -191,6 +197,8 @@ namespace library_core_tests
 
             var ep = new EndpointAddress("https://localhost:8080/services/echo/soap12wss11");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
+            channelFactory.Endpoint.EndpointBehaviors.Add(new EhCredentials());
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
             IEchoService client = channelFactory.CreateChannel();
@@ -222,40 +230,9 @@ namespace library_core_tests
 
             var ep = new EndpointAddress("https://localhost:8080/services/echo/soap11wss10all");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
-            channelFactory.Credentials.ClientCertificate.Certificate = cert;
-
-            IEchoService client = channelFactory.CreateChannel();
-
-            String pong = client.Echo("boe");
-            Assert.Equal("boe", pong);
-        }
-
-        [Theory]
-        [MemberData(nameof(GetCerts))]
-        public void Soap11Wss10CustomCredentails(X509Certificate2 cert)
-        {
-            var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement()
-            {
-                MessageSecurityVersion = SecurityVersion.WSSecurity10,
-                SignParts = SignParts.All
-            });
-            binding.Elements.Add(new TextMessageEncodingBindingElement()
-            {
-                MessageVersion = MessageVersion.Soap11
-            });
-            binding.Elements.Add(new HttpsTransportBindingElement()
-            {
-                //BypassProxyOnLocal = false,
-                //UseDefaultWebProxy = false,
-                //ProxyAddress = new Uri("http://localhost:8866")
-            });
-
-            var ep = new EndpointAddress("https://localhost:8080/services/echo/soap11wss10");
-            ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
-            channelFactory.Endpoint.EndpointBehaviors.Add(new CustomCredentials());
-            channelFactory.Credentials.ClientCertificate.Certificate = cert; //need to be behind the behaviour update
+            channelFactory.Endpoint.EndpointBehaviors.Add(new EhCredentials());
+            channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
             IEchoService client = channelFactory.CreateChannel();
 
@@ -271,6 +248,7 @@ namespace library_core_tests
 
             var ep = new EndpointAddress("https://localhost:8080/services/echo/eHealth/x509");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            binding.ApplyClientCredentials(channelFactory);
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
             IEchoService client = channelFactory.CreateChannel();
@@ -298,30 +276,6 @@ namespace library_core_tests
             Assert.Equal("boe", pong);
         }
         */
-
-
-        [Theory(Skip="Mock implementation not ready")]
-        [MemberData(nameof(GetCerts))]
-        public void WsTrust(X509Certificate2 cert)
-        {
-            var msgLogger = loggerFactory.CreateLogger<LoggingMessageInspector>();
-
-            var binding = new EhBinding();
-            var client = new WsTrustClient(binding, new EndpointAddress("https://localhost:8080/services/sts/soap12"));
-            //var client = new WsTrustClient(binding, new EndpointAddress("https://services-acpt.ehealth.fgov.be/IAM/SecurityTokenService/v1"));
-            client.ClientCredentials.ClientCertificate.Certificate = cert;
-            client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(msgLogger));
-
-            var assertingClaims = new List<Claim>();
-            assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", "79021802145"));
-            var additionalClaims = new List<Claim>();
-
-
-            var response = client.RequestTicket(cert, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
-            
-        }
-
-
     }
 
 }

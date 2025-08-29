@@ -10,6 +10,8 @@ using System.ServiceModel.Security;
 using System.Text;
 using System.Xml;
 using Egelke.EHealth.Client.Pki;
+using System.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace Egelke.EHealth.Client.Helper
 {
@@ -106,20 +108,21 @@ namespace Egelke.EHealth.Client.Helper
             return DateTime.Parse(childElement.InnerText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
         }
 
-        public void ApplyOnRequest(ref XmlElement header, string bodyId, X509Certificate2 clientCert, SignParts signParts) {
+        public void ApplyOnRequest(ref XmlElement header, string bodyId, GenericXmlSecurityToken token, SignParts signParts) {
+        //public void ApplyOnRequest(ref XmlElement header, string bodyId, X509Certificate2 clientCert, SignParts signParts) {
             string soapPrefix = header.Prefix;
             string soapNs = header.NamespaceURI;
             XmlDocument doc = header.OwnerDocument;
+            //note: should use "token.SecurityKeys" instead; but that will not work on Core since verything is private
+            var proofToken = token.ProofToken as X509SecurityToken;
 
             XmlElement sec = doc.CreateElement(SecExtPrefix, "Security", SecExtNs);
-            header.AppendChild(sec);
 
             XmlAttribute mustUnderstand = doc.CreateAttribute(soapPrefix, "mustUnderstand", soapNs);
             mustUnderstand.Value = "1";
             sec.Attributes.Append(mustUnderstand);
-
             sec.SetAttribute("xmlns:" + UtilityPrefix, UtilityNs);
-
+            header.AppendChild(sec);
 
             XmlElement ts = doc.CreateElement(UtilityPrefix, "Timestamp", UtilityNs);
             XmlAttribute tsId = doc.CreateAttribute(UtilityPrefix, "Id", UtilityNs);
@@ -133,12 +136,12 @@ namespace Egelke.EHealth.Client.Helper
             XmlText expiresValue = doc.CreateTextNode(DateTime.UtcNow.AddMinutes(5.0).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK", CultureInfo.InvariantCulture));
             expires.AppendChild(expiresValue);
             ts.AppendChild(expires);
-
             sec.AppendChild(ts);
 
+            /*
             XmlElement bst = doc.CreateElement(SecExtPrefix, "BinarySecurityToken", SecExtNs);
             XmlAttribute bstId = doc.CreateAttribute(UtilityPrefix, "Id", UtilityNs);
-            bstId.Value = "uuid-" + Guid.NewGuid().ToString("D");
+            bstId.Value = token.Id;
             bst.Attributes.Append(bstId);
             XmlAttribute bstValueType = doc.CreateAttribute("ValueType");
             bstValueType.Value = TokenPofileX509Ns + "#X509v3";
@@ -146,26 +149,29 @@ namespace Egelke.EHealth.Client.Helper
             XmlAttribute bstEncodingType = doc.CreateAttribute("EncodingType");
             bstEncodingType.Value = Ns + "#Base64Binary";
             bst.Attributes.Append(bstEncodingType);
-            XmlText bstValue = doc.CreateTextNode(Convert.ToBase64String(clientCert.RawData));
+            XmlText bstValue = doc.CreateTextNode(Convert.ToBase64String(proofToken.Certificate.RawData));
             bst.AppendChild(bstValue);
+            var tokenXml = doc.ImportNode(bst, true);
+            */
 
-            sec.AppendChild(bst);
+            var tokenXml = doc.ReadNode(new XmlNodeReader(token.TokenXml));
+            //var tokenXml = doc.ImportNode(token.TokenXml, true);
+            sec.AppendChild(tokenXml);
 
-            var signedDoc = new SignedWSS(this, doc);
-
-            if (clientCert.GetRSAPrivateKey() != null)
+            var signedDoc = new CustomSignedXml(doc);
+            if (proofToken.Certificate.GetRSAPrivateKey() != null)
             {
-                signedDoc.SigningKey = clientCert.GetRSAPrivateKey();
+                signedDoc.SigningKey = proofToken.Certificate.GetRSAPrivateKey();
                 signedDoc.SignedInfo.SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
             }
-            else if (clientCert.GetECDsaPrivateKey() != null)
+            else if (proofToken.Certificate.GetECDsaPrivateKey() != null)
             {
-                signedDoc.SigningKey = clientCert.GetECDsaPrivateKey();
+                signedDoc.SigningKey = proofToken.Certificate.GetECDsaPrivateKey();
                 signedDoc.SignedInfo.SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256";
             }
             else
             {
-                throw new ArgumentException("Certificate key unsupported", nameof(clientCert));
+                throw new ArgumentException("Certificate key unsupported", nameof(proofToken.Certificate));
             }
             signedDoc.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
 
@@ -197,7 +203,7 @@ namespace Egelke.EHealth.Client.Helper
             {
                 var reference = new Reference
                 {
-                    Uri = "#" + bstId.Value,
+                    Uri = "#" + token.Id,
                     DigestMethod = "http://www.w3.org/2001/04/xmlenc#sha256"
                 };
                 var transform = new XmlDsigExcC14NTransform();
@@ -206,7 +212,8 @@ namespace Egelke.EHealth.Client.Helper
                 signedDoc.SignedInfo.AddReference(reference);
             }
 
-            signedDoc.KeyInfo.AddClause(new KeyInfoSecurityTokenReference(this, bstId.Value));
+            var keyIdClause = token.CreateKeyIdentifierClause<GenericXmlSecurityKeyIdentifierClause>();
+            signedDoc.KeyInfo.AddClause(new CustomKeyInfoClause(keyIdClause));
 
             signedDoc.ComputeSignature();
             XmlNode signature = signedDoc.GetXml();
@@ -215,37 +222,6 @@ namespace Egelke.EHealth.Client.Helper
             sec.AppendChild(signature);
         }
 
-        public XmlElement CreateSecurityTokenReference(string referedId)
-        {
-            var doc = new XmlDocument
-            {
-                PreserveWhitespace = true
-            };
-
-            XmlElement tokenRef = doc.CreateElement("wsse", "SecurityTokenReference", SecExtNs);
-
-            XmlElement reference = doc.CreateElement("wsse", "Reference", SecExtNs);
-            reference.SetAttribute("URI", "#" + referedId);
-            reference.SetAttribute("ValueType", TokenPofileX509Ns + "#X509v3");
-            tokenRef.AppendChild(reference);
-
-            return tokenRef;
-        }
-
-        public XmlElement GetIdElement(XmlDocument document, string idValue)
-        {
-            var nsmngr = new XmlNamespaceManager(document.NameTable);
-            nsmngr.AddNamespace("wsu", UtilityNs);
-            XmlNodeList nodes = document.SelectNodes("//*[@wsu:Id='" + idValue + "']", nsmngr);
-            switch (nodes.Count)
-            {
-                case 0:
-                    return null;
-                case 1:
-                    return (XmlElement)nodes[0];
-                default:
-                    throw new ArgumentException("Multiple instances of the ID found");
-            }
-        }
+        
     }
 }
