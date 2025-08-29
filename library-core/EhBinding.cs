@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
+using System.ServiceModel.Security;
 using System.Text;
 using Egelke.EHealth.Client.Security;
 using Microsoft.Extensions.Logging;
 
-namespace Egelke.EHealth.Client.Sts
+namespace Egelke.EHealth.Client
 {
-    public abstract class EhBinding : Binding
+    public class EhBinding : Binding
     {
         public ILogger<CustomSecurity> Logger { get; }
 
@@ -33,7 +36,14 @@ namespace Egelke.EHealth.Client.Sts
             return elements.Clone();
         }
 
-        protected abstract BindingElement CreateSecurity();
+        protected BindingElement CreateSecurity()
+        {
+            return new CustomSecurityBindingElement(logger: Logger)
+            {
+                MessageSecurityVersion = SecurityVersion.WSSecurity10,
+                SignParts = SignParts.All
+            };
+        }
 
         protected MessageEncodingBindingElement CreateMessageEncoding()
         {
@@ -55,5 +65,6 @@ namespace Egelke.EHealth.Client.Sts
         }
 
         public override string Scheme => "https";
+
     }
 }

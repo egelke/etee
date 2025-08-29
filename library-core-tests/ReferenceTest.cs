@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Selectors;
 using System.IdentityModel.Tokens;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Description;
+using System.ServiceModel.Security;
 using System.ServiceModel.Security.Tokens;
 using System.Text;
-using Xunit;
-using System.ServiceModel.Security;
 using Egelke.EHealth.Client.Security;
-using System.Runtime.InteropServices;
+using Xunit;
+
 
 
 
@@ -19,6 +23,46 @@ using System.ServiceModel.Federation;
 
 namespace library_core_tests
 {
+
+#if NETFRAMEWORK
+    public class GenericXmlSecurityTokenParameters : SecurityTokenParameters
+    {
+        protected override bool HasAsymmetricKey => true;
+
+        protected override bool SupportsClientAuthentication => true;
+
+        protected override bool SupportsServerAuthentication => false;
+
+        protected override bool SupportsClientWindowsIdentity => false;
+
+        protected override SecurityTokenParameters CloneCore()
+        {
+            return new GenericXmlSecurityTokenParameters();
+        }
+
+        protected override SecurityKeyIdentifierClause CreateKeyIdentifierClause(SecurityToken token, SecurityTokenReferenceStyle referenceStyle)
+        {
+            GenericXmlSecurityToken gToken = token as GenericXmlSecurityToken;
+            switch(referenceStyle)
+            {
+                case SecurityTokenReferenceStyle.Internal:
+                    return gToken.InternalTokenReference;
+                case SecurityTokenReferenceStyle.External:
+                    return gToken.ExternalTokenReference;
+            }
+            throw new NotImplementedException();
+        }
+
+        protected override void InitializeSecurityTokenRequirement(SecurityTokenRequirement requirement)
+        {
+            requirement.TokenType = SecurityTokenTypes.X509Certificate; // or a custom URI
+            requirement.RequireCryptographicToken = false;
+            requirement.Properties["TokenType"] = typeof(GenericXmlSecurityToken);
+
+        }
+    }
+#endif
+
     public class ReferenceTest
     {
         public MyX509Certificate2 ec = new MyX509Certificate2("files/ectest.p12", "");
@@ -71,7 +115,7 @@ namespace library_core_tests
         [SkippableFact]
         public void soap12Wss10Ecdsa()
         {
-            //.Net framework does not use the proper methods to obtain the client certificate.
+            //.Net framework does not use the proper methods to obtain the client's certificate key.
             Skip.If(RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework"));
 
             var binding = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
@@ -90,6 +134,44 @@ namespace library_core_tests
             Assert.Equal("boe", pong);
         }
 
+        [SkippableFact]
+        public void experiment()
+        {
+            //.Net Standard doesn't support messge security
+            Skip.IfNot(RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework"));
+
+            var binding = new CustomBinding();
+            var security = new TransportSecurityBindingElement();
+#if NETFRAMEWORK
+            security.EndpointSupportingTokenParameters.Endorsing.Add(new GenericXmlSecurityTokenParameters());
+#endif
+            security.IncludeTimestamp = true;
+            security.MessageSecurityVersion = MessageSecurityVersion.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
+
+            binding.Elements.Add(security);
+            binding.Elements.Add(new TextMessageEncodingBindingElement()
+            {
+                MessageVersion = MessageVersion.Soap11
+            });
+            binding.Elements.Add(new HttpsTransportBindingElement()
+            {
+                //BypassProxyOnLocal = false,
+                //UseDefaultWebProxy = false,
+                //ProxyAddress = new Uri("http://localhost:8866")
+            });
+
+            var ep = new EndpointAddress("https://localhost:8080/services/echo/soap12wss10");
+            ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
+            channelFactory.Endpoint.EndpointBehaviors.Add(new CustomCredentials());
+            channelFactory.Credentials.ClientCertificate.Certificate = rsa;
+
+            IEchoService client = channelFactory.CreateChannel();
+
+
+            String pong = client.Echo("boe");
+            Assert.Equal("boe", pong);
+        }
 
         [Fact(Skip ="Implementations are very limited")]
         public void federation()

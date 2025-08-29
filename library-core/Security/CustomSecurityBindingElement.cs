@@ -57,7 +57,7 @@ namespace Egelke.EHealth.Client.Security
 
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
         {
-            var clientCredentials = (ClientCredentials)context.BindingParameters[typeof(ClientCredentials)];
+            var clientCredentials = context.BindingParameters.Find<ClientCredentials>();
             return new CustomSecurityChannelFactory<TChannel>(_logger, context.BuildInnerChannelFactory<TChannel>())
             {
                 ClientCredentials = clientCredentials,

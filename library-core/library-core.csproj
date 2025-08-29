@@ -51,6 +51,7 @@ Currently missing SsoBinding</PackageReleaseNotes>
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="9.*" />
 		<PackageReference Include="System.ServiceModel.Http" Version="8.*" />
+		<PackageReference Include="System.ServiceModel.Primitives" Version="8.*" />
 		<!--PackageReference Include="System.ServiceModel.Federation" Version="4.*" /-->
 	</ItemGroup>
 

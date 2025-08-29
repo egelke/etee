@@ -158,6 +158,62 @@ public class WebServiceConfig {
     }
 
     @Bean
+    public Endpoint eHealthX509(Bus bus, EchoPort service) {
+        EndpointImpl endpoint = new EndpointImpl(bus, service);
+        endpoint.setBindingUri(SOAPBinding.SOAP11HTTP_BINDING);
+
+        Map<String, Object> inProps = new HashMap<>();
+        inProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.TIMESTAMP + " " + WSHandlerConstants.SIGNATURE );
+
+        inProps.put(WSHandlerConstants.SIG_PROP_REF_ID, "signatureProperties");
+        Properties sigProps = new Properties();
+        sigProps.put("org.apache.wss4j.crypto.provider", "be.egelke.ehealth.server.mock.AllowAllCrypto");
+
+        inProps.put("signatureProperties", sigProps);
+        //inProps.put(WSHandlerConstants.SIGNATURE_PARTS,
+        //        "{}{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd}Timestamp"
+        //                + ";{}{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}BinarySecurityToken"
+        //                + ";{}{http://schemas.xmlsoap.org/soap/envelope/}Body");
+        DefaultCryptoCoverageChecker coverageChecker = new DefaultCryptoCoverageChecker();
+        coverageChecker.setSignBody(true);
+        coverageChecker.setSignTimestamp(true);
+
+        endpoint.getInInterceptors().add(new WSS4JInInterceptor(inProps));
+        endpoint.getInInterceptors().add(coverageChecker);
+        endpoint.getFeatures().add(new WSAddressingFeature());
+        endpoint.publish("/echo/eHealth/x509");
+        return endpoint;
+    }
+
+    @Bean
+    public Endpoint eHealthSaml11(Bus bus, EchoPort service) {
+        EndpointImpl endpoint = new EndpointImpl(bus, service);
+        endpoint.setBindingUri(SOAPBinding.SOAP11HTTP_BINDING);
+
+        Map<String, Object> inProps = new HashMap<>();
+        inProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.TIMESTAMP + " " + WSHandlerConstants.SAML_TOKEN_SIGNED );
+
+        inProps.put(WSHandlerConstants.SIG_PROP_REF_ID, "signatureProperties");
+        Properties sigProps = new Properties();
+        sigProps.put("org.apache.wss4j.crypto.provider", "be.egelke.ehealth.server.mock.AllowAllCrypto");
+
+        inProps.put("signatureProperties", sigProps);
+        //inProps.put(WSHandlerConstants.SIGNATURE_PARTS,
+        //        "{}{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd}Timestamp"
+        //                + ";{}{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}BinarySecurityToken"
+        //                + ";{}{http://schemas.xmlsoap.org/soap/envelope/}Body");
+        DefaultCryptoCoverageChecker coverageChecker = new DefaultCryptoCoverageChecker();
+        coverageChecker.setSignBody(true);
+        coverageChecker.setSignTimestamp(true);
+
+        endpoint.getInInterceptors().add(new WSS4JInInterceptor(inProps));
+        endpoint.getInInterceptors().add(coverageChecker);
+        endpoint.getFeatures().add(new WSAddressingFeature());
+        endpoint.publish("/echo/eHealth/saml11");
+        return endpoint;
+    }
+
+    @Bean
     public TokenStore getTokenStore() {
         return new MemoryTokenStore();
     }

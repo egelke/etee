@@ -21,7 +21,7 @@ namespace Egelke.EHealth.Client.Security
     /// <summary>
     /// Add the actual security headers to the message after the other channels created the message.
     /// </summary>
-    /// <seealso href="https://github.com/dotnet/wcf/blob/main/src/System.Private.ServiceModel/src/System/ServiceModel/Security/SecurityAppliedMessage.cs">Insipred on</seealso>
+    /// <seealso href="https://github.com/dotnet/wcf/blob/main/src/System.ServiceModel.Primitives/src/System/ServiceModel/Security/SecurityAppliedMessage.cs">Insipred on</seealso>
     public class CustomSecurityAppliedMessage : Message
     {
         private ILogger _logger;
@@ -137,16 +137,21 @@ namespace Egelke.EHealth.Client.Security
             }
 
             //Apply the security
-            //see github\dotnet\wcf\src\System.Private.ServiceModel\src\System\IdentityModel\Tokens\SecurityTokenTypes.cs
-                
-            //SecurityTokenRequirement requirement = new SecurityTokenRequirement()
-            //{
-            //    TokenType = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/X509Certificate"
-            //};
+            //see https://github.com/dotnet/wcf/blob/main/src/System.ServiceModel.Primitives/src/System/IdentityModel/Tokens/SecurityTokenTypes.cs
+            //see https://github.com/dotnet/wcf/blob/main/src/System.ServiceModel.Primitives/src/System/ServiceModel/Security/ClientCredentialsSecurityTokenManager.cs#L86
+
+            var requirement = new InitiatorServiceModelSecurityTokenRequirement()
+            {
+                TokenType = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/X509Certificate"
+            };
             //SecurityTokenResolver resolver;
-            //var tokenManager = ClientCredentials.CreateSecurityTokenManager();
+            var tokenManager = ClientCredentials.CreateSecurityTokenManager();
             //var authenticator = tokenManager.CreateSecurityTokenAuthenticator(requirement, out resolver);
-            //var provider = tokenManager.CreateSecurityTokenProvider(requirement);
+            var provider = tokenManager.CreateSecurityTokenProvider(requirement);
+            var token = provider.GetToken(TimeSpan.FromSeconds(5));
+            var key = token.SecurityKeys[0];
+            //var keyIdClause = token.CreateKeyIdentifierClause<GenericXmlSecurityKeyIdentifierClause>();
+
             wss.ApplyOnRequest(ref header, bodyIdValue, ClientCredentials.ClientCertificate.Certificate, SignParts);
 
             //Write the modified version with security header to the original streams.

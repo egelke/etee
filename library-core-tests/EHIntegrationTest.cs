@@ -12,6 +12,7 @@ using System.ServiceModel.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using Egelke.EHealth.Client;
 using Egelke.EHealth.Client.Helper;
 using Egelke.EHealth.Client.Pki;
 using Egelke.EHealth.Client.Pki.ECDSA;
@@ -59,7 +60,7 @@ namespace library_core_tests
 
         private X509Certificate2 session;
 
-        private StsBinding binding;
+        private EhBinding binding;
 
         private EndpointAddress samlpEp;
         private EndpointAddress wstEp;
@@ -97,7 +98,7 @@ namespace library_core_tests
             //issuer = new X509Certificate2("files/IAMINT.cer");
             issuer = new X509Certificate2("files/IAMACC.cer");
 
-            binding = new StsBinding(loggerFactory.CreateLogger<CustomSecurity>())
+            binding = new EhBinding(loggerFactory.CreateLogger<CustomSecurity>())
             {
                 //BypassProxyOnLocal = false,
                 //UseDefaultWebProxy = false,

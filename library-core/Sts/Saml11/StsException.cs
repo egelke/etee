@@ -20,12 +20,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Egelke.EHealth.Client.Sts
+namespace Egelke.EHealth.Client.Sts.Saml11
 {
     public class StsException : Exception
     {
 
-        public StsException(String msg)
+        public StsException(string msg)
             : base(msg)
         {
 
