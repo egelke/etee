@@ -12,7 +12,7 @@ namespace Egelke.EHealth.Client
     {
         public EhCredentials() : base() { }
 
-        public EhCredentials(EhCredentials other) : base(other)
+        public EhCredentials(ClientCredentials other) : base(other)
         {
             //this.Session = other.Session;
         }

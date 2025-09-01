@@ -46,6 +46,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         private readonly ILogger _logger;
 
         public WsTrustClient(ILogger<WsTrustClient> logger = null)
+            : base()
         {
             _logger = logger ?? TraceLogger.CreateTraceLogger<WsTrustClient>();
         }

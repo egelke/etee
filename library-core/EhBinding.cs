@@ -29,11 +29,12 @@ namespace Egelke.EHealth.Client
 
         public override BindingElementCollection CreateBindingElements()
         {
-            BindingElementCollection elements = new BindingElementCollection();
-            elements.Add(CreateSecurity());
-            elements.Add(CreateMessageEncoding());
-            elements.Add(CreateTransport());
-            return elements.Clone();
+            BindingElementCollection elements = new BindingElementCollection() {
+                CreateSecurity(),
+                CreateMessageEncoding(),
+                CreateTransport()
+            };
+            return elements;
         }
 
         protected BindingElement CreateSecurity()
@@ -65,12 +66,5 @@ namespace Egelke.EHealth.Client
         }
 
         public override string Scheme => "https";
-
-        public void ApplyClientCredentials(ChannelFactory channelFactory)
-        {
-            channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
-            channelFactory.Endpoint.EndpointBehaviors.Add(new EhCredentials());
-        }
-
     }
 }

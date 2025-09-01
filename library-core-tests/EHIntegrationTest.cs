@@ -117,7 +117,7 @@ namespace library_core_tests
             //assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin));
 
             additionalClaims = new List<Claim>();
-            //additionalClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
+            additionalClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
         }
 
         private void Verify() { 
@@ -125,8 +125,8 @@ namespace library_core_tests
             nsMngr.AddNamespace("s11", "urn:oasis:names:tc:SAML:1.0:assertion");
             Assert.Equal("urn:be:fgov:ehealth:sts:1_0", assertion.SelectSingleNode("@Issuer").Value);
             Assert.Equal(ssin, assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin']/s11:AttributeValue/text()", nsMngr).Value);
-            //bool doctor;
-            //Assert.True(bool.TryParse(assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin:doctor:boolean']/s11:AttributeValue/text()", nsMngr).Value, out doctor));
+            
+            Assert.True(bool.Parse(assertion.SelectSingleNode("./s11:AttributeStatement/s11:Attribute[@AttributeName='urn:be:fgov:person:ssin:doctor:boolean']/s11:AttributeValue/text()", nsMngr).Value));
 
             SignedXml signed = new CustomSignedXml(assertion);
             XmlNodeList nodeList = assertion.GetElementsByTagName("Signature", "http://www.w3.org/2000/09/xmldsig#");
@@ -142,8 +142,7 @@ namespace library_core_tests
             Prep(cert);
             var client = new WsTrustClient(binding, wstEp, loggerFactory.CreateLogger<WsTrustClient>());
             client.ClientCredentials.ClientCertificate.Certificate = cert;
-            client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
-            target = client;
+            //client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
 
             assertion = client.RequestTicket(session, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
             Verify();
@@ -159,8 +158,7 @@ namespace library_core_tests
             Prep(cert);
             var client = new WsTrustClient(binding, wstEp, loggerFactory.CreateLogger<WsTrustClient>());
             client.ClientCredentials.ClientCertificate.Certificate = cert;
-            client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
-            target = client;
+            //client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
 
             assertion = client.RequestTicket(null, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
             Verify();
@@ -179,9 +177,8 @@ namespace library_core_tests
 
             var client = new SamlClient("Anonymous", binding, samlpEp);
             client.ClientCredentials.ClientCertificate.Certificate = cert;
-            target = client;
 
-            assertion = target.RequestTicket(session, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
+            assertion = client.RequestTicket(session, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
             Verify();
         }
     }
