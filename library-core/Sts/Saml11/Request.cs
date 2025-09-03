@@ -26,8 +26,8 @@ using Org.BouncyCastle.Asn1;
 using System.ServiceModel.Channels;
 using System.Security.Cryptography.Xml;
 using Egelke.EHealth.Client.Helper;
-using System.Security.Claims;
 using System.Text.RegularExpressions;
+using System.IdentityModel.Claims;
 
 namespace Egelke.EHealth.Client.Sts.Saml11
 {
@@ -139,12 +139,12 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             AddSubject(query);
             foreach (Claim claim in AssertingClaims)
             {
-                GroupCollection attr = ClaimTypeExp.Match(claim.Type).Groups;
+                GroupCollection attr = ClaimTypeExp.Match(claim.ClaimType).Groups;
                 AddAttributeDesignator(query, attr["ns"].Value, attr["name"].Value);
             }
             foreach (Claim claim in AdditionalClaims)
             {
-                GroupCollection attr = ClaimTypeExp.Match(claim.Type).Groups;
+                GroupCollection attr = ClaimTypeExp.Match(claim.ClaimType).Groups;
                 AddAttributeDesignator(query, attr["ns"].Value, attr["name"].Value);
             }
         }
@@ -241,8 +241,14 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             AddInternalSubject(attrStatement);
             foreach (Claim claim in AssertingClaims)
             {
-                GroupCollection attr = ClaimTypeExp.Match(claim.Type).Groups;
-                String[] values = claim.Value.Split(';');
+                GroupCollection attr = ClaimTypeExp.Match(claim.ClaimType).Groups;
+                String[] values;
+                if (claim.Resource is string) {
+                    values = new String[] { (string)claim.Resource };
+                } else
+                {
+                    values = (String[]) claim.Resource;
+                }
                 AddAttribute(attrStatement, attr["ns"].Value, attr["name"].Value, values);
             }
         }

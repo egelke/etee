@@ -14,17 +14,17 @@ namespace Egelke.EHealth.Client
     {
         public ILogger<CustomSecurity> Logger { get; }
 
-        public bool BypassProxyOnLocal { get; set; }
+        public EhSecurity Security { get; internal set; } = new EhSecurity();
 
-        public bool UseDefaultWebProxy { get; set; }
+        public bool BypassProxyOnLocal { get; set; } = true;
+
+        public bool UseDefaultWebProxy { get; set; } = true;
 
         public Uri ProxyAddress { get; set; }
 
         public EhBinding(ILogger<CustomSecurity> logger = null)
         {
             Logger = logger;
-            BypassProxyOnLocal = true;
-            UseDefaultWebProxy = true;
         }
 
         public override BindingElementCollection CreateBindingElements()

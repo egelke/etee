@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Claims;
 using System.Linq;
-using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -89,13 +89,13 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             return Send(sessionCert, request);
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> additinalClaims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> claims)
         {
             DateTime notBefore = DateTime.UtcNow;
-            return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), assertingClaims, additinalClaims);
+            return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), claims);
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> assertingClaims, IList<Claim> additinalClaims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> claims)
         {
             var useKey = sessionCert == null ? null : new UseKeyType
             {
@@ -119,18 +119,13 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
                     RequestType = RequestTypeEnum.httpdocsoasisopenorgwssxwstrust200512Issue,
                     Claims = new ClaimsType()
                     {
-                        Dialect = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims",
-                        ClaimType = Enumerable.Union(
-                            assertingClaims.Select(c => new ClaimType()
+                        Dialect = claims.FirstOrDefault().Right, //need at least a single claim
+                        ClaimType =
+                            claims.Select(c => new ClaimType()
                             {
-                                Uri = ClaimTypeExp.Match(c.Type).Groups["name"].Value,
-                                Item = c.Value
-                            }),
-                            additinalClaims.Select(c => new ClaimType()
-                            {
-                                Uri = ClaimTypeExp.Match(c.Type).Groups["name"].Value
-                            })
-                            ).ToArray()
+                                Uri = ClaimTypeExp.Match(c.ClaimType).Groups["name"].Value,
+                                Item = c.Resource
+                            }).ToArray()
                     },
                     Lifetime = new LifetimeType()
                     {

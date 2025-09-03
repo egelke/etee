@@ -17,8 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Claims;
 using System.Linq;
-using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -56,13 +56,13 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> assertingClaims, IList<Claim> additinalClaims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> claims)
         {
             DateTime notBefore = DateTime.UtcNow;
-            return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), assertingClaims, additinalClaims);
+            return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), claims);
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> assertingClaims, IList<Claim> additinalClaims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> claims)
         {
             X509Certificate2 authCert = base.ClientCredentials.ClientCertificate.Certificate;
 
@@ -76,9 +76,8 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             if (notBefore.Kind != DateTimeKind.Utc) throw new ArgumentException("notBefore", "notBefore should be in UTC");
             if (notOnOrAfter == DateTime.MinValue || notOnOrAfter == DateTime.MaxValue) throw new ArgumentException("notOnOrAfter", "notOnOrAfter should be specified");
             if (notOnOrAfter.Kind != DateTimeKind.Utc) throw new ArgumentException("notOnOrAfter", "notOnOrAfter should be in UTC");
-            if (assertingClaims == null) throw new ArgumentNullException("assertingClaims");
-            if (additinalClaims == null) throw new ArgumentNullException("additinalClaims");
-            
+            if (claims == null) throw new ArgumentNullException("claims");
+
             var request = new Request()
             {
                 Package = package,
@@ -86,8 +85,8 @@ namespace Egelke.EHealth.Client.Sts.Saml11
                 SessionCert = sessionCert,
                 NotBefore = notBefore,
                 NotOnOrAfter = notOnOrAfter,
-                AssertingClaims = assertingClaims,
-                AdditionalClaims = additinalClaims
+                AssertingClaims = claims.Where(c => c.Resource != null).ToList(),
+                AdditionalClaims = claims.Where(c => c.Resource == null).ToList()
             };
             Message requestMsg = Message.CreateMessage(MessageVersion.Soap11, "urn:be:fgov:ehealth:sts:protocol:v1:RequestSecurityToken", request);
             Message responseMsg = base.Channel.Send(requestMsg);

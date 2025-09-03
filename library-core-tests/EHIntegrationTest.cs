@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Claims;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.ServiceModel;
@@ -67,9 +67,7 @@ namespace library_core_tests
 
         private String ssin;
 
-        private IList<Claim> assertingClaims;
-
-        private IList<Claim> additionalClaims;
+        private IList<Claim> claims;
 
         private IStsClient target;
 
@@ -112,12 +110,12 @@ namespace library_core_tests
             Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
             ssin = match.Groups[2].Value;
 
-            assertingClaims = new List<Claim>();
-            assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin));
-            //assertingClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin));
 
-            additionalClaims = new List<Claim>();
-            additionalClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", String.Empty));
+            claims = new List<Claim>() {
+                new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims"),
+                //new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin, "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims"),
+                new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims")
+            };
         }
 
         private void Verify() { 
@@ -144,7 +142,7 @@ namespace library_core_tests
             client.ClientCredentials.ClientCertificate.Certificate = cert;
             //client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
 
-            assertion = client.RequestTicket(session, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
+            assertion = client.RequestTicket(session, TimeSpan.FromHours(1), claims);
             Verify();
 
             assertion = client.RenewTicket(session, assertion);
@@ -160,7 +158,7 @@ namespace library_core_tests
             client.ClientCredentials.ClientCertificate.Certificate = cert;
             //client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
 
-            assertion = client.RequestTicket(null, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
+            assertion = client.RequestTicket(null, TimeSpan.FromHours(1), claims);
             Verify();
 
             assertion = client.RenewTicket(null, assertion);
@@ -178,7 +176,7 @@ namespace library_core_tests
             var client = new SamlClient("Anonymous", binding, samlpEp);
             client.ClientCredentials.ClientCertificate.Certificate = cert;
 
-            assertion = client.RequestTicket(session, TimeSpan.FromHours(1), assertingClaims, additionalClaims);
+            assertion = client.RequestTicket(session, TimeSpan.FromHours(1), claims);
             Verify();
         }
     }
