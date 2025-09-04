@@ -67,7 +67,7 @@ namespace library_core_tests
 
         private String ssin;
 
-        private IList<Claim> claims;
+        private AuthClaimSet claims;
 
         private IStsClient target;
 
@@ -110,12 +110,12 @@ namespace library_core_tests
             Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
             ssin = match.Groups[2].Value;
 
-
-            claims = new List<Claim>() {
-                new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims"),
-                //new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin, "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims"),
-                new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims")
-            };
+            string reason = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims";
+            claims = new AuthClaimSet(
+                new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, reason),
+                //new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin, reason),
+                new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, reason)
+            );
         }
 
         private void Verify() { 

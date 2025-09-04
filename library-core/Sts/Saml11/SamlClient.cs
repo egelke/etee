@@ -56,13 +56,13 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> claims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, AuthClaimSet claims)
         {
             DateTime notBefore = DateTime.UtcNow;
             return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), claims);
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> claims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, AuthClaimSet claims)
         {
             X509Certificate2 authCert = base.ClientCredentials.ClientCertificate.Certificate;
 

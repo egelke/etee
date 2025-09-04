@@ -89,13 +89,13 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             return Send(sessionCert, request);
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, IList<Claim> claims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, TimeSpan duration, AuthClaimSet claims)
         {
             DateTime notBefore = DateTime.UtcNow;
             return RequestTicket(sessionCert, notBefore, notBefore.Add(duration), claims);
         }
 
-        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, IList<Claim> claims)
+        public XmlElement RequestTicket(X509Certificate2 sessionCert, DateTime notBefore, DateTime notOnOrAfter, AuthClaimSet claims)
         {
             var useKey = sessionCert == null ? null : new UseKeyType
             {
@@ -119,11 +119,11 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
                     RequestType = RequestTypeEnum.httpdocsoasisopenorgwssxwstrust200512Issue,
                     Claims = new ClaimsType()
                     {
-                        Dialect = claims.FirstOrDefault().Right, //need at least a single claim
+                        Dialect = claims.Dialect,
                         ClaimType =
                             claims.Select(c => new ClaimType()
                             {
-                                Uri = ClaimTypeExp.Match(c.ClaimType).Groups["name"].Value,
+                                Uri = ClaimTypeExp.Match(c.ClaimType).Groups["name"].Value, //todo::support simple names without NS.
                                 Item = c.Resource
                             }).ToArray()
                     },
