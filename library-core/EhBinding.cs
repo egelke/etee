@@ -41,7 +41,7 @@ namespace Egelke.EHealth.Client
         {
             return new CustomSecurityBindingElement(Security, Logger)
             {
-                MessageSecurityVersion = SecurityVersion.WSSecurity10,
+                MessageSecurityVersion = SecurityVersion.WSSecurity11,
                 SignParts = SignParts.All
             };
         }
@@ -50,7 +50,8 @@ namespace Egelke.EHealth.Client
         {
             return new TextMessageEncodingBindingElement()
             {
-                MessageVersion = MessageVersion.Soap11
+                MessageVersion = MessageVersion.Soap11,
+                
             };
         }
 

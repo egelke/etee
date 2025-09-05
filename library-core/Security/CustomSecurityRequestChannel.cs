@@ -175,7 +175,7 @@ namespace Egelke.EHealth.Client.Security
             if (message != null)
             {
                 var wss = WSS.Create(MessageSecurityVersion);
-                int i = message.Headers.FindHeader("Security", wss.SecExtNs);
+                int i = message.Headers.FindHeader("Security", WSS.SECEXT10_NS);
                 if (i >= 0)
                 {
                     MessageHeaderInfo sec = message.Headers[i];

@@ -8,5 +8,7 @@ namespace Egelke.EHealth.Client.Helper
     internal class WSS10 : WSS
     {
 
+
+        //so far, no differences
     }
 }

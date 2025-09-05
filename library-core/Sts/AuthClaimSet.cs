@@ -19,7 +19,7 @@ namespace Egelke.EHealth.Client.Sts
 
         public AuthClaimSet(params Claim[] claims)
         {
-            _claims = claims;
+            _claims = new List<Claim>(claims);
             CheckRights();
         }
 
@@ -79,7 +79,7 @@ namespace Egelke.EHealth.Client.Sts
 
         public object Clone()
         {
-            return new AuthClaimSet((IList<Claim>) new LinkedList<Claim>(_claims));
+            return new AuthClaimSet(new List<Claim>(_claims));
         }
     }
 }

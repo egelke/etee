@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Claims;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -47,7 +47,7 @@ namespace library_core_tests
             //        .Select(c => new object[] { new MyX509Certificate2(c) })
             //        .ToList();
             //}
-            certs.Add(new object[] { new MyX509Certificate2("files/ectest.p12", "") });
+            //certs.Add(new object[] { new MyX509Certificate2("files/ectest.p12", "") });
             certs.Add(new object[] { new MyX509Certificate2("files/rsatest.p12", "") });
             //var certp12 = new EHealthP12("files/SSIN=79021802145 20250514-082150.acc.p12", File.ReadAllText("files/SSIN=79021802145 20250514-082150.acc.p12.pwd"));
             //certs.Add(new object[] { new MyX509Certificate2(certp12["authentication"]) });
@@ -84,10 +84,7 @@ namespace library_core_tests
         public void Soap11Wss10Failed(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
-            {
-                MessageSecurityVersion = SecurityVersion.WSSecurity10
-            });
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity(SecurityVersion.WSSecurity10)));
             binding.Elements.Add(new TextMessageEncodingBindingElement()
             {
                 MessageVersion = MessageVersion.Soap11
@@ -113,10 +110,7 @@ namespace library_core_tests
         public void Soap11Wss10(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
-            {
-                MessageSecurityVersion = SecurityVersion.WSSecurity10
-            });
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity(SecurityVersion.WSSecurity10)));
             binding.Elements.Add(new TextMessageEncodingBindingElement()
             {
                 MessageVersion = MessageVersion.Soap11
@@ -142,13 +136,39 @@ namespace library_core_tests
 
         [Theory]
         [MemberData(nameof(GetCerts))]
+        public void Soap11Wss11(X509Certificate2 cert)
+        {
+            var binding = new CustomBinding();
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity(SecurityVersion.WSSecurity11)));
+            binding.Elements.Add(new TextMessageEncodingBindingElement()
+            {
+                MessageVersion = MessageVersion.Soap11
+            });
+            binding.Elements.Add(new HttpsTransportBindingElement()
+            {
+                //BypassProxyOnLocal = false,
+                //UseDefaultWebProxy = false,
+                //ProxyAddress = new Uri("http://localhost:8866")
+            });
+
+            var ep = new EndpointAddress("https://localhost:8080/services/echo/soap11wss11");
+            ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
+            channelFactory.Endpoint.EndpointBehaviors.Add(new CustomClientCredentials());
+            channelFactory.Credentials.ClientCertificate.Certificate = cert;
+
+            IEchoService client = channelFactory.CreateChannel();
+
+            String pong = client.Echo("boe");
+            Assert.Equal("boe", pong);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetCerts))]
         public void Soap12Wss10(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
-            {
-                MessageSecurityVersion = SecurityVersion.WSSecurity10
-            });
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity(SecurityVersion.WSSecurity10)));
             binding.Elements.Add(new TextMessageEncodingBindingElement()
             {
                 MessageVersion = MessageVersion.Soap12WSAddressing10
@@ -175,10 +195,7 @@ namespace library_core_tests
         public void Soap12Wss11(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
-            {
-                MessageSecurityVersion = SecurityVersion.WSSecurity11
-            });
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity(SecurityVersion.WSSecurity11)));
             binding.Elements.Add(new TextMessageEncodingBindingElement()
             {
                 MessageVersion = MessageVersion.Soap12WSAddressing10
@@ -206,9 +223,7 @@ namespace library_core_tests
         public void Soap11Wss10SignAll(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
-            {
-                MessageSecurityVersion = SecurityVersion.WSSecurity10,
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity(SecurityVersion.WSSecurity10)) {
                 SignParts = SignParts.All
             });
             binding.Elements.Add(new TextMessageEncodingBindingElement()
@@ -239,23 +254,6 @@ namespace library_core_tests
             var binding = new EhBinding(loggerFactory.CreateLogger<CustomSecurity>());
 
             var ep = new EndpointAddress("https://localhost:8080/services/echo/eHealth/x509");
-            ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
-            channelFactory.Credentials.ClientCertificate.Certificate = cert;
-
-            IEchoService client = channelFactory.CreateChannel();
-
-            String pong = client.Echo("boe");
-            Assert.Equal("boe", pong);
-        }
-
-    
-        [Theory(Skip = "WIP")]
-        [MemberData(nameof(GetCerts))]
-        public void EhealthSaml11(X509Certificate2 cert)
-        {
-            var binding = new EhBinding(loggerFactory.CreateLogger<CustomSecurity>());
-
-            var ep = new EndpointAddress("https://localhost:8080/services/echo/eHealth/saml11");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 

@@ -179,6 +179,31 @@ namespace library_core_tests
             assertion = client.RequestTicket(session, TimeSpan.FromHours(1), claims);
             Verify();
         }
+
+        [Theory]
+        [MemberData(nameof(GetCerts))]
+        public void EhealthSaml11(X509Certificate2 cert)
+        {
+            Prep(cert);
+            string right = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims";
+
+            var binding = new EhBinding(loggerFactory.CreateLogger<CustomSecurity>());
+            binding.Security.Mode = EhSecurityMode.SamlFromWsTrust;
+            binding.Security.IssuerAddress = wstEp;
+            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, right));
+            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, right));
+
+
+
+            var ep = new EndpointAddress("https://localhost:8080/services/echo/eHealth/saml11");
+            ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Credentials.ClientCertificate.Certificate = cert;
+
+            IEchoService client = channelFactory.CreateChannel();
+
+            String pong = client.Echo("boe");
+            Assert.Equal("boe", pong);
+        }
     }
 
 

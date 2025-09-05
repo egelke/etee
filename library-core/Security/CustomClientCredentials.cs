@@ -13,7 +13,7 @@ namespace Egelke.EHealth.Client.Security
 
         public CustomClientCredentials(ClientCredentials other) : base(other)
         {
-            //this.Session = other.Session;
+
         }
 
         public override SecurityTokenManager CreateSecurityTokenManager()

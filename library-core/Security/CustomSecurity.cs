@@ -6,6 +6,7 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
 using System.ServiceModel.Security.Tokens;
 using System.Text;
+using Egelke.EHealth.Client.Helper;
 using Egelke.EHealth.Client.Security;
 using Egelke.EHealth.Client.Sts;
 
@@ -23,12 +24,25 @@ namespace Egelke.EHealth.Client
 
         public CustomSecurityClientCredential SessionCertificate { get; } = new CustomSecurityClientCredential();
 
+        public SecurityVersion SecurityVersion = SecurityVersion.WSSecurity11;
+
+        public CustomSecurity()
+        {
+
+        }
+
+        public CustomSecurity(SecurityVersion securityVersion)
+        {
+            this.SecurityVersion = securityVersion;
+        }
+
         internal SecurityTokenRequirement ToTokenRequirement(EndpointAddress targetAddress)
         {
             var tokenRequirement = new SecurityTokenRequirement()
             {
                 TokenType = Mode.ToTokenType(),
             };
+            tokenRequirement.Properties["wss"] = WSS.Create(SecurityVersion);
             if (Mode == EhSecurityMode.SamlFromWsTrust)
             {
                 var issuedtokenParameters = new CustomIssuedSecurityTokenParameters(AuthClaims, SessionCertificate.Certificate);

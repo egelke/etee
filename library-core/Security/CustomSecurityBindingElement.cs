@@ -26,7 +26,7 @@ namespace Egelke.EHealth.Client.Security
 
         public CustomSecurityBindingElement(CustomSecurity security, ILogger<CustomSecurity> logger = null)
         {
-            MessageSecurityVersion = SecurityVersion.WSSecurity11 ;
+            MessageSecurityVersion = security.SecurityVersion;
             SignParts = SignParts.Timestamp;
 
             _security = security;

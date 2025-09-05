@@ -113,6 +113,35 @@ namespace library_core_tests
             Assert.Equal("boe", pong);
         }
 
+        [Fact]
+        public void soap12Custom()
+        {
+            var binding = new CustomBinding();
+            var security = SecurityBindingElement.CreateCertificateOverTransportBindingElement();
+            //security.MessageSecurityVersion = MessageSecurityVersion.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
+            security.MessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
+            binding.Elements.Add(security);
+            binding.Elements.Add(new TextMessageEncodingBindingElement()
+            {
+                MessageVersion = MessageVersion.Soap12
+            });
+            binding.Elements.Add(new HttpsTransportBindingElement()
+            {
+                //BypassProxyOnLocal = false,
+                //UseDefaultWebProxy = false,
+                //ProxyAddress = new Uri("http://localhost:8866")
+            });
+
+            var ep = new EndpointAddress("https://localhost:8080/services/echo/soap12wss10");
+            ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
+            channelFactory.Credentials.ClientCertificate.Certificate = rsa;
+
+            IEchoService client = channelFactory.CreateChannel();
+
+            String pong = client.Echo("boe");
+            Assert.Equal("boe", pong);
+        }
+
         [SkippableFact]
         public void soap12Wss10Ecdsa()
         {

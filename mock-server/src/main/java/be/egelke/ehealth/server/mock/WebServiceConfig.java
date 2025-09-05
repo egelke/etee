@@ -100,6 +100,32 @@ public class WebServiceConfig {
     }
 
     @Bean
+    public Endpoint soap11Wss11(Bus bus, EchoPort service) {
+        EndpointImpl endpoint = new EndpointImpl(bus, service);
+        endpoint.setBindingUri(SOAPBinding.SOAP11HTTP_BINDING);
+
+        Map<String, Object> inProps = new HashMap<>();
+        inProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.TIMESTAMP + " " + WSHandlerConstants.SIGNATURE );
+
+        inProps.put(WSHandlerConstants.SIG_PROP_REF_ID, "signatureProperties");
+        Properties sigProps = new Properties();
+        sigProps.put("org.apache.wss4j.crypto.provider", "be.egelke.ehealth.server.mock.AllowAllCrypto");
+
+        inProps.put("signatureProperties", sigProps);
+        endpoint.getInInterceptors().add(new WSS4JInInterceptor(inProps));
+        DefaultCryptoCoverageChecker signOnlyTs = new DefaultCryptoCoverageChecker();
+        signOnlyTs.setSignTimestamp(true);
+        signOnlyTs.setSignBody(false);
+        signOnlyTs.setEncryptBody(false);
+        signOnlyTs.setSignAddressingHeaders(false);
+        signOnlyTs.setSignUsernameToken(false);
+        signOnlyTs.setEncryptUsernameToken(false);
+        endpoint.getInInterceptors().add(signOnlyTs);
+        endpoint.publish("/echo/soap11wss11");
+        return endpoint;
+    }
+
+    @Bean
     public Endpoint soap11Wss10SignAll(Bus bus, EchoPort service) {
         EndpointImpl endpoint = new EndpointImpl(bus, service);
         endpoint.setBindingUri(SOAPBinding.SOAP11HTTP_BINDING);
@@ -191,7 +217,7 @@ public class WebServiceConfig {
         endpoint.setBindingUri(SOAPBinding.SOAP11HTTP_BINDING);
 
         Map<String, Object> inProps = new HashMap<>();
-        inProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.TIMESTAMP + " " + WSHandlerConstants.SAML_TOKEN_SIGNED );
+        inProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.TIMESTAMP + " " + WSHandlerConstants.SIGNATURE + " " + WSHandlerConstants.SAML_TOKEN_SIGNED );
 
         inProps.put(WSHandlerConstants.SIG_PROP_REF_ID, "signatureProperties");
         Properties sigProps = new Properties();

@@ -15,24 +15,35 @@ using System.Security.Cryptography;
 
 namespace Egelke.EHealth.Client.Helper
 {
-    internal abstract class WSS
+    public abstract class WSS
     {
         static WSS()
         {
             //ECDsaConfig.Init();
         }
 
-        public static string NS =
+        internal static string NS =
             "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0";
 
-        public static string UTILITY_NS =
+        internal static string UTILITY_NS =
             "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
 
-        public static string TOKEN_PROFILE_X509_NS =
+        internal static string TOKEN_PROFILE_X509_NS =
             "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0";
 
-        public static string SECEXT_NS =
+        internal static string TOKEN_PROFILE_SAML10_NS =
+            "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.0";
+
+        internal static string TOKEN_PROFILE_SAML11_NS =
+            "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1";
+
+
+        internal static string SECEXT10_NS =
             "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
+
+        internal static string SECEXT11_NS =
+            "http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd";
+        
 
 
         public static WSS Create(SecurityVersion securityVersion)
@@ -51,21 +62,25 @@ namespace Egelke.EHealth.Client.Helper
             }
         }
 
-        public string Ns => NS;
+        //public string Ns => NS;
 
-        public string SecExtNs => SECEXT_NS;
+        //public abstract string SecExtNs { get; }
 
         public string SecExtPrefix => "wsse";
 
-        public string UtilityNs => UTILITY_NS;
+        //public string UtilityNs => UTILITY_NS;
 
         public string UtilityPrefix => "wsu";
 
-        public string TokenPofileX509Ns => TOKEN_PROFILE_X509_NS;
+        //public string TokenProfileX509Ns => TOKEN_PROFILE_X509_NS;
+
+        //public string TokenProfileSaml10 => TOKEN_PROFILE_SAML10_NS;
+
+        //public string TokenProfileSaml11 => TOKEN_PROFILE_SAML11_NS;
 
         public void VerifyResponse(XmlElement header)
         {
-            if (header.LocalName != "Security" || header.NamespaceURI != SecExtNs)
+            if (header.LocalName != "Security" || header.NamespaceURI != SECEXT10_NS)
                 throw new ArgumentException("Header not supported", nameof(header));
 
 
@@ -101,7 +116,7 @@ namespace Egelke.EHealth.Client.Helper
         private DateTime ExtractDateFromChild(XmlElement el, String name)
         {
             XmlNamespaceManager nsmgr = new XmlNamespaceManager(el.OwnerDocument.NameTable);
-            nsmgr.AddNamespace(UtilityPrefix, UtilityNs);
+            nsmgr.AddNamespace(UtilityPrefix, UTILITY_NS);
 
             XmlElement childElement = el.SelectSingleNode("./"+UtilityPrefix+":"+name, nsmgr) as XmlElement;
             if (childElement == null) throw new MessageSecurityException("Timestamp does not contain a "+name+" element");
@@ -116,23 +131,23 @@ namespace Egelke.EHealth.Client.Helper
             //note: should use "token.SecurityKeys" instead; but that will not work on Core since verything is private
             var proofToken = token.ProofToken as X509SecurityToken;
 
-            XmlElement sec = doc.CreateElement(SecExtPrefix, "Security", SecExtNs);
+            XmlElement sec = doc.CreateElement(SecExtPrefix, "Security", SECEXT10_NS);
 
             XmlAttribute mustUnderstand = doc.CreateAttribute(soapPrefix, "mustUnderstand", soapNs);
             mustUnderstand.Value = "1";
             sec.Attributes.Append(mustUnderstand);
-            sec.SetAttribute("xmlns:" + UtilityPrefix, UtilityNs);
+            sec.SetAttribute("xmlns:" + UtilityPrefix, UTILITY_NS);
             header.AppendChild(sec);
 
-            XmlElement ts = doc.CreateElement(UtilityPrefix, "Timestamp", UtilityNs);
-            XmlAttribute tsId = doc.CreateAttribute(UtilityPrefix, "Id", UtilityNs);
+            XmlElement ts = doc.CreateElement(UtilityPrefix, "Timestamp", UTILITY_NS);
+            XmlAttribute tsId = doc.CreateAttribute(UtilityPrefix, "Id", UTILITY_NS);
             tsId.Value = "uuid-" + Guid.NewGuid().ToString("D");
             ts.Attributes.Append(tsId);
-            XmlElement created = doc.CreateElement(UtilityPrefix, "Created", UtilityNs);
+            XmlElement created = doc.CreateElement(UtilityPrefix, "Created", UTILITY_NS);
             XmlText createdValue = doc.CreateTextNode(DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK", CultureInfo.InvariantCulture));
             created.AppendChild(createdValue);
             ts.AppendChild(created);
-            XmlElement expires = doc.CreateElement(UtilityPrefix, "Expires", UtilityNs);
+            XmlElement expires = doc.CreateElement(UtilityPrefix, "Expires", UTILITY_NS);
             XmlText expiresValue = doc.CreateTextNode(DateTime.UtcNow.AddMinutes(5.0).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ssK", CultureInfo.InvariantCulture));
             expires.AppendChild(expiresValue);
             ts.AppendChild(expires);

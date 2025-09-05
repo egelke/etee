@@ -124,11 +124,11 @@ namespace Egelke.EHealth.Client.Security
 
             //Find the body, add an id if needed.
             XmlElement body = (XmlElement)env.DocumentElement.SelectSingleNode("./s:Body", nsmgr);
-            string bodyIdValue = body.GetAttribute("Id", wss.UtilityNs);
+            string bodyIdValue = body.GetAttribute("Id", WSS.UTILITY_NS);
             if (bodyIdValue == string.Empty)
             {
                 bodyIdValue = "uuid-" + Guid.NewGuid().ToString("D");
-                var bodyId = env.CreateAttribute(wss.UtilityPrefix, "Id", wss.UtilityNs);
+                var bodyId = env.CreateAttribute(wss.UtilityPrefix, "Id", WSS.UTILITY_NS);
                 bodyId.Value = bodyIdValue;
                 body.SetAttributeNode(bodyId);
             }
