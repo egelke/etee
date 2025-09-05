@@ -31,10 +31,13 @@ namespace Egelke.EHealth.Client.Security
 
         public SignParts SignParts { get; set; }
 
+        public CustomSecurity Security { get; set; }
 
         public EndpointAddress RemoteAddress { get; }
 
         public Uri Via { get; }
+
+        
 
         public T GetProperty<T>() where T : class
         {
@@ -157,11 +160,13 @@ namespace Egelke.EHealth.Client.Security
 
         private Message Wrap(Message message)
         {
-            return new CustomSecurityAppliedMessage(_logger, message)
+            return new CustomSecurityAppliedMessage(message, _logger)
             {
                 ClientCredentials = this.ClientCredentials,
                 MessageSecurityVersion = this.MessageSecurityVersion,
-                SignParts = this.SignParts
+                SignParts = this.SignParts,
+                RemoteAddress = this.RemoteAddress,
+                Security = this.Security
             };
         }
 

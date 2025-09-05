@@ -26,16 +26,18 @@ namespace Egelke.EHealth.Client.Security
     {
         private ILogger _logger;
 
+        
+
         private Message _innerMessage;
 
         /// <summary>
         /// Constructor that wraps a message.
         /// </summary>
         /// <param name="innerMessage">Message from the previous channels</param>
-        public CustomSecurityAppliedMessage(ILogger logger, Message innerMessage)
+        public CustomSecurityAppliedMessage(Message innerMessage, ILogger logger = null)
         {
-            _logger = logger;
             _innerMessage = innerMessage;
+            _logger = logger;
         }
 
         public ClientCredentials ClientCredentials { get; set; }
@@ -43,6 +45,9 @@ namespace Egelke.EHealth.Client.Security
         public SecurityVersion MessageSecurityVersion { get; set; }
 
         public SignParts SignParts { get; set; }
+        public CustomSecurity Security { get; set; }
+
+        public EndpointAddress RemoteAddress { get; set; }
 
         /// <inheritdoc/>
         public override bool IsEmpty
@@ -140,14 +145,10 @@ namespace Egelke.EHealth.Client.Security
             //see https://github.com/dotnet/wcf/blob/main/src/System.ServiceModel.Primitives/src/System/IdentityModel/Tokens/SecurityTokenTypes.cs
             //see https://github.com/dotnet/wcf/blob/main/src/System.ServiceModel.Primitives/src/System/ServiceModel/Security/ClientCredentialsSecurityTokenManager.cs#L86
 
-            var requirement = new InitiatorServiceModelSecurityTokenRequirement()
-            {
-                TokenType = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/X509Certificate"
-            };
+            var requirement = Security.ToTokenRequirement(RemoteAddress);
             var tokenManager = ClientCredentials.CreateSecurityTokenManager();
             var provider = tokenManager.CreateSecurityTokenProvider(requirement);
             var token = provider.GetToken(TimeSpan.FromSeconds(5)) as GenericXmlSecurityToken;
-
             wss.ApplyOnRequest(ref header, bodyIdValue, token, SignParts);
 
             //Write the modified version with security header to the original streams.

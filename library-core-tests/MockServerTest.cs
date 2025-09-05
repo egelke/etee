@@ -84,7 +84,7 @@ namespace library_core_tests
         public void Soap11Wss10Failed(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement()
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
             {
                 MessageSecurityVersion = SecurityVersion.WSSecurity10
             });
@@ -113,7 +113,7 @@ namespace library_core_tests
         public void Soap11Wss10(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement()
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
             {
                 MessageSecurityVersion = SecurityVersion.WSSecurity10
             });
@@ -131,7 +131,7 @@ namespace library_core_tests
             var ep = new EndpointAddress("https://localhost:8080/services/echo/soap11wss10");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
-            channelFactory.Endpoint.EndpointBehaviors.Add(new EhCredentials());
+            channelFactory.Endpoint.EndpointBehaviors.Add(new CustomClientCredentials());
             channelFactory.Credentials.ClientCertificate.Certificate = cert;
 
             IEchoService client = channelFactory.CreateChannel();
@@ -145,7 +145,7 @@ namespace library_core_tests
         public void Soap12Wss10(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement()
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
             {
                 MessageSecurityVersion = SecurityVersion.WSSecurity10
             });
@@ -175,7 +175,7 @@ namespace library_core_tests
         public void Soap12Wss11(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement()
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
             {
                 MessageSecurityVersion = SecurityVersion.WSSecurity11
             });
@@ -206,7 +206,7 @@ namespace library_core_tests
         public void Soap11Wss10SignAll(X509Certificate2 cert)
         {
             var binding = new CustomBinding();
-            binding.Elements.Add(new CustomSecurityBindingElement()
+            binding.Elements.Add(new CustomSecurityBindingElement(new CustomSecurity())
             {
                 MessageSecurityVersion = SecurityVersion.WSSecurity10,
                 SignParts = SignParts.All

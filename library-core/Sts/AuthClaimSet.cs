@@ -7,11 +7,15 @@ using System.Text;
 
 namespace Egelke.EHealth.Client.Sts
 {
-    public class AuthClaimSet : IEnumerable<Claim>
+    public class AuthClaimSet : ICollection<Claim>, ICloneable
     {
         private readonly IList<Claim> _claims;
 
         public readonly String Dialect = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims";
+
+        public int Count => throw new NotImplementedException();
+
+        public bool IsReadOnly => throw new NotImplementedException();
 
         public AuthClaimSet(params Claim[] claims)
         {
@@ -46,6 +50,36 @@ namespace Egelke.EHealth.Client.Sts
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public void Add(Claim item)
+        {
+            _claims.Add(item);
+        }
+
+        public void Clear()
+        {
+            _claims.Clear();
+        }
+
+        public bool Contains(Claim item)
+        {
+            return _claims.Contains(item);
+        }
+
+        public void CopyTo(Claim[] array, int arrayIndex)
+        {
+            _claims.CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(Claim item)
+        {
+            return _claims.Remove(item);
+        }
+
+        public object Clone()
+        {
+            return new AuthClaimSet((IList<Claim>) new LinkedList<Claim>(_claims));
         }
     }
 }

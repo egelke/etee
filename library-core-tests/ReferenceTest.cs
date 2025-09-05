@@ -164,7 +164,7 @@ namespace library_core_tests
             var ep = new EndpointAddress("https://localhost:8080/services/echo/soap12wss10");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);
             channelFactory.Endpoint.EndpointBehaviors.Remove(typeof(ClientCredentials));
-            channelFactory.Endpoint.EndpointBehaviors.Add(new EhCredentials());
+            channelFactory.Endpoint.EndpointBehaviors.Add(new CustomClientCredentials());
             channelFactory.Credentials.ClientCertificate.Certificate = rsa;
 
             IEchoService client = channelFactory.CreateChannel();

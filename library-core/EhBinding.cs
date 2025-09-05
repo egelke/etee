@@ -14,7 +14,7 @@ namespace Egelke.EHealth.Client
     {
         public ILogger<CustomSecurity> Logger { get; }
 
-        public EhSecurity Security { get; internal set; } = new EhSecurity();
+        public CustomSecurity Security { get; } = new CustomSecurity();
 
         public bool BypassProxyOnLocal { get; set; } = true;
 
@@ -39,7 +39,7 @@ namespace Egelke.EHealth.Client
 
         protected BindingElement CreateSecurity()
         {
-            return new CustomSecurityBindingElement(logger: Logger)
+            return new CustomSecurityBindingElement(Security, Logger)
             {
                 MessageSecurityVersion = SecurityVersion.WSSecurity10,
                 SignParts = SignParts.All

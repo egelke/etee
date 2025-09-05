@@ -20,12 +20,16 @@ namespace Egelke.EHealth.Client.Security
     {
         private readonly ILogger _logger;
 
+        private CustomSecurity _security;
 
 
-        public CustomSecurityBindingElement(ILogger<CustomSecurity> logger = null)
+
+        public CustomSecurityBindingElement(CustomSecurity security, ILogger<CustomSecurity> logger = null)
         {
             MessageSecurityVersion = SecurityVersion.WSSecurity11 ;
             SignParts = SignParts.Timestamp;
+
+            _security = security;
             _logger = logger ?? TraceLogger.CreateTraceLogger<CustomSecurity>();
         }
 
@@ -33,6 +37,8 @@ namespace Egelke.EHealth.Client.Security
         {
             this.MessageSecurityVersion = that.MessageSecurityVersion;
             this.SignParts = that.SignParts;
+
+            this._security = that._security;
             this._logger = that._logger;
         }
 
@@ -58,9 +64,9 @@ namespace Egelke.EHealth.Client.Security
         public override IChannelFactory<TChannel> BuildChannelFactory<TChannel>(BindingContext context)
         {
             ClientCredentials clientCredentials = context.BindingParameters.Find<ClientCredentials>();
-            if (!(clientCredentials is EhCredentials))
+            if (!(clientCredentials is CustomClientCredentials))
             {
-                clientCredentials = new EhCredentials(clientCredentials);
+                clientCredentials = new CustomClientCredentials(clientCredentials);
                 context.BindingParameters.Remove(typeof(ClientCredentials));
                 context.BindingParameters.Add(clientCredentials);
             }
@@ -68,7 +74,8 @@ namespace Egelke.EHealth.Client.Security
             {
                 ClientCredentials = clientCredentials,
                 MessageSecurityVersion = this.MessageSecurityVersion,
-                SignParts = this.SignParts
+                SignParts = this.SignParts,
+                Security = this._security
             };
         }
     }

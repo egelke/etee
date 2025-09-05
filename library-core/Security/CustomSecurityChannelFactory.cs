@@ -28,6 +28,8 @@ namespace Egelke.EHealth.Client.Security
 
         public SignParts SignParts { get; set; }
 
+        public CustomSecurity Security { get; set; }
+
 
         public T GetProperty<T>() where T : class
         {
@@ -135,7 +137,8 @@ namespace Egelke.EHealth.Client.Security
                 {
                     ClientCredentials = this.ClientCredentials,
                     MessageSecurityVersion = this.MessageSecurityVersion,
-                    SignParts = this.SignParts
+                    SignParts = this.SignParts,
+                    Security = this.Security,
                 };
             }
             else
