@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Security.Tokens;
 using System.Text;
 using Egelke.EHealth.Client.Sts;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Egelke.EHealth.Client.Security
 {
@@ -17,24 +18,40 @@ namespace Egelke.EHealth.Client.Security
         private const string CLAIM_VALUE_DELIMITER = "=";
         private const string EMPTY_VALUE_TEXT = "<null>";
 
-
         internal const string Namespace = "http://schemas.microsoft.com/ws/2006/05/servicemodel/securitytokenrequirement";
         internal const string IssuedSecurityTokenParametersProperty = Namespace + "/IssuedSecurityTokenParameters";
+
+        private static readonly IMemoryCache DEFAULT_CACHE = new MemoryCache(new MemoryCacheOptions()
+        {
+            SizeLimit = 1024,
+        });
 
         public AuthClaimSet AuthClaims { get; }
 
         public X509Certificate2 SessionCertificate { get; }
 
-        public CustomIssuedSecurityTokenParameters(AuthClaimSet authClaims, X509Certificate2 sessionCertificate) : base() 
+        public TimeSpan SessionDuration { get; }
+
+        private IMemoryCache _cache;
+
+        public IMemoryCache Cache {
+            get => _cache ?? DEFAULT_CACHE;
+            set { _cache = value; }
+        }
+
+
+        public CustomIssuedSecurityTokenParameters(AuthClaimSet authClaims, X509Certificate2 sessionCertificate, TimeSpan sessionDuration) : base() 
         { 
             this.AuthClaims = authClaims;
             this.SessionCertificate = sessionCertificate;
+            this.SessionDuration = sessionDuration;
         }
 
         protected CustomIssuedSecurityTokenParameters(CustomIssuedSecurityTokenParameters other) : base(other)
         {
             this.AuthClaims = (AuthClaimSet) other.AuthClaims.Clone();
             this.SessionCertificate = other.SessionCertificate;
+            this.SessionDuration = other.SessionDuration;
         }
 
 

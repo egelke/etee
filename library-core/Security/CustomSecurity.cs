@@ -9,6 +9,7 @@ using System.Text;
 using Egelke.EHealth.Client.Helper;
 using Egelke.EHealth.Client.Security;
 using Egelke.EHealth.Client.Sts;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Egelke.EHealth.Client
 {
@@ -23,6 +24,10 @@ namespace Egelke.EHealth.Client
         public AuthClaimSet AuthClaims { get; } = new AuthClaimSet();
 
         public CustomSecurityClientCredential SessionCertificate { get; } = new CustomSecurityClientCredential();
+
+        public TimeSpan SessionDuration { get; set; } = TimeSpan.FromHours(1);
+
+        public IMemoryCache Cache { get; set; }
 
         public SecurityVersion SecurityVersion = SecurityVersion.WSSecurity11;
 
@@ -45,9 +50,13 @@ namespace Egelke.EHealth.Client
             tokenRequirement.Properties["wss"] = WSS.Create(SecurityVersion);
             if (Mode == EhSecurityMode.SamlFromWsTrust)
             {
-                var issuedtokenParameters = new CustomIssuedSecurityTokenParameters(AuthClaims, SessionCertificate.Certificate);
-                issuedtokenParameters.IssuerAddress = IssuerAddress;
-                issuedtokenParameters.IssuerBinding = IssuerBinding ?? new EhBinding();
+                var issuedtokenParameters = new CustomIssuedSecurityTokenParameters(AuthClaims, SessionCertificate.Certificate, SessionDuration)
+                {
+                    IssuerAddress = IssuerAddress,
+                    IssuerBinding = IssuerBinding ?? new EhBinding(),
+                    Cache = Cache,
+                };
+
                 tokenRequirement.Properties[CustomIssuedSecurityTokenParameters.IssuedSecurityTokenParametersProperty] = issuedtokenParameters;
             }
             return tokenRequirement;

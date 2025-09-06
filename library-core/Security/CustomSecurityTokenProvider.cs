@@ -20,10 +20,7 @@ namespace Egelke.EHealth.Client.Security
 {
     public class CustomSecurityTokenProvider : SecurityTokenProvider
     {
-        private static readonly IMemoryCache CACHE = new MemoryCache(new MemoryCacheOptions()
-        {
-            SizeLimit = 1024,
-        });
+        
 
         private WSS _wss;
 
@@ -43,7 +40,7 @@ namespace Egelke.EHealth.Client.Security
             switch (_tokenRequirement.TokenType)
             {
                 case "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/X509Certificate":
-                    return CreateX509CertificateToken(timeout);
+                    return CreateX509CertificateToken();
                 case "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/Saml":
                     return GetSamlHokToken(timeout);
                 default:
@@ -51,7 +48,7 @@ namespace Egelke.EHealth.Client.Security
             }
         }
 
-        protected SecurityToken CreateX509CertificateToken(TimeSpan timeout) {
+        protected SecurityToken CreateX509CertificateToken() {
             String id = "urn:uuid:" + Guid.NewGuid().ToString();
 
             XmlDocument doc = new XmlDocument();
@@ -92,13 +89,14 @@ namespace Egelke.EHealth.Client.Security
 
         protected SecurityToken GetSamlHokToken(TimeSpan timeout)
         {
-            var tokenId = _tokenRequirement.GetProperty<CustomIssuedSecurityTokenParameters>(CustomIssuedSecurityTokenParameters.IssuedSecurityTokenParametersProperty).ToId(_idCert);
-            var token = CACHE.Get<SecurityToken>(tokenId);
+            var tokenParams = _tokenRequirement.GetProperty<CustomIssuedSecurityTokenParameters>(CustomIssuedSecurityTokenParameters.IssuedSecurityTokenParametersProperty);
+            var tokenId = tokenParams.ToId(_idCert);
+            var token = tokenParams.Cache.Get<SecurityToken>(tokenId);
 
             if (token == null)
             {
-                token = CreateSamlHokToken(timeout);
-                CACHE.Set(tokenId, token, new MemoryCacheEntryOptions() {
+                token = CreateSamlHokToken(tokenParams, timeout);
+                tokenParams.Cache.Set(tokenId, token, new MemoryCacheEntryOptions() {
                     Size = 1,
                     AbsoluteExpiration = token.ValidTo.AddMinutes(-5.0),
                 });
@@ -106,13 +104,11 @@ namespace Egelke.EHealth.Client.Security
             return token;
         }
 
-        protected SecurityToken CreateSamlHokToken(TimeSpan timeout)
+        protected SecurityToken CreateSamlHokToken(CustomIssuedSecurityTokenParameters tokenParams, TimeSpan timeout)
         {
-            var tokenParams = _tokenRequirement.GetProperty<CustomIssuedSecurityTokenParameters>(CustomIssuedSecurityTokenParameters.IssuedSecurityTokenParametersProperty);
-
             var client = new WsTrustClient(tokenParams.IssuerBinding, tokenParams.IssuerAddress); //todo::add logging
             client.ClientCredentials.ClientCertificate.Certificate = _idCert;
-            XmlElement assertion = client.RequestTicket(tokenParams.SessionCertificate, TimeSpan.FromHours(1), tokenParams.AuthClaims); //todo::configure timesspan
+            XmlElement assertion = client.RequestTicket(tokenParams.SessionCertificate, tokenParams.SessionDuration, tokenParams.AuthClaims); //todo::use timeout
 
             XmlDocument doc = assertion.OwnerDocument;
             XmlNamespaceManager nsMngr = new XmlNamespaceManager(doc.NameTable);
