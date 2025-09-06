@@ -11,11 +11,11 @@ namespace Egelke.EHealth.Client.Sts
     {
         private readonly IList<Claim> _claims;
 
-        public readonly String Dialect = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims";
+        public readonly string Dialect = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims";
 
-        public int Count => throw new NotImplementedException();
+        public int Count => _claims.Count;
 
-        public bool IsReadOnly => throw new NotImplementedException();
+        public bool IsReadOnly => _claims.IsReadOnly;
 
         public AuthClaimSet(params Claim[] claims)
         {

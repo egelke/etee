@@ -201,7 +201,10 @@ namespace library_core_tests
 
             IEchoService client = channelFactory.CreateChannel();
 
-            String pong = client.Echo("boe");
+            string pong = client.Echo("boe");
+            Assert.Equal("boe", pong);
+
+            pong = client.Echo("boe");
             Assert.Equal("boe", pong);
         }
     }
