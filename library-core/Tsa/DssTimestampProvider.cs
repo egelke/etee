@@ -99,7 +99,7 @@ namespace Egelke.EHealth.Client.Tsa
         /// </remarks>
         /// <example>
         /// <code language="C#">
-        /// var tsa = new TSA.DSS.TimeStampAuthorityClient(new BasicHttpBinding(), new EndpointAddress("http://www.ca.com/TSA"));
+        /// var tsa = new TSA.TimeStampAuthorityClient(new BasicHttpBinding(), new EndpointAddress("http://www.ca.com/TSA"));
         /// tsa.ClientCredentials.ClientCertificate.Certificate = certificate;
         /// var tsProvider = new DssTimestampProvider(tsa);
         /// </code>
