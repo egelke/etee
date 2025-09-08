@@ -22,8 +22,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
+using Egelke.EHealth.Client.Pki;
 
-namespace Egelke.EHealth.Client.Pki
+namespace Egelke.EHealth.Client.Tsa
 {
     /// <summary>
     /// Timestamp provider for TSA's that implement the DSS Timestamp profile.
@@ -38,7 +39,7 @@ namespace Egelke.EHealth.Client.Pki
     /// </remarks>
     public class DssTimestampProvider : ITimestampProvider
     {
-        private DSS.TimeStampAuthorityClient client;
+        private TimeStampAuthorityClient client;
 
         /// <summary>
         /// The profile identifier to send to the TSA to request a timestamp.
@@ -46,7 +47,7 @@ namespace Egelke.EHealth.Client.Pki
         /// <value>
         /// The profile identifier, defaults to the standard value <literal>urn:oasis:names:tc:dss:1.0:profiles:timestamping</literal>.
         /// </value>
-        private String profile = "urn:oasis:names:tc:dss:1.0:profiles:timestamping";
+        private string profile = "urn:oasis:names:tc:dss:1.0:profiles:timestamping";
 
         /// <summary>
         /// The profile identifier to send to the TSA to request a timestamp.
@@ -57,7 +58,7 @@ namespace Egelke.EHealth.Client.Pki
         /// <value>
         /// Gets and sets the profile identifier.
         /// </value>
-        public String Profile
+        public string Profile
         {
             get
             {
@@ -82,7 +83,7 @@ namespace Egelke.EHealth.Client.Pki
         /// </remarks>
         public DssTimestampProvider()
         {
-            client = new DSS.TimeStampAuthorityClient();
+            client = new TimeStampAuthorityClient();
         }
 
         /// <summary>
@@ -104,7 +105,7 @@ namespace Egelke.EHealth.Client.Pki
         /// </code>
         /// </example>
         /// <param name="client">The pre-configured instance of the TSA client.</param>
-        public DssTimestampProvider(DSS.TimeStampAuthorityClient client)
+        public DssTimestampProvider(TimeStampAuthorityClient client)
         {
             this.client = client;
         }
@@ -118,29 +119,29 @@ namespace Egelke.EHealth.Client.Pki
         public virtual byte[] GetTimestampFromDocumentHash(byte[] hash, string digestMethod)
         {
             //create request
-            DSS.SignRequest request = new DSS.SignRequest();
+            SignRequest request = new SignRequest();
 
             //Set some standard value of the request
             request.RequestID = "_" + Guid.NewGuid().ToString("D");
             request.Profile = profile;
 
             //Create the document hash structure
-            DSS.DocumentHash docHash = new DSS.DocumentHash();
-            docHash.DigestMethod = new DSS.DigestMethodType();
+            DocumentHash docHash = new DocumentHash();
+            docHash.DigestMethod = new DigestMethodType();
             docHash.DigestMethod.Algorithm = digestMethod;
             docHash.DigestValue = hash;
-            request.InputDocuments = new DSS.InputDocuments();
-            request.InputDocuments.Items = new Object[] { docHash };
+            request.InputDocuments = new InputDocuments();
+            request.InputDocuments.Items = new object[] { docHash };
 
             //Send the request
-            DSS.SignResponse resp = client.Stamp(request);
+            SignResponse resp = client.Stamp(request);
 
             if (resp.Result.ResultMajor != "urn:oasis:names:tc:dss:1.0:resultmajor:Success")
             {
                 throw new ApplicationException(resp.Result.ResultMessage.Value);
             }
 
-            return (byte[]) ((DSS.Timestamp)resp.SignatureObject.Item).Item;
+            return (byte[]) ((Timestamp)resp.SignatureObject.Item).Item;
         }
     }
 }

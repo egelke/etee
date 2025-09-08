@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+		<TargetFrameworks>net462;netstandard2.0;net6.0</TargetFrameworks>
 		<RootNamespace>Egelke.EHealth.Client</RootNamespace>
 		<AssemblyName>Egelke.EHealth.Client</AssemblyName>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -41,24 +41,31 @@ Support WsTrust</PackageReleaseNotes>
 		<DefineConstants>$(DefineConstants)</DefineConstants>
 	</PropertyGroup>
 	
-	<ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
 		<Reference Include="System.Security" />
 		<Reference Include="System.ServiceModel" />
 		<Reference Include="System.IdentityModel" />
-		<PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="9.*" />
+		<PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="[9.0.0,)" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'">
-		<PackageReference Include="System.Security.Cryptography.Xml" Version="9.*" />
-		<PackageReference Include="System.ServiceModel.Http" Version="8.*" />
-		<!--PackageReference Include="System.ServiceModel.Primitives" Version="8.*" /-->
-		<!--PackageReference Include="System.ServiceModel.Federation" Version="4.*" /-->
+	<!--Mainly for .Net 8; but by targeting .Net Standard 2.0 we hope for forward compatibility-->
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="[9.0.0,)" />
+		<PackageReference Include="System.ServiceModel.Http" Version="[8.1.0,)" />
+	</ItemGroup>
+
+	<!-- 
+		While System.ServiceModel.Http 8.1+ supports .net standard 2.0 it is an empty subt and has only a single implementation: 8.0
+		Solution: we build a special version for .net 6 that references the proper lib.
+	-->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="System.ServiceModel.Http" Version="6.*" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BouncyCastle.Cryptography" Version="2.6.*" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.*" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.*" />
+		<PackageReference Include="BouncyCastle.Cryptography" Version="[2.6.0,)" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="[9.0.0,)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[9.0.0,)" />
 	</ItemGroup>
 
 	<ItemGroup>

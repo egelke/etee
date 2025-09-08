@@ -23,7 +23,7 @@ using System.Linq;
 using System.Text;
 using Org.BouncyCastle.Tsp;
 
-namespace Egelke.EHealth.Client.Pki
+namespace Egelke.EHealth.Client.Tsa
 {
     /// <summary>
     /// Timestamp provider for eHealth as TSA.
@@ -71,7 +71,7 @@ namespace Egelke.EHealth.Client.Pki
         /// </code>
         /// </example>
         /// <param name="client">The pre-configured instance of the TSA client.</param>
-        public EHealthTimestampProvider(DSS.TimeStampAuthorityClient client)
+        public EHealthTimestampProvider(TimeStampAuthorityClient client)
             : base(client)
         {
             Profile = "urn:ehealth:profiles:timestamping:2.1-cert";

@@ -1,15 +1,16 @@
-using Egelke.EHealth.Client.Pki.ECDSA;
-using Egelke.Eid.Client;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Xml;
+using Egelke.EHealth.Client.Pki.ECDSA;
+using Egelke.Eid.Client;
 using Xunit;
 
 namespace Egelke.EHealth.Client.Pki.Test
@@ -158,14 +159,15 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void LiveEID()
         {
             using (var readers = new Readers(ReaderScope.User))
             using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
             {
                 var target = (EidCard)readers.ListCards().Where(c => c is EidCard).FirstOrDefault();
-                Assert.True(target != null, "No eid inserted, please insert (test) eid");
+                Skip.If(target == null);
+                //Assert.True(target != null, "No eid inserted, please insert (test) eid");
                 target.Open();
 
                 store.Open(OpenFlags.ReadOnly);

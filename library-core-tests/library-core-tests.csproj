@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net472</TargetFrameworks>
+		<TargetFrameworks>net462;net472;net481;net6.0;net8.0</TargetFrameworks>
 		<RootNamespace>library_core_tests</RootNamespace>
+		<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
 		<IsPackable>false</IsPackable>
 	</PropertyGroup>
@@ -23,25 +24,34 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Egelke.Eid.Client" Version="1.2.0" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+		<PackageReference Include="xunit" Version="2.5.3" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+
 		<PackageReference Include="Xunit.SkippableFact" Version="1.5.23" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.3" />
+		
+		<PackageReference Include="Egelke.Eid.Client" Version="1.2.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+	<ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
 		<Reference Include="System.Security" />
 		<Reference Include="System.ServiceModel" />
 		<Reference Include="System.IdentityModel" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' != 'net472'">
+	<ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NetCoreApp'">
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.7" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
 		<PackageReference Include="System.ServiceModel.Http" Version="8.1.2" />
-		<!--PackageReference Include="System.ServiceModel.Security" Version="4.10.2.0" /-->
 		<PackageReference Include="System.ServiceModel.Federation" Version="8.1.2" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="System.ServiceModel.Http" Version="6.2.0" />
+		<PackageReference Include="System.ServiceModel.Federation" Version="6.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>

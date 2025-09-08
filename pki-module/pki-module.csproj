@@ -32,20 +32,19 @@
     <AssemblyOriginatorKeyFile>..\release.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'">
-    <PackageReference Include="System.ServiceModel.Http" Version="8.*" />
-	<PackageReference Include="System.ServiceModel.Primitives" Version="8.*" />
-	<PackageReference Include="System.Security.Cryptography.Cng" Version="5.*" />
-	<PackageReference Include="System.Security.Cryptography.OpenSSL" Version="5.*" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+	  <!--These are extention pacakges for .Net Standard 2.0; don't expect updates since .Net Standard is fixed -->
+	<PackageReference Include="System.Security.Cryptography.Cng" Version="[5.0.0,)" />
+	<PackageReference Include="System.Security.Cryptography.OpenSSL" Version="[5.0.0,)" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.*" />
-	<None Include="README.md" Pack="true" PackagePath="\"/>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="[2.6.0,)" />
+	<None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 
