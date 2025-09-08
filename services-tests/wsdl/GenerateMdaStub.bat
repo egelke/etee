@@ -1,0 +1,1 @@
+svcutil.exe /serviceContract /out:Reference.cs ./ehealth-mycarenet-memberdata/WSDL/mycarenet-memberdata-proxy-v1.wsdl ./ehealth-commons/XSD/*.xsd ./ehealth-errors/XSD/*.xsd ./ehealth-mycarenetcommons/XSD/*.xsd ./ehealth-mycarenet-memberdata/XSD/*.xsd  ./external/XSD/*.xsd

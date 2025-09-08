@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
 		<RootNamespace>Egelke.EHealth.Client</RootNamespace>
 		<AssemblyName>Egelke.EHealth.Client</AssemblyName>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -41,17 +41,17 @@ Support WsTrust</PackageReleaseNotes>
 		<DefineConstants>$(DefineConstants)</DefineConstants>
 	</PropertyGroup>
 	
-	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+	<ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
 		<Reference Include="System.Security" />
 		<Reference Include="System.ServiceModel" />
 		<Reference Include="System.IdentityModel" />
 		<PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="9.*" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+	<ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'">
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="9.*" />
 		<PackageReference Include="System.ServiceModel.Http" Version="8.*" />
-		<PackageReference Include="System.ServiceModel.Primitives" Version="8.*" />
+		<!--PackageReference Include="System.ServiceModel.Primitives" Version="8.*" /-->
 		<!--PackageReference Include="System.ServiceModel.Federation" Version="4.*" /-->
 	</ItemGroup>
 
