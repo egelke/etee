@@ -73,7 +73,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
             else
             {
-                Assert.True(false, "The chain should be 3 (win) or 2 (linux) long");
+                Assert.Fail("The chain should be 3 (win) or 2 (linux) long");
             }
             Assert.Equal(0, ts.TimestampStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));
             Assert.Equal(0, ts.CertificateChain.ChainStatus.Count(x => x.Status != X509ChainStatusFlags.NoError));

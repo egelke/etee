@@ -216,8 +216,10 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             {
                 throw new FaultException(MessageFault.CreateFault(responseMsg, 10240), responseMsg.Headers.Action);
             }
-            var responseBody = new XmlDocument();
-            responseBody.PreserveWhitespace = true;
+            var responseBody = new XmlDocument
+            {
+                PreserveWhitespace = true
+            };
             responseBody.Load(responseMsg.GetReaderAtBodyContents());
 
             XmlNodeList assertions = responseBody.GetElementsByTagName("Assertion", "urn:oasis:names:tc:SAML:1.0:assertion");
@@ -262,8 +264,10 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
                 throw new FaultException(MessageFault.CreateFault(responseMsg, 10240), responseMsg.Headers.Action);
             }
 
-            var responseBody = new XmlDocument();
-            responseBody.PreserveWhitespace = true;
+            var responseBody = new XmlDocument
+            {
+                PreserveWhitespace = true
+            };
             responseBody.Load(responseMsg.GetReaderAtBodyContents());
 
             //TODO::check if correcty wrapped, but for now we do not care.

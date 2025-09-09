@@ -38,6 +38,7 @@ using System.Security.Cryptography;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using X509Extension = System.Security.Cryptography.X509Certificates.X509Extension;
+using Org.BouncyCastle.Asn1.Oiw;
 
 namespace Egelke.EHealth.Client.Pki
 {
@@ -286,8 +287,10 @@ namespace Egelke.EHealth.Client.Pki
             if (responderName != null)
             {
                 //Get the signer certificate via name
-                var selector = new BCS.X509CertStoreSelector();
-                selector.Subject = responderName;
+                var selector = new BCS.X509CertStoreSelector
+                {
+                    Subject = responderName
+                };
                 ocspSignerBc = basicOcspResp
                     .GetCertificates()
                     .EnumerateMatches(selector)
@@ -303,7 +306,7 @@ namespace Egelke.EHealth.Client.Pki
                     .EnumerateMatches(null)
                     .Cast<BCX.X509Certificate>()
                     .Where(c => {
-                        byte[] certKey = c.CertificateStructure.SubjectPublicKeyInfo.PublicKeyData.GetBytes();
+                        byte[] certKey = c.CertificateStructure.SubjectPublicKeyInfo.PublicKey.GetBytes();
                         byte[] certkeyHash = sha1.ComputeHash(certKey);
                         return Enumerable.SequenceEqual(certkeyHash, keyHash);
                     })
@@ -437,8 +440,7 @@ namespace Egelke.EHealth.Client.Pki
                     BCO.OcspReq ocspReq = cert.GetOcspReqBody(issuer);
                     byte[] ocspReqBytes = ocspReq.GetEncoded();
 
-                    Stream ocspWebReqStream;
-                    var webReq = GetOcspWebRequest(uri, ocspReqBytes, out ocspWebReqStream);
+                    var webReq = GetOcspWebRequest(uri, ocspReqBytes, out Stream ocspWebReqStream);
 
                     ocspWebReqStream.Write(ocspReqBytes, 0, ocspReqBytes.Length);
 
@@ -484,8 +486,7 @@ namespace Egelke.EHealth.Client.Pki
                     BCO.OcspReq ocspReq = cert.GetOcspReqBody(issuer);
                     byte[] ocspReqBytes = ocspReq.GetEncoded();
 
-                    Stream ocspWebReqStream;
-                    var webReq = GetOcspWebRequest(uri, ocspReqBytes, out ocspWebReqStream);
+                    var webReq = GetOcspWebRequest(uri, ocspReqBytes, out Stream ocspWebReqStream);
 
                     await ocspWebReqStream.WriteAsync(ocspReqBytes, 0, ocspReqBytes.Length);
 
@@ -527,7 +528,8 @@ namespace Egelke.EHealth.Client.Pki
         {
             var ocspReqGen = new BCO.OcspReqGenerator();
             ocspReqGen.AddRequest(
-                new BCO.CertificateID(BCO.CertificateID.HashSha1,
+                new BCO.CertificateID(
+                    new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1),
                     DotNetUtilities.FromX509Certificate(issuer),
                     DotNetUtilities.FromX509Certificate(cert).SerialNumber));
             return ocspReqGen.Generate();
@@ -669,9 +671,11 @@ namespace Egelke.EHealth.Client.Pki
 
         internal static void AddErrorStatus(List<X509ChainStatus> chainStatus, List<X509ChainStatus> elementStatus, X509ChainStatusFlags extraStatusFlag, String extraStatusInfo)
         {
-            X509ChainStatus extraStatus = new X509ChainStatus();
-            extraStatus.Status = extraStatusFlag;
-            extraStatus.StatusInformation = extraStatusInfo;
+            X509ChainStatus extraStatus = new X509ChainStatus
+            {
+                Status = extraStatusFlag,
+                StatusInformation = extraStatusInfo
+            };
             if (chainStatus != null) AddErrorStatus(chainStatus, extraStatus);
             if (elementStatus != null) AddErrorStatus(elementStatus, extraStatus);
         }

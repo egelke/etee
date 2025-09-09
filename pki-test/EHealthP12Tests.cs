@@ -15,7 +15,7 @@ namespace Egelke.EHealth.Client.Pki.Test
     public class EHealthP12Tests
     {
         private EHealthP12 dummyP12;
-        private EHealthP12 realP12;
+        private readonly EHealthP12 realP12;
 
 
         public EHealthP12Tests()
@@ -71,12 +71,12 @@ namespace Egelke.EHealth.Client.Pki.Test
 
             byte[] data = Encoding.UTF8.GetBytes("My Test");
 
-            RSA privateKey = cert.PrivateKey as RSA;
+            RSA privateKey = cert.GetRSAPrivateKey();
             byte[] signature = privateKey.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             Assert.NotNull(signature);
             Assert.Equal(1024/8, signature.Length);
 
-            RSA publicKey =  cert.PublicKey.Key as RSA;
+            RSA publicKey =  cert.GetRSAPublicKey();
             Assert.True(publicKey.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
         }
 
@@ -90,11 +90,11 @@ namespace Egelke.EHealth.Client.Pki.Test
 
             byte[] data = Encoding.UTF8.GetBytes("My Test");
 
-            RSA publicKey = cert.PublicKey.Key as RSA;
+            RSA publicKey = cert.GetRSAPublicKey();
             byte[] enc = publicKey.Encrypt(data, RSAEncryptionPadding.Pkcs1);
             Assert.NotNull(enc);
 
-            RSA privateKey = cert.PrivateKey as RSA;
+            RSA privateKey = cert.GetRSAPrivateKey();
             byte[] data_copy = privateKey.Decrypt(enc, RSAEncryptionPadding.Pkcs1);
             Assert.Equal(data.Length,data_copy.Length);
             for (int i=0; i<data.Length; i++)
@@ -125,9 +125,7 @@ namespace Egelke.EHealth.Client.Pki.Test
         [Fact]
         public void TryGetValue()
         {
-            X509Certificate2 cert;
-
-            Assert.True(dummyP12.TryGetValue("authenication", out cert));
+            Assert.True(dummyP12.TryGetValue("authenication", out X509Certificate2 cert));
             Assert.Equal("CN=cert1, O=Internet Widgits Pty Ltd, S=Some-State, C=AU", cert.Subject);
             Assert.False(dummyP12.TryGetValue("other", out cert));
             Assert.Null(cert);

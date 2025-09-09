@@ -6,7 +6,9 @@
 	  <DebugType>Full</DebugType>
 	  <IsPackable>false</IsPackable>
 	  <AssemblyName>Egelke.EHealth.Client.Pki.Test</AssemblyName>
+	  
 	  <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+	  <NoWarn>$(NoWarn);xUnit2013</NoWarn>
   </PropertyGroup>
 
 	<ItemGroup>

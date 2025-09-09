@@ -61,7 +61,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
             else
             {
-                Assert.False(true, "The chain should be 4 or 2 long");
+                Assert.Fail("The chain should be 4 or 2 long");
             }
         }
 
@@ -93,7 +93,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
             else
             {
-                Assert.False(true, "The chain should be 4 or 2 long");
+                Assert.Fail("The chain should be 4 or 2 long");
             }
         }
 
@@ -127,7 +127,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
             else
             {
-                Assert.False(true, "The chain should be 4 or 2 long");
+                Assert.Fail("The chain should be 4 or 2 long");
             }
         }
 
@@ -159,7 +159,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
             else
             {
-                Assert.False(true, "The chain should be 4 or 2 long");
+                Assert.Fail("The chain should be 4 or 2 long");
             }
         }
 
@@ -191,7 +191,7 @@ namespace Egelke.EHealth.Client.Pki.Test
             }
             else
             {
-                Assert.False(true, "The chain should be 4 or 2 long");
+                Assert.Fail("The chain should be 4 or 2 long");
             }
 
         }
@@ -202,8 +202,10 @@ namespace Egelke.EHealth.Client.Pki.Test
             //if (DateTime.UtcNow > new DateTime(2016, 3, 17, 11, 25, 11, DateTimeKind.Utc)) Assert.Inconclusive("The timestamp should have been renewed");
 
             TimeStampToken tst = File.ReadAllBytes("files/ehTs.ts").ToTimeStampToken();
-            var extraCerts = new X509Certificate2Collection();
-            extraCerts.Add(new X509Certificate2(@"files/Certipost E-Trust Secondary Qualified CA for Legal Persons.cer"));
+            var extraCerts = new X509Certificate2Collection
+            {
+                new X509Certificate2(@"files/Certipost E-Trust Secondary Qualified CA for Legal Persons.cer")
+            };
 
             Timestamp ts = tst.Validate(extraCerts);
             Assert.Equal(new DateTime(2014, 3, 15, 11, 50, 48, 128, DateTimeKind.Utc).ToString("o"), ts.Time.ToString("o"));
@@ -216,12 +218,14 @@ namespace Egelke.EHealth.Client.Pki.Test
         public void EHealthTsWithoutCert()
         {
             TimeStampToken tst = File.ReadAllBytes("files/ehTs2.ts").ToTimeStampToken();
-            var extraCerts = new X509Certificate2Collection();
-            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-ECIS-PRD-1_SN_CFB3-96A5-AFCB_01.cer"));
-            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-ECIS-PRD-2_SN_2BDB-96DB-5692_01.cer"));
-            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-PLATFORM-BCP-2_SN_B65E-8417-F260_01.cer"));
-            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-PLATFORM-PRD-2_SN_D7E6-28F4-8360_01.cer"));
-            extraCerts.Add(new X509Certificate2(@"files/EHEALTH-PLATFORM-PRD-3_SN_9C8B-842C-C94A_01.cer"));
+            var extraCerts = new X509Certificate2Collection
+            {
+                new X509Certificate2(@"files/EHEALTH-ECIS-PRD-1_SN_CFB3-96A5-AFCB_01.cer"),
+                new X509Certificate2(@"files/EHEALTH-ECIS-PRD-2_SN_2BDB-96DB-5692_01.cer"),
+                new X509Certificate2(@"files/EHEALTH-PLATFORM-BCP-2_SN_B65E-8417-F260_01.cer"),
+                new X509Certificate2(@"files/EHEALTH-PLATFORM-PRD-2_SN_D7E6-28F4-8360_01.cer"),
+                new X509Certificate2(@"files/EHEALTH-PLATFORM-PRD-3_SN_9C8B-842C-C94A_01.cer")
+            };
 
             Timestamp ts = tst.Validate(extraCerts);
             Assert.Equal(new DateTime(2021, 7, 01, 14, 52, 9, 924, DateTimeKind.Utc).ToString("o"), ts.Time.ToString("o"));
