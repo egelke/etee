@@ -243,8 +243,8 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             {
                 GroupCollection attr = ClaimTypeExp.Match(claim.ClaimType).Groups;
                 String[] values;
-                if (claim.Resource is string) {
-                    values = new String[] { (string)claim.Resource };
+                if (claim.Resource is string value) {
+                    values = new String[] { value };
                 } else
                 {
                     values = (String[]) claim.Resource;

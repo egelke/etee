@@ -24,8 +24,21 @@ using System.Text;
 
 namespace Egelke.EHealth.Client.Pki
 {
+    /// <summary>
+    /// Contract of a Timemark provider
+    /// </summary>
+    /// <remarks>
+    /// Timemark provider keep a consultable ledger off all time marks.
+    /// </remarks>
     public interface ITimemarkProvider
     {
+        /// <summary>
+        /// Request the to add a timemark to the ledger for an e-signature.
+        /// </summary>
+        /// <param name="sender">The subject in the form of a certificate, normally the signer</param>
+        /// <param name="signingTime">The time the signature was placed</param>
+        /// <param name="signatureValue">The binary value of the signature</param>
+        /// <returns>The timemark recorded by the provider</returns>
         DateTime GetTimemark(X509Certificate2 sender, DateTime signingTime, byte[] signatureValue);
     }
 }

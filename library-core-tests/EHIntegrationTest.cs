@@ -57,22 +57,20 @@ namespace library_core_tests
             return certs;
         }
 
-        private ILoggerFactory loggerFactory;
+        private readonly ILoggerFactory loggerFactory;
 
-        private X509Certificate2 issuer;
+        private readonly X509Certificate2 issuer;
 
-        private X509Certificate2 session;
+        private readonly X509Certificate2 session;
 
-        private EhBinding binding;
+        private readonly EhBinding binding;
 
-        private EndpointAddress samlpEp;
-        private EndpointAddress wstEp;
+        private readonly EndpointAddress samlpEp;
+        private readonly EndpointAddress wstEp;
 
         private String ssin;
 
         private AuthClaimSet claims;
-
-        private IStsClient target;
 
         private XmlElement assertion;
 
@@ -113,11 +111,10 @@ namespace library_core_tests
             Assert.True(match.Success, "need an ssin in the cert subject (is an eID available?)");
             ssin = match.Groups[2].Value;
 
-            string reason = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims";
             claims = new AuthClaimSet(
-                new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, reason),
-                //new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin, reason),
-                new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, reason)
+                new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, AuthClaimSet.Dialect),
+                //new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin, AuthClaimSet.Dialect),
+                new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, AuthClaimSet.Dialect)
             );
         }
 
@@ -188,13 +185,12 @@ namespace library_core_tests
         public void EhealthSaml11(X509Certificate2 cert)
         {
             Prep(cert);
-            string right = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims";
 
             var binding = new EhBinding(loggerFactory.CreateLogger<CustomSecurity>());
             binding.Security.Mode = EhSecurityMode.SamlFromWsTrust;
             binding.Security.IssuerAddress = wstEp;
-            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, right));
-            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, right));
+            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, AuthClaimSet.Dialect));
+            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, AuthClaimSet.Dialect));
 
 
 
@@ -225,12 +221,14 @@ namespace library_core_tests
             }
 
             var binding = new EhBinding(loggerFactory.CreateLogger<CustomSecurity>());
-            var tsa = new TimeStampAuthorityClient(new EhBinding(), new EndpointAddress("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2"));
+            var tsa = new TimeStampAuthorityClient(binding, new EndpointAddress("https://services-acpt.ehealth.fgov.be/TimestampAuthority/v2"));
             tsa.ClientCredentials.ClientCertificate.Certificate = client;
             tsa.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
 
             var tsaProvider = new EHealthTimestampProvider(tsa);
             var hash = tsaProvider.GetTimestampFromDocumentHash(msgDigest, "http://www.w3.org/2001/04/xmlenc#sha256");
+
+            Assert.NotNull(hash);
         }
     }
 

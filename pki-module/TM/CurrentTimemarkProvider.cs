@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Egelke.EHealth.Client.Pki
@@ -31,7 +32,15 @@ namespace Egelke.EHealth.Client.Pki
     /// </remarks>
     public class CurrentTimemarkProvider : ITimemarkProvider
     {
-        public DateTime GetTimemark(System.Security.Cryptography.X509Certificates.X509Certificate2 sender, DateTime signingTime, byte[] signatureValue)
+        /// <summary>
+        /// Simply returns the current time.
+        /// </summary>
+        /// <param name="sender">Ignored</param>
+        /// <param name="signingTime">Ignored</param>
+        /// <param name="signatureValue">Ignored</param>
+        /// <seealso cref="ITimemarkProvider.GetTimemark(X509Certificate2, DateTime, byte[])"/>
+        /// <returns>The current time</returns>
+        public DateTime GetTimemark(X509Certificate2 sender, DateTime signingTime, byte[] signatureValue)
         {
             return DateTime.UtcNow;
         }

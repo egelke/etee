@@ -1,3 +1,21 @@
+/*
+ *  This file is part of eH-I.
+ *  Copyright (C) 2025 Egelke BVBA
+ *
+ *  eH-I is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published by
+ *  the Free Software Foundation, either version 2.1 of the License, or
+ *  (at your option) any later version.
+ *
+ *  eH-I is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with eH-I.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 using Egelke.EHealth.Client.Helper;
 using Microsoft.Extensions.Logging;
 using System;
@@ -26,27 +44,42 @@ namespace Egelke.EHealth.Client.Security
     {
         private ILogger _logger;
 
-        
-
         private Message _innerMessage;
 
         /// <summary>
         /// Constructor that wraps a message.
         /// </summary>
         /// <param name="innerMessage">Message from the previous channels</param>
+        /// <param name="logger">optional logger, used to log the signed message to</param>
         public CustomSecurityAppliedMessage(Message innerMessage, ILogger logger = null)
         {
             _innerMessage = innerMessage;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Client credentials to use when signing the message.
+        /// </summary>
         public ClientCredentials ClientCredentials { get; set; }
 
+        /// <summary>
+        /// WS-Security version to use.
+        /// </summary>
         public SecurityVersion MessageSecurityVersion { get; set; }
 
+        /// <summary>
+        /// SOAP parts to sign (Timestamp, BTS and/or Body).
+        /// </summary>
         public SignParts SignParts { get; set; }
+
+        /// <summary>
+        /// Security configuration to use.
+        /// </summary>
         public CustomSecurity Security { get; set; }
 
+        /// <summary>
+        /// The url the message is intended for.
+        /// </summary>
         public EndpointAddress RemoteAddress { get; set; }
 
         /// <inheritdoc/>

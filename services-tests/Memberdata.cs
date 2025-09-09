@@ -13,6 +13,7 @@ using Egelke.EHealth.Client;
 using Egelke.EHealth.Client.Helper;
 using Egelke.EHealth.Client.Pki;
 using Egelke.EHealth.Client.Pki.ECDSA;
+using Egelke.EHealth.Client.Sts;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
@@ -20,8 +21,6 @@ namespace services_tests
 {
     public class Memberdata
     {
-        private const string reason = "http://docs.oasis-open.org/wsfed/authorization/200706/authclaims";
-
         private ILoggerFactory loggerFactory;
 
         private EndpointAddress wstEp;
@@ -75,10 +74,10 @@ namespace services_tests
             binding.Security.Mode = EhSecurityMode.SamlFromWsTrust;
             binding.Security.IssuerAddress = wstEp;
             binding.Security.SessionCertificate.Certificate = sessionCert;
-            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, reason));
-            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin, reason));
-            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, reason));
-            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:ehealth:1.0:doctor:nihii11", null, reason));
+            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, AuthClaimSet.Dialect));
+            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:ehealth:1.0:certificateholder:person:ssin", ssin, AuthClaimSet.Dialect));
+            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, AuthClaimSet.Dialect));
+            binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:ehealth:1.0:doctor:nihii11", null, AuthClaimSet.Dialect));
 
 
             ChannelFactory<MycarenetMemberDataPortType> channelFactory = new ChannelFactory<MycarenetMemberDataPortType>(binding, mdaEp);

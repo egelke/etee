@@ -1,10 +1,9 @@
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsa="http://www.w3.org/2005/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:auth="http://docs.oasis-open.org/wsfed/authorization/200706" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wst="http://docs.oasis-open.org/ws-sx/ws-trust/200512" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" elementFormDefault="qualified" targetNamespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsa="http://www.w3.org/2005/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wst="http://docs.oasis-open.org/ws-sx/ws-trust/200512" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" elementFormDefault="qualified" targetNamespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512">
 
   <xs:import namespace="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" schemaLocation="oasis-200401-wss-wssecurity-secext-1.0.xsd"/>
   <xs:import namespace="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" schemaLocation="oasis-200401-wss-wssecurity-utility-1.0.xsd"/>
   <xs:import namespace="http://schemas.xmlsoap.org/ws/2004/09/policy" schemaLocation="ws-policy.xsd"/>
   <xs:import namespace="http://www.w3.org/2005/08/addressing" schemaLocation="ws-addr.xsd"/>
-	<xs:import namespace="http://docs.oasis-open.org/wsfed/authorization/200706" schemaLocation="ws-authorization-1.2.xsd" />
 
   <!-- WS-Trust Section 3.1 -->
   <xs:element name="RequestSecurityToken" type="wst:RequestSecurityTokenType"/>
@@ -45,14 +44,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
-		<xs:element ref='wst:TokenType' minOccurs='0' />
-		<xs:element ref='wst:RequestType' />
-		<xs:element ref='wst:RenewTarget' />
-		<xs:element ref='wst:Claims' minOccurs='0' />
-		<xs:element ref='wst:Lifetime' minOccurs='0' />
-		<xs:element ref='wst:KeyType' minOccurs='0' />
-		<xs:element ref='wst:UseKey' minOccurs='0' />
-		<!--xs:any maxOccurs="unbounded" minOccurs="0" namespace="##any" processContents="lax"/-->
+      <xs:any maxOccurs="unbounded" minOccurs="0" namespace="##any" processContents="lax"/>
     </xs:sequence>
     <xs:attribute name="Context" type="xs:anyURI" use="optional"/>
     <xs:anyAttribute namespace="##other" processContents="lax"/>
@@ -60,7 +52,7 @@
 
   <xs:element name="TokenType" type="xs:anyURI"/>
 
-  <xs:element name="RequestType" type="wst:RequestTypeEnum"/>
+  <xs:element name="RequestType" type="wst:RequestTypeOpenEnum"/>
 
   <xs:simpleType name="RequestTypeOpenEnum">
     <xs:union memberTypes="wst:RequestTypeEnum xs:anyURI"/>
@@ -132,10 +124,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
-		<xs:element ref="wst:SignChallenge" minOccurs='0' />
-		<xs:element ref="wst:SignChallengeResponse" minOccurs='0' />
-		<xs:element ref='wst:RequestedSecurityToken' minOccurs='0' />
-		<!--xs:any namespace="##any" processContents="lax"/-->
+      <xs:any maxOccurs="unbounded" minOccurs="0" namespace="##any" processContents="lax"/>
     </xs:sequence>
     <xs:attribute name="Context" type="xs:anyURI" use="optional"/>
     <xs:anyAttribute namespace="##other" processContents="lax"/>
@@ -144,7 +133,7 @@
   <xs:element name="RequestedSecurityToken" type="wst:RequestedSecurityTokenType"/>
   <xs:complexType name="RequestedSecurityTokenType">
     <xs:sequence>
-      <xs:any namespace="##any" processContents="skip"/>
+      <xs:any namespace="##any" processContents="lax"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -176,8 +165,7 @@
   <xs:element name="Claims" type="wst:ClaimsType"/>
   <xs:complexType name="ClaimsType">
     <xs:sequence>
-		<xs:element ref="auth:ClaimType" maxOccurs="unbounded" minOccurs="0" />
-		<!--xs:any maxOccurs="unbounded" minOccurs="0" namespace="##any" processContents="lax"/-->
+      <xs:any maxOccurs="unbounded" minOccurs="0" namespace="##any" processContents="lax"/>
     </xs:sequence>
     <xs:attribute name="Dialect" type="xs:anyURI" use="optional"/>
     <xs:anyAttribute namespace="##other" processContents="lax"/>
@@ -262,8 +250,7 @@
   <xs:element name="RenewTarget" type="wst:RenewTargetType"/>
   <xs:complexType name="RenewTargetType">
     <xs:sequence>
-		<xs:element ref="wsse:SecurityTokenReference"  minOccurs="0"  />
-		<!--xs:any maxOccurs="1" minOccurs="1" namespace="##other"/-->
+      <xs:any maxOccurs="1" minOccurs="1" namespace="##other"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -412,8 +399,7 @@
   <xs:element name="UseKey" type="wst:UseKeyType"/>
   <xs:complexType name="UseKeyType">
     <xs:sequence>
-		<xs:element ref="wsse:SecurityTokenReference"  minOccurs="0"  />
-      <!--xs:any minOccurs="0" namespace="##any" processContents="lax"/-->
+      <xs:any minOccurs="0" namespace="##any" processContents="lax"/>
     </xs:sequence>
     <xs:attribute name="Sig" type="xs:anyURI" use="optional"/>
   </xs:complexType>

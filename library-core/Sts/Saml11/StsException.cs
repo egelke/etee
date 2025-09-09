@@ -22,9 +22,16 @@ using System.Text;
 
 namespace Egelke.EHealth.Client.Sts.Saml11
 {
+    /// <summary>
+    /// SAML specific exception.
+    /// </summary>
     public class StsException : Exception
     {
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="msg">Exception message</param>
         public StsException(string msg)
             : base(msg)
         {

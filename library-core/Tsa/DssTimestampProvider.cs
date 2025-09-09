@@ -1,6 +1,6 @@
 /*
  *  This file is part of eH-I.
- *  Copyright (C) 2014 Egelke BVBA
+ *  Copyright (C) 2025 Egelke BVBA
  *  Copyright (C) 2012 I.M. vzw
  *
  *  eH-I is free software: you can redistribute it and/or modify
@@ -32,9 +32,6 @@ namespace Egelke.EHealth.Client.Tsa
     /// <remarks>
     /// <para>
     /// Send a DSS-Sign request compliant with the timestamp profile to the TSA.
-    /// </para>
-    /// <para>
-    /// The call is made via a WCF client, <see cref="DssTimestampProvider.DssTimestampProvider(TSA.DSS.TimeStampAuthorityClient)"/>
     /// </para>
     /// </remarks>
     public class DssTimestampProvider : ITimestampProvider

@@ -29,10 +29,10 @@ namespace Egelke.EHealth.Client.Pki
     /// Interface a Timestamp Provider must implement
     /// </summary>
     /// <remarks>
-    /// The library comes with an implementation for DSS and rfc3161 (TODO), but it is always possible to
-    /// write your own implementation if required.
+    /// The library comes with an implementation for rfc3161, but it is always possible to
+    /// write your own implementation if required.  The eH-I library comes with an implementation
+    /// for DSS.
     /// </remarks>
-    /// <seealso cref="DssTimestampProvider"/>
     public interface ITimestampProvider
     {
         /// <summary>

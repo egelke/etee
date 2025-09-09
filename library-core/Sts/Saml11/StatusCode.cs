@@ -1,18 +1,19 @@
 /*
- * This file is part of eHealth-Interoperability.
- * 
- * eHealth-Interoperability is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * eHealth-Interoperability  is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
-
- * You should have received a copy of the GNU Lesser General Public License
- * along with eHealth-Interoperability.  If not, see <http://www.gnu.org/licenses/>.
+ *  This file is part of eH-I.
+ *  Copyright (C) 2025 Egelke BVBA
+ *
+ *  eH-I is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published by
+ *  the Free Software Foundation, either version 2.1 of the License, or
+ *  (at your option) any later version.
+ *
+ *  eH-I is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with eH-I.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using System;
@@ -23,17 +24,25 @@ using System.Xml;
 
 namespace Egelke.EHealth.Client.Sts.Saml11
 {
+    /// <summary>
+    /// Object for the SAML v1.1 status code structure.
+    /// </summary>
     public class StatusCode
     {
         private const String samlp = "urn:oasis:names:tc:SAML:1.0:protocol";
 
+        /// <summary>
+        /// Parses SAML v1.1. status code structure and its child-elements.
+        /// </summary>
+        /// <param name="statusCode">The top level status code element</param>
+        /// <returns>the object representation of the status cude</returns>
+        /// <exception cref="StsException">The provided xml element is not a valid status code structure</exception>
         public static StatusCode Parse(XmlElement statusCode)
         {
             XmlNamespaceManager nsmngr = new XmlNamespaceManager(statusCode.OwnerDocument.NameTable);
             nsmngr.AddNamespace("samlp", samlp);
 
-            XmlAttribute statusCodeValue = statusCode.Attributes["Value"];
-            if (statusCodeValue == null) throw new StsException("sampl:StatusCode does not contain a Value attribute");
+            XmlAttribute statusCodeValue = statusCode.Attributes["Value"] ?? throw new StsException("sampl:StatusCode does not contain a Value attribute");
             String[] parts = statusCodeValue.Value.Split(':');
             String codeValueNs;
             String codeValueLocal;
@@ -60,9 +69,9 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             return new StatusCode(codeValueLocal, codeValueNs, subStatus);
         }
 
-        private String name;
-        private String ns;
-        private StatusCode subStatus;
+        private readonly String name;
+        private readonly String ns;
+        private readonly StatusCode subStatus;
 
         private StatusCode(string name, string ns, StatusCode subStatus)
         {
@@ -71,6 +80,9 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             this.subStatus = subStatus;
         }
 
+        /// <summary>
+        /// The local name part of the status code value.
+        /// </summary>
         public String Name
         {
             get
@@ -79,6 +91,9 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             }
         }
 
+        /// <summary>
+        /// The namespace part of the status code value.
+        /// </summary>
         public String Namespace
         {
             get
@@ -87,6 +102,9 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             }
         }
 
+        /// <summary>
+        /// The sub-status, if present; otherwise null.
+        /// </summary>
         public StatusCode SubStatus
         {
             get
@@ -95,6 +113,9 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             }
         }
 
+        /// <summary>
+        /// Check the name and ns to be equal to samlp:Success.
+        /// </summary>
         public bool IsSuccess
         {
             get

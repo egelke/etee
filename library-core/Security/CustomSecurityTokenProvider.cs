@@ -1,4 +1,22 @@
-﻿using System;
+﻿/*
+ *  This file is part of eH-I.
+ *  Copyright (C) 2025 Egelke BVBA
+ *
+ *  eH-I is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published by
+ *  the Free Software Foundation, either version 2.1 of the License, or
+ *  (at your option) any later version.
+ *
+ *  eH-I is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with eH-I.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IdentityModel.Policy;
@@ -18,6 +36,9 @@ using static System.Net.WebRequestMethods;
 
 namespace Egelke.EHealth.Client.Security
 {
+    /// <summary>
+    /// Custom WCF Token Provider for eHealth.
+    /// </summary>
     public class CustomSecurityTokenProvider : SecurityTokenProvider
     {
         
@@ -28,6 +49,11 @@ namespace Egelke.EHealth.Client.Security
 
         private X509Certificate2 _idCert;
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        /// <param name="tokenRequirement">requirements for the provided token</param>
+        /// <param name="idCert">the subjects certificate to request a token for</param>
         public CustomSecurityTokenProvider(SecurityTokenRequirement tokenRequirement, X509Certificate2 idCert)
         {
             _wss = (WSS) tokenRequirement.Properties["wss"];
@@ -35,6 +61,22 @@ namespace Egelke.EHealth.Client.Security
             _idCert = idCert;
         }
 
+        /// <summary>
+        /// Obtains a token.
+        /// </summary>
+        /// <remarks>
+        /// Supports both X509Certificate and SAML (v1.1) tokens.
+        /// <para>
+        /// Creates a X509Certificate token as a GenericXmlSecurityToken so it can be used by the custom applied message.
+        /// </para>
+        /// <para>
+        /// Looks for the correct SAML token in the cache; if not found requests a new token from the STS and adds it to
+        /// the cache.
+        /// </para>
+        /// </remarks>
+        /// <param name="timeout">timeout to resprect</param>
+        /// <returns>A generic xml security token that can be an X509Certificate or a SAML-Assertion with HOK</returns>
+        /// <exception cref="NotSupportedException"></exception>
         protected override SecurityToken GetTokenCore(TimeSpan timeout)
         {
             switch (_tokenRequirement.TokenType)
@@ -48,6 +90,14 @@ namespace Egelke.EHealth.Client.Security
             }
         }
 
+        /// <summary>
+        /// Create a token directly from the subject X509Certificate2.
+        /// </summary>
+        /// <remarks>
+        /// WCF has excelent build in support for this, but returns a different token type that is internal on certain
+        /// frameworks and can therefor not be used by the custom applied message implementation.
+        /// </remarks>
+        /// <returns>The generic xml version of the token</returns>
         protected SecurityToken CreateX509CertificateToken() {
             String id = "urn:uuid:" + Guid.NewGuid().ToString();
 
@@ -87,6 +137,11 @@ namespace Egelke.EHealth.Client.Security
                 );
         }
 
+        /// <summary>
+        /// Obtains a SAML v1.1 token with HOK, first looks in the cache and if not found obtains a new one from the STS.
+        /// </summary>
+        /// <param name="timeout">The timeout to respect when obtaining the token from the STS</param>
+        /// <returns>The generic xml version of the token</returns>
         protected SecurityToken GetSamlHokToken(TimeSpan timeout)
         {
             var tokenParams = _tokenRequirement.GetProperty<CustomIssuedSecurityTokenParameters>(CustomIssuedSecurityTokenParameters.IssuedSecurityTokenParametersProperty);
@@ -96,14 +151,26 @@ namespace Egelke.EHealth.Client.Security
             if (token == null)
             {
                 token = CreateSamlHokToken(tokenParams, timeout);
-                tokenParams.Cache.Set(tokenId, token, new MemoryCacheEntryOptions() {
+                tokenParams.Cache.Set(tokenId, token, new MemoryCacheEntryOptions()
+                {
                     Size = 1,
-                    AbsoluteExpiration = token.ValidTo.AddMinutes(-5.0),
+                    AbsoluteExpiration = token.ValidTo.AddHours(1.0), //keep it for a little while longer so we can renew it if needed.
                 });
+            }
+            else if (token.ValidTo > DateTime.Now.AddMinutes(-5.0)) //renew it a little in advance to be sure
+            {
+                //todo::implement
+                throw new NotImplementedException();
             }
             return token;
         }
 
+        /// <summary>
+        /// Obtain a fresh token from the STS.
+        /// </summary>
+        /// <param name="tokenParams">parameters to obtain token</param>
+        /// <param name="timeout">timeout to respect (currently ignored)</param>
+        /// <returns>The generic xml version of the token</returns>
         protected SecurityToken CreateSamlHokToken(CustomIssuedSecurityTokenParameters tokenParams, TimeSpan timeout)
         {
             var client = new WsTrustClient(tokenParams.IssuerBinding, tokenParams.IssuerAddress); //todo::add logging

@@ -8,33 +8,7 @@
 //------------------------------------------------------------------------------
 
 namespace Egelke.EHealth.Client.Sts.WsTrust200512
-{
-    
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    [System.ServiceModel.ServiceContractAttribute(Namespace="urn:be:fgov:ehealth:sts:protocol:v1", ConfigurationName="Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort")]
-    public interface SecurityTokenServicePort
-    {
-        
-        // CODEGEN: Generating message contract since the operation RequestSecurityToken is neither RPC nor document wrapped.
-        [System.ServiceModel.OperationContractAttribute(Action="urn:be:fgov:ehealth:sts:protocol:v1:RequestSecurityToken", ReplyAction="*")]
-        [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse RequestSecurityToken(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenRequest request);
-        
-        [System.ServiceModel.OperationContractAttribute(Action="urn:be:fgov:ehealth:sts:protocol:v1:RequestSecurityToken", ReplyAction="*")]
-        System.Threading.Tasks.Task<Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse> RequestSecurityTokenAsync(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenRequest request);
-        
-        [System.ServiceModel.OperationContractAttribute(Action="urn:be:fgov:ehealth:sts:protocol:v1:Challenge", ReplyAction="*")]
-        [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse Challenge(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse request);
-        
-        // CODEGEN: Generating message contract since the operation has multiple return values.
-        [System.ServiceModel.OperationContractAttribute(Action="urn:be:fgov:ehealth:sts:protocol:v1:Challenge", ReplyAction="*")]
-        System.Threading.Tasks.Task<Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse> ChallengeAsync(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse request);
-    }
-    
+{    
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -2283,191 +2257,51 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         /// <remarks/>
         X509SubjectName,
     }
-    
+
+    /// <remarks/>
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(IsWrapped=false)]
     public partial class RequestSecurityTokenRequest
     {
-        
+
+        /// <remarks/>
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512", Order=0)]
         public Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenType RequestSecurityToken;
-        
+
+        /// <remarks/>
         public RequestSecurityTokenRequest()
         {
         }
-        
+
+        /// <remarks/>
         public RequestSecurityTokenRequest(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenType RequestSecurityToken)
         {
             this.RequestSecurityToken = RequestSecurityToken;
         }
     }
-    
+
+    /// <remarks/>
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(IsWrapped=false)]
     public partial class RequestSecurityTokenResponse
     {
-        
+        /// <remarks/>
         [System.ServiceModel.MessageBodyMemberAttribute(Name="RequestSecurityTokenResponse", Namespace="http://docs.oasis-open.org/ws-sx/ws-trust/200512", Order=0)]
         public Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponseType RequestSecurityTokenResponse1;
-        
+
+        /// <remarks/>
         public RequestSecurityTokenResponse()
         {
         }
-        
+
+        /// <remarks/>
         public RequestSecurityTokenResponse(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponseType RequestSecurityTokenResponse1)
         {
             this.RequestSecurityTokenResponse1 = RequestSecurityTokenResponse1;
-        }
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    public interface SecurityTokenServicePortChannel : Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort, System.ServiceModel.IClientChannel
-    {
-    }
-    
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    public partial class SecurityTokenServicePortClient : System.ServiceModel.ClientBase<Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort>, Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort
-    {
-        
-        /// <summary>
-        /// Implement this partial method to configure the service endpoint.
-        /// </summary>
-        /// <param name="serviceEndpoint">The endpoint to configure</param>
-        /// <param name="clientCredentials">The client credentials</param>
-        static partial void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint serviceEndpoint, System.ServiceModel.Description.ClientCredentials clientCredentials);
-        
-        public SecurityTokenServicePortClient() : 
-                base(SecurityTokenServicePortClient.GetDefaultBinding(), SecurityTokenServicePortClient.GetDefaultEndpointAddress())
-        {
-            this.Endpoint.Name = EndpointConfiguration.SecurityTokenServiceSOAP11.ToString();
-            ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
-        }
-        
-        public SecurityTokenServicePortClient(EndpointConfiguration endpointConfiguration) : 
-                base(SecurityTokenServicePortClient.GetBindingForEndpoint(endpointConfiguration), SecurityTokenServicePortClient.GetEndpointAddress(endpointConfiguration))
-        {
-            this.Endpoint.Name = endpointConfiguration.ToString();
-            ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
-        }
-        
-        public SecurityTokenServicePortClient(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
-                base(SecurityTokenServicePortClient.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
-        {
-            this.Endpoint.Name = endpointConfiguration.ToString();
-            ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
-        }
-        
-        public SecurityTokenServicePortClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
-                base(SecurityTokenServicePortClient.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
-        {
-            this.Endpoint.Name = endpointConfiguration.ToString();
-            ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
-        }
-        
-        public SecurityTokenServicePortClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
-                base(binding, remoteAddress)
-        {
-        }
-        
-        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort.RequestSecurityToken(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenRequest request)
-        {
-            return base.Channel.RequestSecurityToken(request);
-        }
-        
-        public Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponseType RequestSecurityToken(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenType RequestSecurityToken1)
-        {
-            Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenRequest inValue = new Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenRequest();
-            inValue.RequestSecurityToken = RequestSecurityToken1;
-            Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse retVal = ((Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort)(this)).RequestSecurityToken(inValue);
-            return retVal.RequestSecurityTokenResponse1;
-        }
-        
-        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        System.Threading.Tasks.Task<Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse> Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort.RequestSecurityTokenAsync(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenRequest request)
-        {
-            return base.Channel.RequestSecurityTokenAsync(request);
-        }
-        
-        public System.Threading.Tasks.Task<Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse> RequestSecurityTokenAsync(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenType RequestSecurityToken)
-        {
-            Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenRequest inValue = new Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenRequest();
-            inValue.RequestSecurityToken = RequestSecurityToken;
-            return ((Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort)(this)).RequestSecurityTokenAsync(inValue);
-        }
-        
-        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort.Challenge(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse request)
-        {
-            return base.Channel.Challenge(request);
-        }
-        
-        public void Challenge(ref Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponseType RequestSecurityTokenResponse1)
-        {
-            Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse inValue = new Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse();
-            inValue.RequestSecurityTokenResponse1 = RequestSecurityTokenResponse1;
-            Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse retVal = ((Egelke.EHealth.Client.Sts.WsTrust200512.SecurityTokenServicePort)(this)).Challenge(inValue);
-            RequestSecurityTokenResponse1 = retVal.RequestSecurityTokenResponse1;
-        }
-        
-        public System.Threading.Tasks.Task<Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse> ChallengeAsync(Egelke.EHealth.Client.Sts.WsTrust200512.RequestSecurityTokenResponse request)
-        {
-            return base.Channel.ChallengeAsync(request);
-        }
-        
-        public virtual System.Threading.Tasks.Task OpenAsync()
-        {
-            return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginOpen(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndOpen));
-        }
-        
-        public virtual System.Threading.Tasks.Task CloseAsync()
-        {
-            return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginClose(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndClose));
-        }
-        
-        private static System.ServiceModel.Channels.Binding GetBindingForEndpoint(EndpointConfiguration endpointConfiguration)
-        {
-            if ((endpointConfiguration == EndpointConfiguration.SecurityTokenServiceSOAP11))
-            {
-                System.ServiceModel.BasicHttpBinding result = new System.ServiceModel.BasicHttpBinding();
-                result.MaxBufferSize = int.MaxValue;
-                result.ReaderQuotas = System.Xml.XmlDictionaryReaderQuotas.Max;
-                result.MaxReceivedMessageSize = int.MaxValue;
-                result.AllowCookies = true;
-                result.Security.Mode = System.ServiceModel.BasicHttpSecurityMode.Transport;
-                return result;
-            }
-            throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
-        }
-        
-        private static System.ServiceModel.EndpointAddress GetEndpointAddress(EndpointConfiguration endpointConfiguration)
-        {
-            if ((endpointConfiguration == EndpointConfiguration.SecurityTokenServiceSOAP11))
-            {
-                return new System.ServiceModel.EndpointAddress("https://services.ehealth.fgov.be/IAM/SecurityTokenService/v1");
-            }
-            throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
-        }
-        
-        private static System.ServiceModel.Channels.Binding GetDefaultBinding()
-        {
-            return SecurityTokenServicePortClient.GetBindingForEndpoint(EndpointConfiguration.SecurityTokenServiceSOAP11);
-        }
-        
-        private static System.ServiceModel.EndpointAddress GetDefaultEndpointAddress()
-        {
-            return SecurityTokenServicePortClient.GetEndpointAddress(EndpointConfiguration.SecurityTokenServiceSOAP11);
-        }
-        
-        public enum EndpointConfiguration
-        {
-            
-            SecurityTokenServiceSOAP11,
         }
     }
 }

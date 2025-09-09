@@ -1,20 +1,35 @@
+/*
+ *  This file is part of eH-I.
+ *  Copyright (C) 2025 Egelke BVBA
+ *
+ *  eH-I is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published by
+ *  the Free Software Foundation, either version 2.1 of the License, or
+ *  (at your option) any later version.
+ *
+ *  eH-I is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with eH-I.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 using Egelke.EHealth.Client.Security;
-using Org.BouncyCastle.Crmf;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.ServiceModel.Security;
-using System.Text;
 using System.Xml;
-using Egelke.EHealth.Client.Pki;
 using System.IdentityModel.Tokens;
-using System.Security.Cryptography;
 
 namespace Egelke.EHealth.Client.Helper
 {
+    /// <summary>
+    /// Helper calls for WS-Security
+    /// </summary>
     public abstract class WSS
     {
         static WSS()
@@ -45,7 +60,12 @@ namespace Egelke.EHealth.Client.Helper
             "http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd";
         
 
-
+        /// <summary>
+        /// Creats the proper instance based on the spec version.
+        /// </summary>
+        /// <param name="securityVersion">The version of the spect to create</param>
+        /// <returns>A WSS instance</returns>
+        /// <exception cref="NotSupportedException">when the WS-Security version isn't supported</exception>
         public static WSS Create(SecurityVersion securityVersion)
         {
             if (securityVersion == SecurityVersion.WSSecurity10)
@@ -62,22 +82,23 @@ namespace Egelke.EHealth.Client.Helper
             }
         }
 
-        //public string Ns => NS;
-
-        //public abstract string SecExtNs { get; }
-
+        /// <summary>
+        /// The prefix to use for WS-Security Extention
+        /// </summary>
         public string SecExtPrefix => "wsse";
 
-        //public string UtilityNs => UTILITY_NS;
-
+        /// <summary>
+        /// The prefix to use for WS-Utils.
+        /// </summary>
         public string UtilityPrefix => "wsu";
 
-        //public string TokenProfileX509Ns => TOKEN_PROFILE_X509_NS;
-
-        //public string TokenProfileSaml10 => TOKEN_PROFILE_SAML10_NS;
-
-        //public string TokenProfileSaml11 => TOKEN_PROFILE_SAML11_NS;
-
+        /// <summary>
+        /// Verifies the response, only supports timestamp checks for now.
+        /// </summary>
+        /// <param name="header">The WS-Security header element</param>
+        /// <exception cref="ArgumentException">the header isn't a proper ws-security element</exception>
+        /// <exception cref="NotSupportedException">Unsupported child element encountered (i.e. not Timestamp-element)</exception>
+        /// <exception cref="MessageSecurityException">Empty WS-Security element encountered</exception>
         public void VerifyResponse(XmlElement header)
         {
             if (header.LocalName != "Security" || header.NamespaceURI != SECEXT10_NS)
@@ -123,12 +144,18 @@ namespace Egelke.EHealth.Client.Helper
             return DateTime.Parse(childElement.InnerText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
         }
 
+        /// <summary>
+        /// Add the WS-Security header to the SOAP message.
+        /// </summary>
+        /// <param name="header">The SOAP-Header element to add the WS-Security element too</param>
+        /// <param name="bodyId">The id of the body element</param>
+        /// <param name="token">The token use for subject and signature</param>
+        /// <param name="signParts">the part to sign</param>
         public void ApplyOnRequest(ref XmlElement header, string bodyId, GenericXmlSecurityToken token, SignParts signParts) {
-        //public void ApplyOnRequest(ref XmlElement header, string bodyId, X509Certificate2 clientCert, SignParts signParts) {
             string soapPrefix = header.Prefix;
             string soapNs = header.NamespaceURI;
             XmlDocument doc = header.OwnerDocument;
-            //note: should use "token.SecurityKeys" instead; but that will not work on Core since verything is private
+            //note: should use "token.SecurityKeys" instead; but that will not work on Core since everything is private
             var proofToken = token.ProofToken as X509SecurityToken;
 
             XmlElement sec = doc.CreateElement(SecExtPrefix, "Security", SECEXT10_NS);
@@ -153,24 +180,8 @@ namespace Egelke.EHealth.Client.Helper
             ts.AppendChild(expires);
             sec.AppendChild(ts);
 
-            /*
-            XmlElement bst = doc.CreateElement(SecExtPrefix, "BinarySecurityToken", SecExtNs);
-            XmlAttribute bstId = doc.CreateAttribute(UtilityPrefix, "Id", UtilityNs);
-            bstId.Value = token.Id;
-            bst.Attributes.Append(bstId);
-            XmlAttribute bstValueType = doc.CreateAttribute("ValueType");
-            bstValueType.Value = TokenPofileX509Ns + "#X509v3";
-            bst.Attributes.Append(bstValueType);
-            XmlAttribute bstEncodingType = doc.CreateAttribute("EncodingType");
-            bstEncodingType.Value = Ns + "#Base64Binary";
-            bst.Attributes.Append(bstEncodingType);
-            XmlText bstValue = doc.CreateTextNode(Convert.ToBase64String(proofToken.Certificate.RawData));
-            bst.AppendChild(bstValue);
-            var tokenXml = doc.ImportNode(bst, true);
-            */
 
             var tokenXml = doc.ReadNode(new XmlNodeReader(token.TokenXml));
-            //var tokenXml = doc.ImportNode(token.TokenXml, true);
             sec.AppendChild(tokenXml);
 
             var signedDoc = new CustomSignedXml(doc);

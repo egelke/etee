@@ -46,28 +46,32 @@ namespace Egelke.EHealth.Client.Pki
         /// Find the last version of the eHealth p12 file based on the inss of the provided eid cert.
         /// </summary>
         /// <remarks>Looks for the file in the default location (%USER_PROFILE%/ehealth/keystore)</remarks>
-        /// <param name="eidCert">The eid cert of a person <param>
+        /// <param name="eidCert">The eid cert of a person</param>
         /// <returns>The path of the p12 for that person</returns>
-        /// 
-        public static String FindCorresponding(X509Certificate2 eidCert)
+        public static string FindCorresponding(X509Certificate2 eidCert)
         {
             if (eidCert == null) throw new ArgumentNullException("eidCert");
 
             Regex snRegex = new Regex(SnRegExPattern);
             Match snMatch = snRegex.Match(eidCert.Subject);
             if (!snMatch.Success || !snMatch.Groups["sn"].Success) throw new ArgumentException("The inserted eID has an invalid subject: " + eidCert.Subject, "eidCert");
-            String sn = snMatch.Groups["sn"].Value;
+            string sn = snMatch.Groups["sn"].Value;
 
 
-            String[] files = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\ehealth\keystore", "SSIN=" + sn + "*p12");
+            string[] files = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + @"\ehealth\keystore", "SSIN=" + sn + "*p12");
             Array.Sort(files);
 
             return files[files.Length - 1];
         }
 
-        private String password;
-        private Pkcs12Store store;
+        private readonly string password;
+        private readonly Pkcs12Store store;
 
+        /// <summary>
+        /// Create instance from file.
+        /// </summary>
+        /// <param name="file">Path to p12 store</param>
+        /// <param name="pwd">The store password</param>
         public EHealthP12(String file, String pwd)
         {
             password = pwd;
@@ -79,6 +83,11 @@ namespace Egelke.EHealth.Client.Pki
             }
         }
 
+        /// <summary>
+        /// Create instance from memory
+        /// </summary>
+        /// <param name="data">p12 store in memory</param>
+        /// <param name="pwd">The store password</param>
         public EHealthP12(byte[] data, String pwd)
         {
             password = pwd;
@@ -90,6 +99,9 @@ namespace Egelke.EHealth.Client.Pki
             }
         }
 
+        /// <summary>
+        /// The aliases in the store.
+        /// </summary>
         public ICollection<String> Keys
         {
             get
@@ -98,6 +110,9 @@ namespace Egelke.EHealth.Client.Pki
             }
         }
 
+        /// <summary>
+        /// The certificates in the store.
+        /// </summary>
         public ICollection<X509Certificate2> Values
         {
             get
@@ -111,14 +126,20 @@ namespace Egelke.EHealth.Client.Pki
             }
         }
 
+        /// <summary>
+        /// Access certificate using alias.
+        /// </summary>
+        /// <param name="key">The alias of the store entry</param>
+        /// <returns>The certificate, optionally with key, of that alias</returns>
+        /// <exception cref="KeyNotFoundException">The store doesn't contain the alias (key)</exception>
+        /// <exception cref="NotSupportedException">The store is read only</exception>
         public X509Certificate2 this[String key]
         {
             get
             {
                 if (key == null) new ArgumentNullException("key");
 
-                X509Certificate2 cert;
-                if (TryGetValue(key, out cert))
+                if (TryGetValue(key, out X509Certificate2 cert))
                 {
                     return cert;
                 }
@@ -133,11 +154,23 @@ namespace Egelke.EHealth.Client.Pki
             }
         }
 
+        /// <summary>
+        /// Add entry to the store, not supported
+        /// </summary>
+        /// <param name="key">The alias</param>
+        /// <param name="value">The certficate</param>
+        /// <exception cref="NotSupportedException">Always thrown (read only)</exception>
         public void Add(string key, X509Certificate2 value)
         {
             throw new NotSupportedException("read only");
         }
 
+        /// <summary>
+        /// Check if the store contains the alias
+        /// </summary>
+        /// <param name="key">The alias to check</param>
+        /// <returns>true if alias found, false otherwise</returns>
+        /// <exception cref="ArgumentNullException">If the key is null</exception>
         public bool ContainsKey(string key)
         {
             if (key == null) throw new ArgumentNullException("key");
@@ -145,11 +178,23 @@ namespace Egelke.EHealth.Client.Pki
             return store.ContainsAlias(key);
         }
 
+        /// <summary>
+        /// Remove an entry from the store, not supported
+        /// </summary>
+        /// <param name="key">The alias</param>
+        /// <returns>true if removed, false if not found</returns>
+        /// <exception cref="NotSupportedException">Always thrown (read only)</exception>
         public bool Remove(string key)
         {
             throw new NotSupportedException("read only");
         }
 
+        /// <summary>
+        /// Get the certficate with the provided alias of the store, safely.
+        /// </summary>
+        /// <param name="key">The alias</param>
+        /// <param name="value">Placeholder for the certificate to be written, null if not found</param>
+        /// <returns>true found, false if not found</returns>
         public bool TryGetValue(string key, out X509Certificate2 value)
         {
             if (key == null) new ArgumentNullException("key");
@@ -165,17 +210,34 @@ namespace Egelke.EHealth.Client.Pki
                 return false;
             }
         }
-
+        
+        /// <summary>
+        /// Add certificate with the provided alias.
+        /// </summary>
+        /// <param name="item">The certificate to add</param>
+        /// <exception cref="NotSupportedException">Always thrown (read only)</exception>
         public void Add(KeyValuePair<string, X509Certificate2> item)
         {
             throw new NotSupportedException("read only");
         }
 
+        /// <summary>
+        /// Clear all the entries from the store.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown (read only)</exception>
         public void Clear()
         {
             throw new NotSupportedException("read only");
         }
 
+        /// <summary>
+        /// Verifies if certificate is present in the store with the same alias.
+        /// </summary>
+        /// <remarks>
+        /// Uses thumbprint to verify if certificates are the same or not.
+        /// </remarks>
+        /// <param name="item">The alias to check and the certificate to compare with</param>
+        /// <returns>true if same, false otherwise</returns>
         public bool Contains(KeyValuePair<string, X509Certificate2> item)
         {
             if (ContainsKey(item.Key))
@@ -196,6 +258,14 @@ namespace Egelke.EHealth.Client.Pki
             }
         }
 
+        /// <summary>
+        /// Copy the entries into the provided array at the requested index.
+        /// </summary>
+        /// <param name="array">The array to copy the entries too</param>
+        /// <param name="arrayIndex">The starting index to copy too</param>
+        /// <exception cref="ArgumentNullException">Array in null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Array index is negative</exception>
+        /// <exception cref="ArgumentException">The array is to small</exception>
         public void CopyTo(KeyValuePair<string, X509Certificate2>[] array, int arrayIndex)
         {
             if (array == null) throw new ArgumentNullException("array");
@@ -209,6 +279,10 @@ namespace Egelke.EHealth.Client.Pki
             }
         }
 
+        /// <summary>
+        /// Convert the dictionalry to a collection of certificates (with keys).
+        /// </summary>
+        /// <returns>X509Certificate2Collection of with all the certificates of the store</returns>
         public X509Certificate2Collection ToCollection()
         {
             X509Certificate2[] certs = new X509Certificate2[this.Count];
@@ -216,6 +290,9 @@ namespace Egelke.EHealth.Client.Pki
             return new X509Certificate2Collection(certs);
         }
 
+        /// <summary>
+        /// Number of entries in the store
+        /// </summary>
         public int Count
         {
             get {
@@ -223,6 +300,9 @@ namespace Egelke.EHealth.Client.Pki
             }
         }
 
+        /// <summary>
+        /// Always true, stores are read only.
+        /// </summary>
         public bool IsReadOnly
         {
             get {
@@ -230,11 +310,21 @@ namespace Egelke.EHealth.Client.Pki
             }
         }
 
+        /// <summary>
+        /// Remove an entry from the store.
+        /// </summary>
+        /// <param name="item">Entry to remove</param>
+        /// <returns>true if removed, false otherwise</returns>
+        /// <exception cref="NotSupportedException">Always thrown (read only)</exception>
         public bool Remove(KeyValuePair<string, X509Certificate2> item)
         {
             throw new NotSupportedException("read only");
         }
 
+        /// <summary>
+        /// Returns a clone of the store as enumerator of alias/certificate pairs.
+        /// </summary>
+        /// <returns>Enumerator of the alias/certificates pairs</returns>
         public IEnumerator<KeyValuePair<string, X509Certificate2>> GetEnumerator()
         {
             //TODO:make a real enumerator

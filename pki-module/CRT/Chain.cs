@@ -24,15 +24,31 @@ using System.Text;
 
 namespace Egelke.EHealth.Client.Pki
 {
+    /// <summary>
+    /// The chain of certificates, from end to root.
+    /// </summary>
     public class Chain
     {
+        /// <summary>
+        /// Default constructor, creates an empty chain.
+        /// </summary>
         public Chain()
         {
             ChainElements = new List<ChainElement>();
             ChainStatus = new List<X509ChainStatus>();
         }
 
+        /// <summary>
+        /// The elements of the chain
+        /// </summary>
         public List<ChainElement> ChainElements { get; }
+
+        /// <summary>
+        /// The status of the chain itself.
+        /// </summary>
+        /// <remarks>
+        /// This includes the "summary" of the chain element statuses.
+        /// </remarks>
         public List<X509ChainStatus> ChainStatus { get; }
 
         /// <summary>

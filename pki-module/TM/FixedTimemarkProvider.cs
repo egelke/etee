@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Egelke.EHealth.Client.Pki
@@ -31,14 +32,29 @@ namespace Egelke.EHealth.Client.Pki
     /// </remarks>
     public class FixedTimemarkProvider : ITimemarkProvider
     {
+        /// <summary>
+        /// The fixed time.
+        /// </summary>
         public DateTime Date { get; set; }
 
+        /// <summary>
+        /// Create a instance with the fixed time.
+        /// </summary>
+        /// <param name="date">The fixed time</param>
         public FixedTimemarkProvider(DateTime date)
         {
             this.Date = date;
         }
 
-        public DateTime GetTimemark(System.Security.Cryptography.X509Certificates.X509Certificate2 sender, DateTime signingTime, byte[] signatureValue)
+        /// <summary>
+        /// Simply returns the fixed time.
+        /// </summary>
+        /// <param name="sender">Ignored</param>
+        /// <param name="signingTime">Ignored</param>
+        /// <param name="signatureValue">Ignored</param>
+        /// <seealso cref="ITimemarkProvider.GetTimemark(X509Certificate2, DateTime, byte[])"/>
+        /// <returns>The fixed time</returns>
+        public DateTime GetTimemark(X509Certificate2 sender, DateTime signingTime, byte[] signatureValue)
         {
             return Date;
         }

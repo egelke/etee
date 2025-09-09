@@ -24,13 +24,23 @@ using System.Text;
 
 namespace Egelke.EHealth.Client.Pki
 {
+    /// <summary>
+    /// An element in the Chain of certificates with their status.
+    /// </summary>
     public class ChainElement
     {
+        /// <summary>
+        /// Default constructor, no cert and empty status list.
+        /// </summary>
         public ChainElement()
         {
             this.ChainElementStatus = new List<X509ChainStatus>();
         }
 
+        /// <summary>
+        /// Copy constructor, shallow copy of cert and filtered copy of status.
+        /// </summary>
+        /// <param name="source">Object to cpy from</param>
         internal ChainElement(X509ChainElement source)
             : this()
         {
@@ -41,8 +51,14 @@ namespace Egelke.EHealth.Client.Pki
                 && x.Status != X509ChainStatusFlags.Revoked));
         }
 
+        /// <summary>
+        /// The certificate.
+        /// </summary>
         public X509Certificate2 Certificate { get; set; }
 
+        /// <summary>
+        /// The list of validation status flags.
+        /// </summary>
         public List<X509ChainStatus> ChainElementStatus { get; set; }
     }
 

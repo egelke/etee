@@ -5,8 +5,8 @@
 	  <RootNamespace>Egelke.EHealth.Client.Pki.Test</RootNamespace>
 	  <DebugType>Full</DebugType>
 	  <IsPackable>false</IsPackable>
-
 	  <AssemblyName>Egelke.EHealth.Client.Pki.Test</AssemblyName>
+	  <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
 	<ItemGroup>

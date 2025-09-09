@@ -24,11 +24,38 @@ using System.Text;
 
 namespace Egelke.EHealth.Client.Pki
 {
+    /// <summary>
+    /// Object representation of an RFC3161 token.
+    /// </summary>
     public class Timestamp
     {
+        /// <summary>
+        /// The time specified by the timestamp.
+        /// </summary>
         public DateTime Time { get; set; }
+
+        /// <summary>
+        /// The moment when the timestamp may no longer be verifiable.
+        /// </summary>
+        /// <remarks>
+        /// This is the lower bound value, it still might be possible
+        /// to validate the timestamp depending on TSA.
+        /// This value is calculated based on the certificate chain
+        /// of the timestamp.
+        /// </remarks>
         public DateTime RenewalTime { get; set; }
+
+        /// <summary>
+        /// The status of the timestamp.
+        /// </summary>
+        /// <remarks>
+        /// This is a "summary" of the certificate chain status.
+        /// </remarks>
         public List<X509ChainStatus> TimestampStatus { get; set; }
+
+        /// <summary>
+        /// The chain of the certificates used to sign the timestamp.
+        /// </summary>
         public Chain CertificateChain { get; set; }
     }
 }
