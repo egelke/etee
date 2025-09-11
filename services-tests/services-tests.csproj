@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\library-core\library-core.csproj" />
+	  <ProjectReference Include="..\services\services.csproj" />  
   </ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">

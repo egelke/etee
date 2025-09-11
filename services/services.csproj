@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net462;netstandard2.0;net6.0</TargetFrameworks>
+	  <RootNamespace>Egelke.EHealth.Client.Services</RootNamespace>
+	  <AssemblyName>Egelke.EHealth.Client.Services</AssemblyName>
+
+	  <Version>0.1.0</Version>
+	  <Authors>Egelke BVBA</Authors>
+
+	  <Copyright>Copyright © Egelke 2025</Copyright>
+	  <AssemblyVersion>0.1.0.0</AssemblyVersion>
+	  <FileVersion>0.1.0.0.0</FileVersion>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[9.0.0,)" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+		<Reference Include="System.ServiceModel" />
+		<Reference Include="System.IdentityModel" />
+	</ItemGroup>
+
+	<!--Mainly for .Net 8; but by targeting .Net Standard 2.0 we hope for forward compatibility-->
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="[9.0.0,)" />
+		<PackageReference Include="System.ServiceModel.Http" Version="[8.1.0,)" />
+	</ItemGroup>
+
+	<!-- 
+		While System.ServiceModel.Http 8.1+ supports .net standard 2.0 it is an empty subt and has only a single implementation: 8.0
+		Solution: we build a special version for .net 6 that references the proper lib.
+	-->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="System.ServiceModel.Http" Version="6.*" />
+	</ItemGroup>
+
+</Project>
