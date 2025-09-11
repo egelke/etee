@@ -159,6 +159,9 @@ namespace Egelke.EHealth.Client.Services.Mda
                 rsp?.CommonOutput?.OutputReference,
                 rsp?.CommonOutput?.NIPReference);
 
+            string enc = rsp?.Detail?.ContentEncryption;
+            if (enc != null) throw new NotImplementedException("encryption is not yet supported");
+
             byte[] rspBody = rsp?.Detail?.Value;
             _logger?.LogDebug("Recieved respronse for {0}: {1}",
                 req.CommonInput.InputReference,

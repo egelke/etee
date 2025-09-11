@@ -12,12 +12,19 @@ namespace Egelke.EHealth.Client.Services.Mda
 
         public static string ID_INSURABILITY = "urn:be:cin:nippin:insurability";
 
+        public static string ID_CAREPATH = "urn:be:cin:nippin:carePath";
+
         public static Facet CreateInsurability(string requestType, string contactType)
         {
             return new Facet(ID_INSURABILITY,
                 new Dimension(Dimension.ID_REQUEST_TYPE, requestType),
-                new Dimension(Dimension.ID_CONTACT_TYPE, contactType)
-                );
+                new Dimension(Dimension.ID_CONTACT_TYPE, contactType));
+        }
+
+        public static Facet CreateCarePath(params string[] types)
+        {
+            return new Facet(ID_CAREPATH,
+                types.Select(t => new Dimension(Dimension.ID_CAREPATH_TYPE, t)).ToArray());
         }
 
         public string Id { get; set; }

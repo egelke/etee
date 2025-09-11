@@ -11,6 +11,8 @@ namespace Egelke.EHealth.Client.Services.Mda
 
         public static string ID_CONTACT_TYPE = "contactType";
 
+        public static string ID_CAREPATH_TYPE = "carePathType";
+
         public static string VALUE_INFORMATION = "information";
 
         public static string VALUE_INVOICING = "invoicing";
@@ -18,6 +20,10 @@ namespace Egelke.EHealth.Client.Services.Mda
         public static string VALUE_OTHER = "other";
 
         public static string VALUE_HOSPITALIZED = "hospitalized";
+
+        public static string VALUE_DIABETES = "diabetes";
+
+        public static string VALUE_RENALINSUFFICIENCY = "renalinsufficiency";
 
         public string Id { get; set; }
 

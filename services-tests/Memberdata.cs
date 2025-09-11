@@ -113,6 +113,7 @@ namespace services_tests
                 DateTime.Today.AddDays(-2),
                 DateTime.Today.AddDays(-1),
                 Facet.CreateInsurability(Dimension.VALUE_INFORMATION, Dimension.VALUE_OTHER)
+                //,Facet.CreateCarePath(Dimension.VALUE_DIABETES, Dimension.VALUE_RENALINSUFFICIENCY)
                 );
 
             //Consult to get the assertions
