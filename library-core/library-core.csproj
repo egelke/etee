@@ -5,21 +5,19 @@
 		<RootNamespace>Egelke.EHealth.Client</RootNamespace>
 		<AssemblyName>Egelke.EHealth.Client</AssemblyName>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>3.0.0-beta2</Version>
+		<Version>3.0.0-RC1</Version>
 		<Authors>Egelke BV</Authors>
 		<Company>Egelke BV</Company>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>eHealth Web Service Interoperability library</description>
-		<copyright>2013-2022 (c) Egelke BV</copyright>
+		<copyright>2013-2025 (c) Egelke BV</copyright>
 		<RepositoryUrl>https://github.com/egelke/eHI</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>eHealth STS SSO SAML</PackageTags>
 		<AssemblyVersion>3.0.0.0</AssemblyVersion>
 		<FileVersion>3.0.0.0</FileVersion>
 		<PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
-		<PackageReleaseNotes>Refector to .Net standard
-Add ECDSA support
-Support WsTrust</PackageReleaseNotes>
+		<PackageReleaseNotes>Complete modernization</PackageReleaseNotes>
 		<Product>eHealth-Interoperability</Product>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageId>Egelke.EHealth.Client</PackageId>
@@ -29,6 +27,9 @@ Support WsTrust</PackageReleaseNotes>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Egelke.EHealth.Client.xml</DocumentationFile>
 
 		<!--in order to target .Net 6 without warnings about the libs not being validated against it-->
 		<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
@@ -73,6 +74,7 @@ Support WsTrust</PackageReleaseNotes>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\pki-module\pki-module.csproj" />
+		<None Include="README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 

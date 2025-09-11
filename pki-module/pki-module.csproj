@@ -5,18 +5,18 @@
     <RootNamespace>Egelke.EHealth.Client.Pki</RootNamespace>
     <AssemblyName>Egelke.EHealth.Client.Pki</AssemblyName>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.5.0</Version>
+    <Version>3.0.0-RC1</Version>
     <Authors>Egelke BVBA</Authors>
     <Product>https://github.com/egelke/eHI</Product>
     <Description>PKI tools useful for eHealth</Description>
-    <Copyright>Copyright © Egelke 2014-2021</Copyright>
-    <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/egelke/eHI</PackageProjectUrl>
+    <Copyright>Copyright © Egelke 2014-2025</Copyright>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>2.5.0.0</AssemblyVersion>
-    <FileVersion>2.5.0.0</FileVersion>
+	<RepositoryUrl>https://github.com/egelke/eHI</RepositoryUrl>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.0.0</FileVersion>
     <PackageTags>eHealth eSigning TimeStamp PKI PKCS#12 X509</PackageTags>
-    <PackageReleaseNotes>Latest Dependencies</PackageReleaseNotes>
+    <PackageReleaseNotes>Complete modernization</PackageReleaseNotes>
     <SignAssembly>true</SignAssembly>
     <IncludeSource>true</IncludeSource>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
