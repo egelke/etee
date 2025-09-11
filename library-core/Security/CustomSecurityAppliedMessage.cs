@@ -42,9 +42,9 @@ namespace Egelke.EHealth.Client.Security
     /// <seealso href="https://github.com/dotnet/wcf/blob/main/src/System.ServiceModel.Primitives/src/System/ServiceModel/Security/SecurityAppliedMessage.cs">Insipred on</seealso>
     public class CustomSecurityAppliedMessage : Message
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
-        private Message _innerMessage;
+        private readonly Message _innerMessage;
 
         /// <summary>
         /// Constructor that wraps a message.
@@ -195,7 +195,7 @@ namespace Egelke.EHealth.Client.Security
                     env.Save(memStream);
                     memStream.Position = 0;
                     var str = new StreamReader(memStream).ReadToEnd();
-                    _logger.LogTrace(str);
+                    _logger.LogTrace(message: str);
                 }
             }
         }

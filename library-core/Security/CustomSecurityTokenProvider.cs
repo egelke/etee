@@ -43,11 +43,13 @@ namespace Egelke.EHealth.Client.Security
     {
         
 
-        private WSS _wss;
+        private readonly WSS _wss;
 
-        private SecurityTokenRequirement _tokenRequirement;
+        private readonly SecurityTokenRequirement _tokenRequirement;
 
-        private X509Certificate2 _idCert;
+        private readonly CustomIssuedSecurityTokenParameters _tokenParams;
+
+        private readonly X509Certificate2 _idCert;
 
         /// <summary>
         /// Default constructor.
@@ -58,6 +60,7 @@ namespace Egelke.EHealth.Client.Security
         {
             _wss = (WSS) tokenRequirement.Properties["wss"];
             _tokenRequirement = tokenRequirement;
+            _tokenRequirement.TryGetProperty<CustomIssuedSecurityTokenParameters>(CustomIssuedSecurityTokenParameters.IssuedSecurityTokenParametersProperty, out _tokenParams);
             _idCert = idCert;
         }
 
@@ -133,7 +136,7 @@ namespace Egelke.EHealth.Client.Security
                 _idCert.NotAfter.ToUniversalTime(),
                 new GenericXmlSecurityKeyIdentifierClause(str),
                 null,
-                new ReadOnlyCollection<IAuthorizationPolicy>(new IAuthorizationPolicy[0])
+                null
                 );
         }
 
@@ -144,23 +147,20 @@ namespace Egelke.EHealth.Client.Security
         /// <returns>The generic xml version of the token</returns>
         protected SecurityToken GetSamlHokToken(TimeSpan timeout)
         {
-            var tokenParams = _tokenRequirement.GetProperty<CustomIssuedSecurityTokenParameters>(CustomIssuedSecurityTokenParameters.IssuedSecurityTokenParametersProperty);
-            var tokenId = tokenParams.ToId(_idCert);
-            var token = tokenParams.Cache.Get<SecurityToken>(tokenId);
+            var tokenId = _tokenParams.ToId(_idCert);
+            var token = _tokenParams.Cache.Get<SecurityToken>(tokenId);
 
-            if (token == null)
+            if (token == null || token.ValidTo < DateTime.UtcNow.AddMinutes(+5.0))
             {
-                token = CreateSamlHokToken(tokenParams, timeout);
-                tokenParams.Cache.Set(tokenId, token, new MemoryCacheEntryOptions()
+                if (token == null)
+                    token = CreateSamlHokToken(timeout);
+                else
+                    token = RenewSamlHokToken(token, timeout);
+                _tokenParams.Cache.Set(tokenId, token, new MemoryCacheEntryOptions()
                 {
                     Size = 1,
                     AbsoluteExpiration = token.ValidTo.AddHours(1.0), //keep it for a little while longer so we can renew it if needed.
                 });
-            }
-            else if (token.ValidTo > DateTime.Now.AddMinutes(-5.0)) //renew it a little in advance to be sure
-            {
-                //todo::implement
-                throw new NotImplementedException();
             }
             return token;
         }
@@ -168,15 +168,36 @@ namespace Egelke.EHealth.Client.Security
         /// <summary>
         /// Obtain a fresh token from the STS.
         /// </summary>
-        /// <param name="tokenParams">parameters to obtain token</param>
         /// <param name="timeout">timeout to respect (currently ignored)</param>
         /// <returns>The generic xml version of the token</returns>
-        protected SecurityToken CreateSamlHokToken(CustomIssuedSecurityTokenParameters tokenParams, TimeSpan timeout)
+        protected SecurityToken CreateSamlHokToken(TimeSpan timeout)
         {
-            var client = new WsTrustClient(tokenParams.IssuerBinding, tokenParams.IssuerAddress); //todo::add logging
+            var client = new WsTrustClient(_tokenParams.IssuerBinding, _tokenParams.IssuerAddress); //todo::add logging
             client.ClientCredentials.ClientCertificate.Certificate = _idCert;
-            XmlElement assertion = client.RequestTicket(tokenParams.SessionCertificate, tokenParams.SessionDuration, tokenParams.AuthClaims); //todo::use timeout
 
+            XmlElement assertion = client.RequestTicket(_tokenParams.SessionCertificate, _tokenParams.SessionDuration, _tokenParams.AuthClaims); //todo::use timeout
+            return ParseAssertion(assertion);
+        }
+
+        /// <summary>
+        /// Exchange expired token for a new one.
+        /// </summary>
+        /// <param name="previous">previous token to exchange</param>
+        /// <param name="timeout">timeout to respect (currently ignored)</param>
+        /// <returns>The new (valid) token as generic xml token</returns>
+        /// <exception cref="ArgumentException">previous token isn't a generic xml token</exception>
+        protected SecurityToken RenewSamlHokToken(SecurityToken previous, TimeSpan timeout)
+        {
+            var client = new WsTrustClient(_tokenParams.IssuerBinding, _tokenParams.IssuerAddress); //todo::add logging
+            client.ClientCredentials.ClientCertificate.Certificate = _idCert;
+
+            var xmlToken = previous as GenericXmlSecurityToken ?? throw new ArgumentException("previous token not a GenericXmlSecurityToken", nameof(previous));
+            XmlElement assertion = client.RenewTicket(_tokenParams.SessionCertificate, xmlToken.TokenXml); //todo::use timeout
+            return ParseAssertion(assertion);
+        }
+
+        private GenericXmlSecurityToken ParseAssertion(XmlElement assertion)
+        {
             XmlDocument doc = assertion.OwnerDocument;
             XmlNamespaceManager nsMngr = new XmlNamespaceManager(doc.NameTable);
             nsMngr.AddNamespace("s11", "urn:oasis:names:tc:SAML:1.0:assertion");
@@ -199,12 +220,12 @@ namespace Egelke.EHealth.Client.Security
 
             return new GenericXmlSecurityToken(
                 assertion,
-                new X509SecurityToken(tokenParams.SessionCertificate ?? _idCert),
+                new X509SecurityToken(_tokenParams.SessionCertificate ?? _idCert),
                 DateTime.Parse(notBefore),
                 DateTime.Parse(notOnOrAfter),
                 new GenericXmlSecurityKeyIdentifierClause(str),
                 null,
-                new ReadOnlyCollection<IAuthorizationPolicy>(new IAuthorizationPolicy[0])
+                null
                 );
         }
     }

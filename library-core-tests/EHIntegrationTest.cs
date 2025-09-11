@@ -156,7 +156,7 @@ namespace library_core_tests
             Prep(cert);
             var client = new WsTrustClient(binding, wstEp, loggerFactory.CreateLogger<WsTrustClient>());
             client.ClientCredentials.ClientCertificate.Certificate = cert;
-            //client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
+            client.Endpoint.EndpointBehaviors.Add(new LoggingEndpointBehavior(loggerFactory.CreateLogger<LoggingMessageInspector>()));
 
             assertion = client.RequestTicket(null, TimeSpan.FromHours(1), claims);
             Verify();
@@ -164,7 +164,6 @@ namespace library_core_tests
             assertion = client.RenewTicket(null, assertion);
             Verify();
         }
-
 
 
         [Theory(Skip = "Doesn't support EC cert and that is the only one I currently have")]
@@ -191,8 +190,8 @@ namespace library_core_tests
             binding.Security.IssuerAddress = wstEp;
             binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:identification-namespace}urn:be:fgov:person:ssin", ssin, AuthClaimSet.Dialect));
             binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:doctor:boolean", null, AuthClaimSet.Dialect));
-
-
+            binding.Security.SessionDuration = TimeSpan.FromMinutes(1); //to test renewal
+            binding.Security.SessionCertificate.Certificate = session;
 
             var ep = new EndpointAddress("https://localhost:8080/services/echo/eHealth/saml11");
             ChannelFactory<IEchoService> channelFactory = new ChannelFactory<IEchoService>(binding, ep);

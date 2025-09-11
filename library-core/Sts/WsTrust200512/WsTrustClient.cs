@@ -29,6 +29,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 using Egelke.EHealth.Client.Helper;
+using Egelke.EHealth.Client.Sts.WsTrust200512.Error;
 using Microsoft.Extensions.Logging;
 
 namespace Egelke.EHealth.Client.Sts.WsTrust200512
@@ -212,10 +213,8 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         private XmlElement Send(X509Certificate2 sessionCert, RequestSecurityTokenRequest request)
         {
             Message responseMsg = base.Channel.RequestSecurityToken(request);
-            if (responseMsg.IsFault)
-            {
-                throw new FaultException(MessageFault.CreateFault(responseMsg, 10240), responseMsg.Headers.Action);
-            }
+            ValidateMessage(responseMsg);
+            
             var responseBody = new XmlDocument
             {
                 PreserveWhitespace = true
@@ -254,15 +253,8 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
             IWsTrustPortFixed secondary = channelFactory.CreateChannel();
 
             //send the (signed) Challenge, get the reponse as message to not break the internal signature
-            Message responseMsg = secondary.Challenge(new RequestSecurityTokenResponse()
-            {
-                RequestSecurityTokenResponse1 = response
-            });
-
-            if (responseMsg.IsFault)
-            {
-                throw new FaultException(MessageFault.CreateFault(responseMsg, 10240), responseMsg.Headers.Action);
-            }
+            Message responseMsg = secondary.Challenge(new RequestSecurityTokenResponse() {RequestSecurityTokenResponse1 = response });
+            ValidateMessage(responseMsg);
 
             var responseBody = new XmlDocument
             {
@@ -272,6 +264,43 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
 
             //TODO::check if correcty wrapped, but for now we do not care.
             return (XmlElement)responseBody.GetElementsByTagName("Assertion", "urn:oasis:names:tc:SAML:1.0:assertion")[0];
+        }
+
+        private static void ValidateMessage(Message message)
+        {
+            if (message.IsFault)
+            {
+                var fault = MessageFault.CreateFault(message, 10240);
+                SoaError detail = null;
+                if (fault.HasDetail)
+                {
+                    var detailReader = fault.GetReaderAtDetailContents();
+                    detailReader.MoveToContent();
+                    XmlSerializer xmlSerializer;
+                    switch (detailReader.LocalName)
+                    {
+                        case "BusinessError":
+                            xmlSerializer = new XmlSerializer(typeof(BusinessError));
+                            break;
+                        case "SystemError":
+                            xmlSerializer = new XmlSerializer(typeof(SystemError));
+                            break;
+                        default:
+                            xmlSerializer = null;
+                            break;
+                    }
+                    if (xmlSerializer != null)
+                        detail = (SoaError)xmlSerializer.Deserialize(detailReader);
+                }
+                if (detail != null)
+                {
+                    throw new FaultException<SoaError>(detail, fault.Reason, fault.Code, "urn:be:fgov:ehealth:sts:protocol:v1:*");
+                }
+                else
+                {
+                    throw new FaultException(fault.Reason, fault.Code, "urn:be:fgov:ehealth:sts:protocol:v1:*");
+                }
+            }
         }
     }
 }
