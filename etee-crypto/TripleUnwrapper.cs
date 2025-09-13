@@ -47,15 +47,11 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using Org.BouncyCastle.Utilities.Collections;
 
-#if NETFRAMEWORK
-using Microsoft.Extensions.Logging.TraceSource;
-#endif
-
 namespace Egelke.EHealth.Etee.Crypto
 {
     internal class TripleUnwrapper : IDataUnsealer, IDataVerifier, ITmaDataVerifier
     {
-        private readonly ILogger logger;
+        private readonly ILogger<TripleUnwrapper> logger;
 
         private Level? level;
         private WinX509CollectionStore encCertStore;
@@ -64,18 +60,15 @@ namespace Egelke.EHealth.Etee.Crypto
         private ITimemarkProvider timemarkauthority;
 
         internal TripleUnwrapper(
-#if !NETFRAMEWORK
-            ILoggerFactory loggerFactory,
-#endif
-            Level? level, ITimemarkProvider timemarkauthority, X509Certificate2Collection encCerts, IStore<X509Certificate> authCertStore, WebKey[] ownWebKeys)
+            Level? level, 
+            ITimemarkProvider timemarkauthority, 
+            X509Certificate2Collection encCerts, 
+            IStore<X509Certificate> authCertStore, 
+            WebKey[] ownWebKeys, 
+            ILogger<TripleUnwrapper> logger = null)
         {
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only null or levels B, T, LT and LTA are allowed");
-
-#if NETFRAMEWORK
-            var trace = new TraceSource("Egelke.EHealth.Etee");
-            ILoggerProvider loggerFactory = new TraceSourceLoggerProvider(trace.Switch);
-#endif
-            logger = loggerFactory?.CreateLogger("Egelke.EHealth.Etee");
+            this.logger = logger;
             this.level = level;
             this.timemarkauthority = timemarkauthority;
             this.encCertStore = encCerts == null || encCerts.Count == 0 ? null : new WinX509CollectionStore(encCerts);

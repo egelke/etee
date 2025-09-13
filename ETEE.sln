@@ -1,10 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29519.87
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36408.4 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{86091B0D-E957-4CE8-AE6F-A58338CF6120}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		debug.snk = debug.snk
 		release.snk = release.snk
 	EndProjectSection
@@ -14,6 +15,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "etee-crypto-test-core3", "etee-crypto-test-core\etee-crypto-test-core3.csproj", "{12D66318-3045-4B4E-87F1-D43AE7C8A304}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "etee-crypto-test", "etee-crypto-test\etee-crypto-test.csproj", "{FB699F4E-4620-4AF8-8719-BCD65A80A34D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "etee-crypto-xtests", "etee-crypto-xtests\etee-crypto-xtests.csproj", "{D1210D7D-6E47-4982-9EE6-CD262CB7754F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +74,22 @@ Global
 		{FB699F4E-4620-4AF8-8719-BCD65A80A34D}.Release|Win32.Build.0 = Release|Any CPU
 		{FB699F4E-4620-4AF8-8719-BCD65A80A34D}.Release|x86.ActiveCfg = Release|Any CPU
 		{FB699F4E-4620-4AF8-8719-BCD65A80A34D}.Release|x86.Build.0 = Release|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Debug|Win32.Build.0 = Debug|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Debug|x86.Build.0 = Debug|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Release|Win32.ActiveCfg = Release|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Release|Win32.Build.0 = Release|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Release|x86.ActiveCfg = Release|Any CPU
+		{D1210D7D-6E47-4982-9EE6-CD262CB7754F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

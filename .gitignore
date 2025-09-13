@@ -8,3 +8,9 @@
 **/obj
 *.user
 *.snk
+
+eHealth*.*p12
+SSIN*.*p12
+*.pwd
+*.pin
+*.ssin

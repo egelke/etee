@@ -23,10 +23,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-#if !NETFRAMEWORK
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-#endif
+
 
 namespace Egelke.EHealth.Etee.Crypto.Store
 {
@@ -42,14 +41,9 @@ namespace Egelke.EHealth.Etee.Crypto.Store
     /// Can't be used to complete B-Level since there is nothing to complete with that level.
     /// </para>
     /// </remarks>
-    public
-#if NETFRAMEWORK
-        static
-#endif
-        class DataCompleterFactory
+    public class DataCompleterFactory
     {
 
-#if !NETFRAMEWORK
         private ILoggerFactory _loggerFactory;
 
         [Obsolete("Drops all logging, please use the other constructor")]
@@ -62,7 +56,7 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         {
             _loggerFactory = loggerFactory;
         }
-#endif
+
 
         /// <summary>
         /// Creates a completer to extend messages with validation data and time-stamp.
@@ -76,21 +70,13 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// <param name="level">The required level the completer must produce: T-Level, LT-Level or LTA-Level</param>
         /// <param name="timestampProvider">The client of the time-stamp authority</param>
         /// <returns>The completer of the required level that will used the provided time-stamp authority client</returns>
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            IDataCompleter Create(Level level, ITimestampProvider timestampProvider)
+        public IDataCompleter Create(Level level, ITimestampProvider timestampProvider)
         {
             if (level == Level.B_Level) throw new NotSupportedException("Nothing to complete for B-level");
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should be used for a level that requires time stamping");
 
-            return new TripleWrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, null, null, timestampProvider, null);
+            return new TripleWrapper(level, null, null, timestampProvider, null, _loggerFactory.CreateLogger<TripleWrapper>());
         }
 
         /// <summary>
@@ -104,20 +90,12 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// </remarks>
         /// <param name="level">The required level the completer must produce: LT-Level or LTA-Level</param>
         /// <returns>The completer of the required level to by a client of a time-mark authority</returns>
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            IDataCompleter CreateForTimeMarkAuthority(Level level)
+        public IDataCompleter CreateForTimeMarkAuthority(Level level)
         {
             if (level == Level.B_Level || level == Level.T_Level) throw new NotSupportedException("Nothing to complete for B-level or T-Level for time-mark authority");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should be used for a level that requires time stamping");
 
-            return new TripleWrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, null, null, null, null);
+            return new TripleWrapper(level, null, null, null, null, _loggerFactory.CreateLogger<TripleWrapper>());
         }
 
         /// <summary>
@@ -129,20 +107,12 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// </remarks>
         /// <param name="level">The required level the completer must produce: T-Level, LT-Level or LTA-Level</param>
         /// <returns>The completer of the required level to be used by a time-mark authority</returns>
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            ITmaDataCompleter CreateAsTimeMarkAuthority(Level level)
+        public ITmaDataCompleter CreateAsTimeMarkAuthority(Level level)
         {
             if (level == Level.B_Level) throw new NotSupportedException("Nothing to complete for B-level");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleWrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, null, null, null, null);
+            return new TripleWrapper(level, null, null, null, null, _loggerFactory.CreateLogger<TripleWrapper>());
         }
 
     }

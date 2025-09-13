@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 	<PropertyGroup>
-		<TargetFrameworks>net5.0;net462;netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
 		<RootNamespace>Egelke.EHealth.Etee.Crypto</RootNamespace>
 		<AssemblyName>Egelke.EHealth.Etee.Crypto</AssemblyName>
 		<Version>2.3.0</Version>
 		<Authors>Egelke BVBA</Authors>
 		<Product>E2EE</Product>
 		<Description>.Net End-To-End Encryption Library for eHealth</Description>
-		<Copyright>Copyright © Egelke BVBA 2013-2022</Copyright>
+		<Copyright>Copyright © Egelke BVBA 2013-2025</Copyright>
 		<PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/egelke/etee</PackageProjectUrl>
 		<PackageTags>eHealth Encrpytion</PackageTags>
@@ -21,19 +21,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Egelke.EHealth.Client.Pki" Version="[2.5.0,3.0.0)" />
-		<PackageReference Include="BouncyCastle.Cryptography" Version="2.5.*" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.*" />
+		<PackageReference Include="Egelke.EHealth.Client.Pki" Version="3.0.0-RC1" />
+		<PackageReference Include="BouncyCastle.Cryptography" Version="[2.6.0,)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[9.0.0,)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
-		<PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="5.*" />
+		<PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="[9.0.0,)" />
 	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
-		<PackageReference Include="Egelke.Eid.Client" Version="1.*" />
-	</ItemGroup>
-
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 		<AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>

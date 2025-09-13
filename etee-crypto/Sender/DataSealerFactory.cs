@@ -24,10 +24,8 @@ using Org.BouncyCastle.Security;
 using BC = Org.BouncyCastle;
 using System.Security.Cryptography;
 
-#if !NETFRAMEWORK
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-#endif
 
 namespace Egelke.EHealth.Etee.Crypto.Sender
 {
@@ -37,14 +35,9 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
     /// <remarks>
     /// This instance is specific for a sender, so if your program supports multiple senders it will need multiple instance.
     /// </remarks>
-    public
-#if NETFRAMEWORK
-        static
-#endif
-        class DataSealerFactory
+    public class DataSealerFactory
     {
 
-#if !NETFRAMEWORK
         private ILoggerFactory _loggerFactory;
 
         [Obsolete("Drops all logging, please use the other constructor")]
@@ -57,21 +50,12 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         {
             _loggerFactory = loggerFactory;
         }
-#endif
 
-        public
-#if NETFRAMEWORK
-        static
-#endif
-            IDataSealer Create(Level level, WebKey key)
+        public IDataSealer Create(Level level, WebKey key)
         {
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
-            return new TripleWrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, key, null);
+            return new TripleWrapper(level, key, null, _loggerFactory.CreateLogger<TripleWrapper>());
         }
 
         /// <summary>
@@ -81,36 +65,20 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <param name="nonRepSign">The certificate to use for non-repudiation of the message content, null (default) if not appicable (authSign used instead)</param>
         /// <param name="level">The level of the sealing, only B-Level is allowed (parameter present for awareness)</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            IDataSealer Create(Level level, X509Certificate2 authSign, X509Certificate2 nonRepSign = null)
+        public IDataSealer Create(Level level, X509Certificate2 authSign, X509Certificate2 nonRepSign = null)
         {
             ValidateCertificates(authSign, nonRepSign);
             if ((level & Level.T_Level) == Level.T_Level) throw new NotSupportedException("This method can't create timestamps");
 
-            return new TripleWrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, authSign, nonRepSign, null, null);
+            return new TripleWrapper(level, authSign, nonRepSign, null, null, _loggerFactory.CreateLogger<TripleWrapper>());
         }
 
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            IDataSealer Create(Level level, ITimestampProvider timestampProvider, WebKey key)
+        public IDataSealer Create(Level level, ITimestampProvider timestampProvider, WebKey key)
         {
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
 
-            return new TripleWrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, key, timestampProvider);
+            return new TripleWrapper(level, key, timestampProvider);
         }
 
         /// <summary>
@@ -122,36 +90,20 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <param name="level">The level of the sealing, B-Level not allowed</param>
         /// <param name="timestampProvider">The client of the time-stamp authority</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender</returns>
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            IDataSealer Create(Level level, ITimestampProvider timestampProvider, X509Certificate2 authSign, X509Certificate2 nonRepSign = null)
+        public IDataSealer Create(Level level, ITimestampProvider timestampProvider, X509Certificate2 authSign, X509Certificate2 nonRepSign = null)
         {
             ValidateCertificates(authSign, nonRepSign);
             if (timestampProvider == null) throw new ArgumentNullException("timestampProvider", "A time-stamp provider is required with this method");
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time stamping");
 
-            return new TripleWrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, authSign, nonRepSign, timestampProvider, null);
+            return new TripleWrapper(level, authSign, nonRepSign, timestampProvider, null, _loggerFactory.CreateLogger<TripleWrapper>());
         }
 
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            IDataSealer CreateForTimemarkAuthority(Level level, WebKey key)
+        public IDataSealer CreateForTimemarkAuthority(Level level, WebKey key)
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleWrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, key, null);
+            return new TripleWrapper(level, key, null, _loggerFactory.CreateLogger<TripleWrapper>());
         }
 
         /// <summary>
@@ -162,20 +114,12 @@ namespace Egelke.EHealth.Etee.Crypto.Sender
         /// <param name="nonRepSign">The certificate to use for non-repudiation of the message content, null (default) if not appicable (authSign used instead)</param>
         /// <param name="level">The level of the sealing, not allowed for B-Level</param>
         /// <returns>Instance of the IDataSealer that can be used to protect messages in name of the provided sender for a time-mark authority</returns>
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            IDataSealer CreateForTimemarkAuthority(Level level, X509Certificate2 authSign, X509Certificate2 nonRepSign = null)
+        public IDataSealer CreateForTimemarkAuthority(Level level, X509Certificate2 authSign, X509Certificate2 nonRepSign = null)
         {
             ValidateCertificates(authSign, nonRepSign);
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleWrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, authSign, nonRepSign, null, null);
+            return new TripleWrapper(level, authSign, nonRepSign, null, null, _loggerFactory.CreateLogger<TripleWrapper>());
         }
 
 

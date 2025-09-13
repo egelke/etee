@@ -23,10 +23,9 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-#if !NETFRAMEWORK
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-#endif
+
 
 namespace Egelke.EHealth.Etee.Crypto.Store
 {
@@ -37,14 +36,9 @@ namespace Egelke.EHealth.Etee.Crypto.Store
     /// Intended for sealed messages stores that will verify sealed messages but not necessary unseal them.
     /// Often these message store are time-mark authorities, but this isn't a required.
     /// </remarks>
-    public
-#if NETFRAMEWORK
-        static
-#endif
-        class DataVerifierFactory
+    public class DataVerifierFactory
     {
 
-#if !NETFRAMEWORK
         private ILoggerFactory _loggerFactory;
 
         [Obsolete("Drops all logging, please use the other constructor")]
@@ -57,7 +51,6 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         {
             _loggerFactory = loggerFactory;
         }
-#endif
 
         /// <summary>
         /// Creates an instance of the <see cref="IDataVerifier"/> interface to verify messages.
@@ -75,17 +68,9 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// </remarks>
         /// <param name="level">The level to which a message must conform to, <c>null</c> meaning no revocation check must be done</param>
         /// <returns>The completer of the required level that will verify the message, using the embedded timestamps if needed</returns>
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            IDataVerifier Create(Level? level)
+        public IDataVerifier Create(Level? level)
         {
-            return new TripleUnwrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, null, null, null, null);
+            return new TripleUnwrapper(level, null, null, null, null, _loggerFactory.CreateLogger<TripleUnwrapper>());
         }
 
         /// <summary>
@@ -97,19 +82,11 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// <seealso cref="Create(Nullable{Level})"/>
         /// <param name="level">The level to which a message must conform to: T, LT or LTA level</param>
         /// <returns>The completer of the required level that will verify the message according to the provided date time</returns>
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            ITmaDataVerifier CreateAsTimemarkAuthority(Level level)
+        public ITmaDataVerifier CreateAsTimemarkAuthority(Level level)
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleUnwrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, null, null, null, null);
+            return new TripleUnwrapper(level, null, null, null, null, _loggerFactory.CreateLogger<TripleUnwrapper>());
         }
 
         /// <summary>
@@ -122,19 +99,11 @@ namespace Egelke.EHealth.Etee.Crypto.Store
         /// <param name="level">The level to which a message must conform to: T, LT or LTA level</param>
         /// <param name="timemarkAuthority">The client of the time-mark authority used to retrieve the time-mark during verification</param>
         /// <returns>The completer of the required level that will verify the message with the provided time-mark authority</returns>
-        public
-#if NETFRAMEWORK
-            static
-#endif
-            IDataVerifier CreateFromTimemarkAuthority(Level level, ITimemarkProvider timemarkAuthority)
+        public IDataVerifier CreateFromTimemarkAuthority(Level level, ITimemarkProvider timemarkAuthority)
         {
             if ((level & Level.T_Level) != Level.T_Level) throw new ArgumentException("This method should for a level that requires time marking");
 
-            return new TripleUnwrapper(
-#if !NETFRAMEWORK
-                _loggerFactory,
-#endif
-                level, timemarkAuthority, null, null, null);
+            return new TripleUnwrapper(level, timemarkAuthority, null, null, null, _loggerFactory.CreateLogger<TripleUnwrapper>());
         }
     }
 }

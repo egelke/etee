@@ -46,16 +46,12 @@ using System.Diagnostics;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Crypto;
 
-#if NETFRAMEWORK
-using Microsoft.Extensions.Logging.TraceSource;
-#endif
-
 
 namespace Egelke.EHealth.Etee.Crypto
 {
     internal class TripleWrapper : IDataSealer, IDataCompleter, ITmaDataCompleter
     {
-        private readonly ILogger logger;
+        private readonly ILogger<TripleWrapper> logger;
 
         private Level level;
 
@@ -72,38 +68,30 @@ namespace Egelke.EHealth.Etee.Crypto
         private X509Certificate2Collection extraStore;
 
         internal TripleWrapper(
-#if !NETFRAMEWORK
-            ILoggerFactory loggerFactory,
-#endif
-            Level level, WebKey ownWebKey, ITimestampProvider timestampProvider) {
+            Level level, 
+            WebKey ownWebKey, 
+            ITimestampProvider timestampProvider,
+            ILogger<TripleWrapper> logger = null) 
+        {
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only levels B, T, LT and LTA are allowed");
-
-#if NETFRAMEWORK
-            var trace = new TraceSource("Egelke.EHealth.Etee");
-            ILoggerProvider loggerFactory = new TraceSourceLoggerProvider(trace.Switch);
-#endif
-            logger = loggerFactory?.CreateLogger("Egelke.EHealth.Etee");
-
+            this.logger = logger;
             this.level = level;
             this.ownWebKey = ownWebKey;
             this.timestampProvider = timestampProvider;
         }
 
         internal TripleWrapper(
-#if !NETFRAMEWORK
-            ILoggerFactory loggerFactory,
-#endif
-            Level level, X509Certificate2 authentication, X509Certificate2 signature, ITimestampProvider timestampProvider, X509Certificate2Collection extraStore)
+            Level level, 
+            X509Certificate2 authentication, 
+            X509Certificate2 signature, 
+            ITimestampProvider timestampProvider, 
+            X509Certificate2Collection extraStore,
+            ILogger<TripleWrapper> logger = null)
         {
             //basic checks
             if (level == Level.L_Level || level == Level.A_level) throw new ArgumentException("level", "Only levels B, T, LT and LTA are allowed");
 
-#if NETFRAMEWORK
-            var trace = new TraceSource("Egelke.EHealth.Etee");
-            ILoggerProvider loggerFactory = new TraceSourceLoggerProvider(trace.Switch);
-#endif
-            logger = loggerFactory?.CreateLogger("Egelke.EHealth.Etee");
-
+            this.logger = logger;
             this.level = level;
             this.signature = signature;
             this.authentication = authentication;
