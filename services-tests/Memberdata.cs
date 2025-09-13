@@ -74,7 +74,7 @@ namespace services_tests
             binding.Security.AuthClaims.Add(new Claim("{urn:be:fgov:certified-namespace:ehealth}urn:be:fgov:person:ssin:ehealth:1.0:doctor:nihii11", null, AuthClaimSet.Dialect));
 
             //configure the client for the MDA service
-            var mcnMda = new McnMda(binding, mdaEp, loggerFactory.CreateLogger<McnMda>())
+            var mcnMda = new McnMdaClient(binding, mdaEp, loggerFactory.CreateLogger<McnMdaClient>())
             {
                 IsTest = true,
                 License = new LicenseType()
@@ -84,7 +84,7 @@ namespace services_tests
                 },
                 CareProvider = new CareProviderType()
                 {
-                    PhysicalPerson = new IdType()
+                    PhysicalPerson = new IdType1()
                     {
                         Ssin = new ValueRefString()
                         {

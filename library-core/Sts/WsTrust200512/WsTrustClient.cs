@@ -70,7 +70,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
     {
         private static readonly Regex ClaimTypeExp = new Regex("({(?<ns>.+)})?(?<name>.+)", RegexOptions.Compiled);
 
-        private readonly ILogger _logger;
+        private readonly ILogger<WsTrustClient> _logger;
 
         /// <summary>
         /// Default constructor
@@ -79,7 +79,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         public WsTrustClient(ILogger<WsTrustClient> logger = null)
             : base()
         {
-            _logger = logger ?? TraceLogger.CreateTraceLogger<WsTrustClient>();
+            _logger = logger;
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         public WsTrustClient(ServiceEndpoint endpoint, ILogger<WsTrustClient> logger = null) :
             base(endpoint)
         {
-            _logger = logger ?? TraceLogger.CreateTraceLogger<WsTrustClient>();
+            _logger = logger;
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Egelke.EHealth.Client.Sts.WsTrust200512
         public WsTrustClient(Binding binding, EndpointAddress remoteAddress, ILogger<WsTrustClient> logger = null) :
             base(binding, remoteAddress)
         {
-            _logger = logger ?? TraceLogger.CreateTraceLogger<WsTrustClient>();
+            _logger = logger;
         }
 
         /// <summary>

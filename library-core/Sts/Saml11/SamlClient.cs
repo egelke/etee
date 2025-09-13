@@ -37,7 +37,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
     /// </summary>
     public class SamlClient : ClientBase<IGenericPortType>, IStsClient
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<SamlClient> _logger;
         private readonly string package;
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
         public SamlClient(string package, ILogger<SamlClient> logger = null)
         {
             this.package = package;
-            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
+            _logger = logger;
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             base(endpoint)
         {
             this.package = package;
-            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
+            _logger = logger;
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Egelke.EHealth.Client.Sts.Saml11
             base(binding, remoteAddress)
         {
             this.package = package;
-            _logger = logger ?? TraceLogger.CreateTraceLogger<SamlClient>();
+            _logger = logger;
         }
 
         /// <summary>

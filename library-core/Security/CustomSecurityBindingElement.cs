@@ -36,7 +36,7 @@ namespace Egelke.EHealth.Client.Security
     /// <seealso href="https://github.com/dotnet/wcf/blob/main/src/System.Private.ServiceModel/src/System/ServiceModel/Channels/TransportSecurityBindingElement.cs">Inspired on</seealso>
     public class CustomSecurityBindingElement : BindingElement
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<CustomSecurity> _logger;
 
         private CustomSecurity _security;
 
@@ -51,7 +51,7 @@ namespace Egelke.EHealth.Client.Security
             SignParts = SignParts.Timestamp;
 
             _security = security;
-            _logger = logger ?? TraceLogger.CreateTraceLogger<CustomSecurity>();
+            _logger = logger;
         }
 
         /// <summary>

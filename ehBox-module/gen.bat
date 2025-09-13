@@ -1,1 +1,0 @@
-SvcUtil /noConfig /ser:XmlSerializer /namespace:*,Egelke.EHealth.Client.EhBox wsdl\*.wsdl wsdl\*.xsd
