@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:err="urn:be:fgov:ehealth:errors:soa:v1" xmlns:etkdepot="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:soap11="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:types="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema" name="EtkDepot" targetNamespace="urn:be:fgov:ehealth:etkdepot:1_0:protocol">
+  <documentation>Encryption Token Key Depot - version 1.0</documentation>
+  <wsp:Policy xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" wsu:Id="X509">
+    <sp:AsymmetricBinding>
+      <wsp:Policy>
+        <sp:InitiatorToken>
+          <wsp:Policy>
+            <sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/AlwaysToRecipient">
+              <wsp:Policy>
+                <sp:WssX509V3Token10/>
+              </wsp:Policy>
+            </sp:X509Token>
+          </wsp:Policy>
+        </sp:InitiatorToken>
+        <sp:RecipientToken>
+          <wsp:Policy>
+            <sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+              <wsp:Policy>
+                <sp:WssX509V3Token10/>
+              </wsp:Policy>
+            </sp:X509Token>
+          </wsp:Policy>
+        </sp:RecipientToken>
+        <sp:AlgorithmSuite>
+          <wsp:Policy>
+            <sp:Basic256/>
+          </wsp:Policy>
+        </sp:AlgorithmSuite>
+        <sp:Layout>
+          <wsp:Policy>
+            <sp:Lax/>
+          </wsp:Policy>
+        </sp:Layout>
+        <sp:IncludeTimestamp/>
+        <sp:ProtectTokens/>
+        <sp:OnlySignEntireHeadersAndBody/>
+      </wsp:Policy>
+    </sp:AsymmetricBinding>
+    <sp:Wss10>
+      <wsp:Policy>
+        <sp:MustSupportRefKeyIdentifier/>
+        <sp:MustSupportRefIssuerSerial/>
+      </wsp:Policy>
+    </sp:Wss10>
+    <sp:SignedParts>
+      <sp:Body/>
+    </sp:SignedParts>
+  </wsp:Policy>
+  <types>
+    <xs:schema>
+      <xs:import namespace="urn:be:fgov:ehealth:etkdepot:1_0:protocol" schemaLocation="../XSD/ehealth-etkdepot-schema-protocol-1_0.xsd"/>
+      <xs:import namespace="urn:be:fgov:ehealth:errors:soa:v1" schemaLocation="../../ehealth-errors/XSD/ehealth-errors-schema-soa-1_1.xsd"/>
+    </xs:schema>
+  </types>
+  <message name="GetEtkRequestMessage">
+    <part element="types:GetEtkRequest" name="body"/>
+  </message>
+  <message name="GetEtkResponseMessage">
+    <part element="types:GetEtkResponse" name="body"/>
+  </message>
+  <wsdl:message name="SystemError">
+    <wsdl:part element="err:SystemError" name="fault"/>
+  </wsdl:message>
+  <portType name="EtkDepotPortType">
+    <operation name="GetEtk">
+      <input message="etkdepot:GetEtkRequestMessage"/>
+      <output message="etkdepot:GetEtkResponseMessage"/>
+      <wsdl:fault message="etkdepot:SystemError" name="SystemError"/>
+    </operation>
+  </portType>
+  <binding name="EtkDepotSoapBinding" type="etkdepot:EtkDepotPortType">
+    <soap11:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="GetEtk">
+      <soap11:operation soapAction=""/>
+      <input>
+        <wsp:PolicyReference xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" URI="#X509"/>
+        <soap11:body use="literal"/>
+      </input>
+      <output>
+        <soap11:body use="literal"/>
+      </output>
+      <wsdl:fault name="SystemError">
+        <soap11:fault name="SystemError" use="literal"/>
+      </wsdl:fault>
+    </operation>
+  </binding>
+  <service name="EtkDepotService">
+    <port binding="etkdepot:EtkDepotSoapBinding" name="EtkDepotPort">
+      <soap11:address location="https://services.ehealth.fgov.be/EtkDepot/v1"/>
+    </port>
+  </service>
+</definitions>

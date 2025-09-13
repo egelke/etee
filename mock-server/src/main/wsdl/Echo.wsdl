@@ -1,0 +1,61 @@
+﻿<definitions name = "EchoService"
+   targetNamespace = "urn:test"
+   xmlns = "http://schemas.xmlsoap.org/wsdl/"
+   xmlns:soap = "http://schemas.xmlsoap.org/wsdl/soap/"
+   xmlns:tns = "urn:test"
+   xmlns:xsd = "http://www.w3.org/2001/XMLSchema">
+
+	<types>
+		<xsd:schema targetNamespace="urn:test" version="1.0" elementFormDefault="qualified">
+			<xsd:element name="Echo">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="ping" type="xsd:string" nillable="true" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="EchoResponse">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="pong" type="xsd:string" nillable="true" />
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:schema>
+	</types>
+
+	<message name="EchoRequest">
+		<part name="parameters" element="tns:Echo"/>
+	</message>
+
+	<message name = "EchoResponse">
+		<part name="parameters" element="tns:EchoResponse"/>
+	</message>
+
+	<portType name = "EchoPort">
+		<operation name = "Echo">
+			<input message = "tns:EchoRequest"/>
+			<output message = "tns:EchoResponse"/>
+		</operation>
+	</portType>
+
+	<binding name = "EchoSoapBinding" type = "tns:EchoPort">
+		<soap:binding style = "document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name = "Echo">
+			<soap:operation soapAction = "urn:test:echo:ping"/>
+			<input>
+				<soap:body use="literal"/>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="EchoService">
+		<port binding="tns:EchoSoapBinding" name="PingSoap">
+			<soap:address
+			   location = "http://www.examples.com/SayHello/" />
+		</port>
+	</service>
+</definitions>

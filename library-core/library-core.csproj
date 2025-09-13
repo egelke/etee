@@ -1,0 +1,81 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net462;netstandard2.0;net6.0</TargetFrameworks>
+		<RootNamespace>Egelke.EHealth.Client</RootNamespace>
+		<AssemblyName>Egelke.EHealth.Client</AssemblyName>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Version>3.0.0-RC1</Version>
+		<Authors>Egelke BV</Authors>
+		<Company>Egelke BV</Company>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>eHealth Web Service Interoperability library</description>
+		<copyright>2013-2025 (c) Egelke BV</copyright>
+		<RepositoryUrl>https://github.com/egelke/eHI</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>eHealth STS SSO SAML</PackageTags>
+		<AssemblyVersion>3.0.0.0</AssemblyVersion>
+		<FileVersion>3.0.0.0</FileVersion>
+		<PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+		<PackageReleaseNotes>Complete modernization</PackageReleaseNotes>
+		<Product>eHealth-Interoperability</Product>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageId>Egelke.EHealth.Client</PackageId>
+		<IncludeSource>true</IncludeSource>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Egelke.EHealth.Client.xml</DocumentationFile>
+
+		<!--in order to target .Net 6 without warnings about the libs not being validated against it-->
+		<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+	  <Optimize>False</Optimize>
+	  <DefineConstants>$(DefineConstants)</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	  <Optimize>True</Optimize>
+		<DefineConstants>$(DefineConstants)</DefineConstants>
+	</PropertyGroup>
+	
+	<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+		<Reference Include="System.Security" />
+		<Reference Include="System.ServiceModel" />
+		<Reference Include="System.IdentityModel" />
+		<PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="[9.0.0,)" />
+	</ItemGroup>
+
+	<!--Mainly for .Net 8; but by targeting .Net Standard 2.0 we hope for forward compatibility-->
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="[9.0.0,)" />
+		<PackageReference Include="System.ServiceModel.Http" Version="[8.1.0,)" />
+	</ItemGroup>
+
+	<!-- 
+		While System.ServiceModel.Http 8.1+ supports .net standard 2.0 it is an empty subt and has only a single implementation: 8.0
+		Solution: we build a special version for .net 6 that references the proper lib.
+	-->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="System.ServiceModel.Http" Version="6.*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BouncyCastle.Cryptography" Version="[2.6.0,)" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="[9.0.0,)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[9.0.0,)" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\pki-module\pki-module.csproj" />
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+
+</Project>

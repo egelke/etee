@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:err="urn:be:fgov:ehealth:errors:soa:v1" xmlns:etkdepot="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:soap11="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:types="urn:be:fgov:ehealth:etkdepot:1_0:protocol" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema" name="EtkDepot" targetNamespace="urn:be:fgov:ehealth:etkdepot:1_0:protocol">
+  <documentation>Encryption Token Key Depot - version 1.0</documentation>
+  <types>
+    <xs:schema>
+      <xs:import namespace="urn:be:fgov:ehealth:etkdepot:1_0:protocol" schemaLocation="../XSD/ehealth-etkdepot-schema-protocol-1_0.xsd"/>
+      <xs:import namespace="urn:be:fgov:ehealth:errors:soa:v1" schemaLocation="../../ehealth-errors/XSD/ehealth-errors-schema-soa-1_1.xsd"/>
+    </xs:schema>
+  </types>
+  <message name="GetEtkRequestMessage">
+    <part element="types:GetEtkRequest" name="body"/>
+  </message>
+  <message name="GetEtkResponseMessage">
+    <part element="types:GetEtkResponse" name="body"/>
+  </message>
+  <wsdl:message name="SystemError">
+    <wsdl:part element="err:SystemError" name="fault"/>
+  </wsdl:message>
+  <portType name="EtkDepotPortType">
+    <operation name="GetEtk">
+      <input message="etkdepot:GetEtkRequestMessage"/>
+      <output message="etkdepot:GetEtkResponseMessage"/>
+      <wsdl:fault message="etkdepot:SystemError" name="SystemError"/>
+    </operation>
+  </portType>
+  <binding name="EtkDepotSoapBinding" type="etkdepot:EtkDepotPortType">
+    <soap11:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="GetEtk">
+      <soap11:operation soapAction=""/>
+      <input>
+        <soap11:body use="literal"/>
+      </input>
+      <output>
+        <soap11:body use="literal"/>
+      </output>
+      <wsdl:fault name="SystemError">
+        <soap11:fault name="SystemError" use="literal"/>
+      </wsdl:fault>
+    </operation>
+  </binding>
+  <service name="EtkDepotService">
+    <port binding="etkdepot:EtkDepotSoapBinding" name="EtkDepotPort">
+      <soap11:address location="https://services.ehealth.fgov.be/EtkDepot/v1"/>
+    </port>
+  </service>
+</definitions>

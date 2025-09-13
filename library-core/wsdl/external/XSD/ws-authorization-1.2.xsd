@@ -1,0 +1,117 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://docs.oasis-open.org/wsfed/authorization/200706" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" elementFormDefault="qualified" targetNamespace="http://docs.oasis-open.org/wsfed/authorization/200706">
+  <xs:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="xenc-schema.xsd"/>
+  
+  <!-- Section 9.2 -->
+  <xs:element name="AdditionalContext" type="tns:AdditionalContextType"/>
+  <xs:complexType name="AdditionalContextType">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0" name="ContextItem" type="tns:ContextItemType"/>
+      <xs:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+    </xs:sequence>
+    <xs:anyAttribute namespace="##other" processContents="lax"/>
+  </xs:complexType>
+
+  <xs:complexType name="ContextItemType">
+    <xs:choice minOccurs="0">
+      <xs:element maxOccurs="1" minOccurs="1" name="Value" type="xs:string"/>
+      <xs:any maxOccurs="1" minOccurs="1" namespace="##other" processContents="lax"/>
+    </xs:choice>
+    <xs:attribute name="Name" type="xs:anyURI" use="required"/>
+	<xs:attribute name="Scope" type="xs:anyURI" use="optional"/>
+	<xs:anyAttribute namespace="##other" processContents="lax"/>	
+  </xs:complexType>
+
+  <!-- Section 9.3 -->
+  <xs:element name="ClaimType" type="tns:ClaimType"/>
+  <xs:complexType name="ClaimType">
+    <xs:sequence>
+      <xs:element maxOccurs="1" minOccurs="0" name="DisplayName" type="tns:DisplayNameType"/>
+      <xs:element maxOccurs="1" minOccurs="0" name="Description" type="tns:DescriptionType"/>
+      <xs:element maxOccurs="1" minOccurs="0" name="DisplayValue" type="tns:DisplayValueType"/>
+      <xs:choice minOccurs="0">
+	      <xs:element maxOccurs="1" minOccurs="1" name="Value" type="xs:string"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="EncryptedValue" type="tns:EncryptedValueType"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="StructuredValue" type="tns:StructuredValueType"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="ConstrainedValue" type="tns:ConstrainedValueType"/>
+ 	      <xs:any maxOccurs="1" minOccurs="1" namespace="##other" processContents="lax"/>
+	    </xs:choice>
+    </xs:sequence>
+	<xs:attribute name="Uri" type="xs:anyURI" use="required"/>
+	<xs:attribute name="Optional" type="xs:boolean" use="optional"/>
+	<xs:anyAttribute namespace="##other" processContents="lax"/>	
+  </xs:complexType>
+
+  <xs:complexType name="DisplayNameType">
+    <xs:simpleContent>
+     <xs:extension base="xs:string">
+        <xs:anyAttribute namespace="##other" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="DescriptionType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:anyAttribute namespace="##other" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="DisplayValueType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:anyAttribute namespace="##other" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="EncryptedValueType">
+    <xs:sequence>
+      <xs:element maxOccurs="1" minOccurs="1" ref="xenc:EncryptedData"/>
+    </xs:sequence>
+    <xs:attribute name="DecryptionCondition" type="xs:anyURI" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="StructuredValueType">
+    <xs:sequence>
+      <xs:any maxOccurs="unbounded" minOccurs="1" namespace="##other" processContents="lax"/>
+    </xs:sequence>
+    <xs:anyAttribute namespace="##other" processContents="lax"/>
+  </xs:complexType>
+
+  <!-- Section 9.3.1 -->
+
+  <xs:complexType name="ConstrainedValueType">
+    <xs:sequence>
+      <xs:choice minOccurs="1">
+        <xs:element maxOccurs="1" minOccurs="1" name="ValueLessThan" type="tns:ConstrainedSingleValueType"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="ValueLessThanOrEqual" type="tns:ConstrainedSingleValueType"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="ValueGreaterThan" type="tns:ConstrainedSingleValueType"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="ValueGreaterThanOrEqual" type="tns:ConstrainedSingleValueType"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="ValueInRangen" type="tns:ValueInRangeType"/>
+        <xs:element maxOccurs="1" minOccurs="1" name="ValueOneOf" type="tns:ConstrainedManyValueType"/>
+      </xs:choice>
+      <xs:any maxOccurs="unbounded" minOccurs="1" namespace="##other" processContents="lax"/>
+    </xs:sequence>
+    <xs:attribute name="AssertConstraint" type="xs:boolean" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="ValueInRangeType">
+    <xs:sequence>
+      <xs:element maxOccurs="1" minOccurs="1" name="ValueUpperBound" type="tns:ConstrainedSingleValueType"/>
+      <xs:element maxOccurs="1" minOccurs="1" name="ValueLowerBound" type="tns:ConstrainedSingleValueType"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="ConstrainedSingleValueType">
+    <xs:choice minOccurs="0">
+      <xs:element maxOccurs="1" minOccurs="1" name="Value" type="xs:string"/>
+      <xs:element maxOccurs="1" minOccurs="1" name="StructuredValue" type="tns:StructuredValueType"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="ConstrainedManyValueType">
+    <xs:choice minOccurs="0">
+      <xs:element maxOccurs="unbounded" minOccurs="1" name="Value" type="xs:string"/>
+      <xs:element maxOccurs="unbounded" minOccurs="1" name="StructuredValue" type="tns:StructuredValueType"/>
+    </xs:choice>
+  </xs:complexType>
+
+</xs:schema>
